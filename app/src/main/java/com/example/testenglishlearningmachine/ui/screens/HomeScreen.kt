@@ -34,7 +34,7 @@ fun HomeScreen(navController: NavController) {
     Scaffold(
         topBar = {
             AppTopBar(
-                title = "English Learning Machine",
+                title = "I have made a change",
                 canNavigateBack = false,
                 navigateUp = {}
             )
