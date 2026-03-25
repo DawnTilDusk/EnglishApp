@@ -1,13 +1,26 @@
 package com.example.testenglishlearningmachine.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +29,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -45,95 +60,143 @@ fun QuizScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
+                .padding(24.dp),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Score: $score",
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(bottom = 32.dp)
-            )
+            // Score Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Score",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                )
+                Text(
+                    text = "$score",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
 
             if (currentQuestion != null) {
                 Text(
-                    text = "What is the meaning of:",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "What is the meaning of",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
                 Text(
-                    text = currentQuestion!!.text,
+                    text = "\"${currentQuestion!!.text}\"?",
                     style = MaterialTheme.typography.displayMedium,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 16.dp)
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    textAlign = TextAlign.Center
                 )
+                
+                Spacer(modifier = Modifier.height(32.dp))
 
                 options.forEach { option ->
-                    val buttonColor = if (isCorrect != null) {
-                        if (option.id == currentQuestion!!.id) {
-                            Color.Green // Correct answer
-                        } else if (isCorrect == false && option.meaning == currentQuestion!!.meaning) {
-                             Color.Green // Should not happen if checking IDs, but just in case
-                        } else {
-                            if (isCorrect == false) Color.Red else MaterialTheme.colorScheme.primary
-                        }
-                    } else {
+                    val isThisCorrectAnswer = option.id == currentQuestion!!.id
+                    val showAsCorrect = isCorrect != null && isThisCorrectAnswer
+                    
+                    val borderColor = if (showAsCorrect) {
                         MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                     }
                     
-                    // Actually, logic for color:
-                    // If not answered: Primary
-                    // If answered:
-                    //   - If this button is the correct answer: Green
-                    //   - If this button was clicked AND it is wrong: Red
-                    //   - Otherwise: Gray/Disabled look?
-                    
-                    // Let's simplify:
-                    // We need to know WHICH button was clicked to show Red on THAT one.
-                    // But ViewModel only exposes isCorrect.
-                    // Let's just highlight the Correct Answer in Green always after answer.
-                    // And if wrong, we don't know which one was clicked unless we track it.
-                    // For MVP, just show Correct Answer in Green.
-                    
-                    val backgroundColor = if (isCorrect != null) {
-                        if (option.id == currentQuestion!!.id) {
-                             Color(0xFF4CAF50) // Green
-                        } else {
-                             MaterialTheme.colorScheme.surfaceVariant
-                        }
+                    val containerColor = if (showAsCorrect) {
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        MaterialTheme.colorScheme.primary
+                        MaterialTheme.colorScheme.surface
                     }
 
-                    Button(
+                    OutlinedCard(
                         onClick = { viewModel.checkAnswer(option) },
+                        enabled = isCorrect == null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        enabled = isCorrect == null,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = backgroundColor,
-                            disabledContainerColor = backgroundColor,
-                            contentColor = if (isCorrect == null) Color.White else Color.Black,
-                            disabledContentColor = Color.Black
-                        )
+                            .padding(vertical = 8.dp)
+                            .height(72.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.outlinedCardColors(
+                            containerColor = containerColor,
+                            disabledContainerColor = containerColor
+                        ),
+                        border = BorderStroke(if (showAsCorrect) 2.dp else 1.dp, borderColor)
                     ) {
-                        Text(text = option.meaning)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 24.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = option.meaning,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = if (showAsCorrect) FontWeight.Bold else FontWeight.Normal,
+                                color = if (showAsCorrect) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            )
+                            
+                            if (showAsCorrect) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = "Correct",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            } else if (isCorrect == false && !isThisCorrectAnswer) {
+                                // We don't track exactly which wrong one was clicked in this MVP,
+                                // but we could show a hint. For now, keep it simple.
+                            }
+                        }
                     }
                 }
 
+                Spacer(modifier = Modifier.height(32.dp))
+
                 if (isCorrect != null) {
-                    Text(
-                        text = if (isCorrect == true) "Correct!" else "Wrong!",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = if (isCorrect == true) Color(0xFF4CAF50) else Color.Red,
+                    val feedbackText = if (isCorrect == true) "Awesome! That's correct." else "Not quite right."
+                    val feedbackColor = if (isCorrect == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                    val feedbackIcon = if (isCorrect == true) Icons.Default.CheckCircle else Icons.Default.Cancel
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.padding(vertical = 16.dp)
-                    )
+                    ) {
+                        Icon(
+                            imageVector = feedbackIcon,
+                            contentDescription = null,
+                            tint = feedbackColor,
+                            modifier = Modifier.size(28.dp).padding(end = 8.dp)
+                        )
+                        Text(
+                            text = feedbackText,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = feedbackColor,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
 
                     Button(
                         onClick = { viewModel.generateNewQuestion() },
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Next Question")
+                        Text("Next Question", style = MaterialTheme.typography.titleMedium)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
                     }
                 }
             } else {
