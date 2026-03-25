@@ -55,4 +55,10 @@ class QuizViewModel : ViewModel() {
             _score.value += 1
         }
     }
+
+    fun markAsUnknown() {
+        if (_isCorrect.value != null) return // Already answered
+        
+        _isCorrect.value = false
+    }
 }
