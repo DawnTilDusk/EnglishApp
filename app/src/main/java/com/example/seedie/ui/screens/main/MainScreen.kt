@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.School
 import com.example.seedie.ui.screens.dashboard.DashboardScreen
+import com.example.seedie.ui.screens.profile.ProfileScreen
 import com.example.seedie.ui.components.CustomIndicatorPanel
 
 @Composable
@@ -73,6 +74,7 @@ fun MainScreen() {
                     onModuleClick = { /* TODO: Route to specific study page */ },
                     snackbarHostState = snackbarHostState
                 ) // Tab 2: Learning Hub
+                3 -> ProfileScreen() // Tab 4: Profile & Rewards
                 else -> {
                     // Placeholder for other Tabs
                     Box(
