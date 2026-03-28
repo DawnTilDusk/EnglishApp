@@ -1,20 +1,27 @@
 # Seedie
 
+## 开发文档与状态追踪（20260328）
+
+- [Seedie App Changelog (当前开发状态)](docs/changelog.md)
+- [Seedie App TODO List (待实现与打磨功能)](docs/todo_list.md)
+- [Seedie App 技术实现方案 (Specs)](docs/spec/spec.md)
+- [Seedie App 任务拆解 (Tasks)](docs/spec/tasks.md)
+
 ## Git 分支管理策略
 
 我们采用轻量级的 **Feature Branch Workflow**。
 
 ### 核心分支说明
 
-* **`main`**: 生产分支。仅存放最稳定的发布版本，禁止直接提交。
-* **`develop`**: 汇总分支。两人的代码集散地，用于日常集成和联调。
-* **`feature/功能名`**: 临时分支。每个新功能或 UI 改动都应在此分支进行。
+- **`main`**: 生产分支。仅存放最稳定的发布版本，禁止直接提交。
+- **`develop`**: 汇总分支。两人的代码集散地，用于日常集成和联调。
+- **`feature/功能名`**: 临时分支。每个新功能或 UI 改动都应在此分支进行。
 
 ### 命名规范
 
-* **新功能**: `feature/tab1-heatmap`, `feature/nav-pager-logic`
-* **修复 Bug**: `fix/nav-bar-offset`
-* **重构**: `refactor/database-schema`
+- **新功能**: `feature/tab1-heatmap`, `feature/nav-pager-logic`
+- **修复 Bug**: `fix/nav-bar-offset`
+- **重构**: `refactor/database-schema`
 
 ## 实际操作指令示例
 
@@ -78,10 +85,4 @@ git push origin develop
 git branch -d feature/tab1-heatmap
 ```
 
-## 开发文档与状态追踪
-
-* [Seedie App Changelog (当前开发状态)](docs/changelog.md)
-* [Seedie App TODO List (待实现与打磨功能)](docs/todo_list.md)
-* [Seedie App 技术实现方案 (Specs)](docs/spec/spec.md)
-* [Seedie App 任务拆解 (Tasks)](docs/spec/tasks.md)
-
+##
