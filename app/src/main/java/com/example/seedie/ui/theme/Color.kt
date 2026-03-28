@@ -2,10 +2,15 @@ package com.example.seedie.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Core Palette
+val PrimaryGreen = Color(0xFF66BB6A) // 生机绿
+val SecondaryBrown = Color(0xFF8D6E63) // 橡木棕
+val AccentOrange = Color(0xFFFFB74D) // 暖阳橙
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Surfaces
+val BackgroundMint = Color(0xFFF1F8E9) // 淡薄荷绿
+val SurfaceCream = Color(0xFFFFFFFF) // 奶油白
+
+// State Colors
+val HeatmapLight = Color(0xFFE8F5E9) // 浅苔
+val HeatmapDark = Color(0xFF2E7D32) // 深林
