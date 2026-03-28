@@ -77,3 +77,11 @@ git push origin develop
 # 删除本地的临时功能分支（可选）
 git branch -d feature/tab1-heatmap
 ```
+
+## 开发文档与状态追踪
+
+* [Seedie App Changelog (当前开发状态)](docs/changelog.md)
+* [Seedie App TODO List (待实现与打磨功能)](docs/todo_list.md)
+* [Seedie App 技术实现方案 (Specs)](docs/spec/spec.md)
+* [Seedie App 任务拆解 (Tasks)](docs/spec/tasks.md)
+
