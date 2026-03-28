@@ -12,15 +12,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
+    primary = PrimaryGreen,
+    secondary = SecondaryBrown,
+    tertiary = AccentOrange,
+    background = BackgroundMint,
+    surface = SurfaceCream
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = PrimaryGreen,
+    secondary = SecondaryBrown,
+    tertiary = AccentOrange,
+    background = BackgroundMint,
+    surface = SurfaceCream
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -37,7 +41,7 @@ private val LightColorScheme = lightColorScheme(
 fun SeedieTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, // 禁用动态取色以保证 Garden IP 配色
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -53,6 +57,7 @@ fun SeedieTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
+        shapes = GardenShapes,
         content = content
     )
 }
