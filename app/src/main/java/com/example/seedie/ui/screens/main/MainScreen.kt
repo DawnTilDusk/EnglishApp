@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.seedie.ui.components.BottomNavigationBar
 import com.example.seedie.ui.components.CustomIndicatorPanel
+import com.example.seedie.ui.screens.dashboard.DashboardScreen
 
 @Composable
 fun MainScreen() {
@@ -42,16 +43,21 @@ fun MainScreen() {
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) { page ->
-            // Placeholder for the 4 Tabs
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Tab ${page + 1}",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+            when (page) {
+                0 -> DashboardScreen() // Tab 1: Dashboard
+                else -> {
+                    // Placeholder for other Tabs
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Tab ${page + 1}",
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
         }
     }
