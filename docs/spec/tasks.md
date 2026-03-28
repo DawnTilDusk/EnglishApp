@@ -1,10 +1,10 @@
 # Seedie App 任务拆解 (Tasks)
 
 ## 阶段一：基础工程与核心 UI 规范
-- [ ] T1.1: 配置横屏锁定 (`landscape`)、Android 15 Target SDK，适配 2560*1600 分辨率。
-- [ ] T1.2: 按照 Clean Architecture 搭建基础目录结构 (`ui`, `domain`, `data`, `di`)。
-- [ ] T1.3: 引入官方核心依赖 (Compose Navigation, Room, Hilt, Coroutines) 并完成基础配置。
-- [ ] T1.4: 搭建 `ui/theme` 核心色盘 (主色#66BB6A等)、空间底色、24dp 圆角 `CardShape` 及自定义 `gardenShadow` 扩展。
+- [x] T1.1: 配置横屏锁定 (`landscape`)、Android 15 Target SDK，适配 2560*1600 分辨率。
+- [x] T1.2: 按照 Clean Architecture 搭建基础目录结构 (`ui`, `domain`, `data`, `di`)。
+- [x] T1.3: 引入官方核心依赖 (Compose Navigation, Room, Hilt, Coroutines) 并完成基础配置。
+- [x] T1.4: 搭建 `ui/theme` 核心色盘 (主色#66BB6A等)、空间底色、24dp 圆角 `CardShape` 及自定义 `gardenShadow` 扩展。
 
 ## 阶段二：底层数据流与状态中枢
 - [ ] T2.1: 构建 Room 数据库层 (实体表：任务、打卡、植物、资产)。

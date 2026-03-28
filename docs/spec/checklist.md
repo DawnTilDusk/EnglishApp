@@ -1,10 +1,10 @@
 # Seedie App 任务检查单 (Checklist)
 
 ### 基础建设与架构
-- [ ] 锁定屏幕方向为横屏。
-- [ ] 遵循 Clean Architecture，核心目录（`ui`, `domain`, `data`, `di`）划分清晰。
-- [ ] UI Theme 色盘、圆角、阴影配置完成。
-- [ ] 官方核心依赖（Hilt、Room、Compose Navigation）引入并配置完成。
+- [x] 锁定屏幕方向为横屏。
+- [x] 遵循 Clean Architecture，核心目录（`ui`, `domain`, `data`, `di`）划分清晰。
+- [x] UI Theme 色盘、圆角、阴影配置完成。
+- [x] 官方核心依赖（Hilt、Room、Compose Navigation）引入并配置完成。
 
 ### 状态管理与中枢层
 - [ ] `UserSessionRepository` 开发完毕且可以全局监听。
