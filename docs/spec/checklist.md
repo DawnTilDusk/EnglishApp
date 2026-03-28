@@ -7,15 +7,15 @@
 - [x] 官方核心依赖（Hilt、Room、Compose Navigation）引入并配置完成。
 
 ### 状态管理与中枢层
-- [ ] `UserSessionRepository` 开发完毕且可以全局监听。
-- [ ] `EconomyManager` 开发完毕且能正确记录代币交易。
-- [ ] 建立事件总线 `RewardEventBus` 以支持跨页面动效通信。
+- [x] `UserSessionRepository` 开发完毕且可以全局监听。
+- [x] `EconomyManager` 开发完毕且能正确记录代币交易。
+- [x] 建立事件总线 `RewardEventBus` 以支持跨页面动效通信。
 
 ### 路由与容器层
-- [ ] Splash/Check-in 页展示与拦截跳转逻辑正常。
-- [ ] 基于 `HorizontalPager` 的主框架搭建完成。
-- [ ] 底部导航栏 Tab 与 Pager 滑动完美联动。
-- [ ] 悬浮的页面指示器（动态拉长点）与 Pager 滑动状态绑定完成。
+- [x] Splash/Check-in 页展示与拦截跳转逻辑正常。
+- [x] 基于 `HorizontalPager` 的主框架搭建完成。
+- [x] 底部导航栏 Tab 与 Pager 滑动完美联动。
+- [x] 悬浮的页面指示器（动态拉长点）与 Pager 滑动状态绑定完成。
 
 ### 业务 Tab 开发
 - [ ] **Tab 1**: 热力图组件能根据不同完成度显示不同深浅的绿色。
