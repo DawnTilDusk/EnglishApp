@@ -3,8 +3,9 @@
 ## 〇、约束与基础设定
 * **硬件与显示**：锁定横屏运行 (`android:screenOrientation="landscape"`)，适配 2560*1600 分辨率。
 * **操作系统**：目标 Android 15 (API Level 35)。
-* **UI 框架**：100% Jetpack Compose，拒绝传统 XML 布局（除必须的启动屏外）。
-* **架构模式**：采用单 Activity 架构 + MVI 状态管理 + Clean Architecture，依赖注入推荐使用 Hilt。
+* **UI 框架**：100% Jetpack Compose（原生的 `Canvas` 和 `Animation` 替代第三方图表与动效库）。
+* **架构模式**：遵循 Clean Architecture（UI层 / 领域层 / 数据层严格分离）+ MVI 状态管理。
+* **核心技术栈**：Jetpack 官方标准件（ViewModel, StateFlow, Room, Hilt, Compose Navigation），兼顾极简与未来可扩展性。
 
 ## 一、 主题与 UI 规范系统 (Theme System)
 依据“Garden”核心 IP 设计，在 `ui/theme` 中定义：
