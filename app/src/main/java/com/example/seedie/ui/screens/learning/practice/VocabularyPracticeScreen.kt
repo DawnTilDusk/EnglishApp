@@ -1,6 +1,11 @@
 package com.example.seedie.ui.screens.learning.practice
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,13 +39,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -150,6 +158,16 @@ private fun PracticeContent(
     val totalQuestions = uiState.questions.size.coerceAtLeast(1)
     val progress = (uiState.currentQuestionIndex + 1) / totalQuestions.toFloat()
     var isAuxPanelExpanded by rememberSaveable { mutableStateOf(false) }
+    val mainPanelWeight by animateFloatAsState(
+        targetValue = if (isAuxPanelExpanded) 0.64f else 1f,
+        animationSpec = tween(durationMillis = 260),
+        label = "mainPanelWeight"
+    )
+    val auxPanelWeight by animateFloatAsState(
+        targetValue = if (isAuxPanelExpanded) 0.36f else 0f,
+        animationSpec = tween(durationMillis = 260),
+        label = "auxPanelWeight"
+    )
 
     Column(
         modifier = Modifier
@@ -223,7 +241,7 @@ private fun PracticeContent(
             ) {
                 Column(
                     modifier = Modifier
-                        .weight(if (isAuxPanelExpanded) 0.72f else 1f)
+                        .weight(mainPanelWeight)
                         .fillMaxHeight(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
@@ -271,16 +289,44 @@ private fun PracticeContent(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text(
-                            text = currentQuestion.exampleSentence,
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = if (isAuxPanelExpanded) 2 else 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                                .padding(horizontal = 16.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = currentQuestion.exampleSentence,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(
+                                        if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+                                            Modifier
+                                        } else {
+                                            Modifier.blur(10.dp)
+                                        }
+                                    ),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = if (isAuxPanelExpanded) 2 else 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
+                                Box(
+                                    modifier = Modifier
+                                        .matchParentSize()
+                                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "作答之后展示例句",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -325,42 +371,61 @@ private fun PracticeContent(
                     }
                 }
 
-                if (isAuxPanelExpanded) {
-                    Surface(
+                if (isAuxPanelExpanded || auxPanelWeight > 0.01f) {
+                    Box(
                         modifier = Modifier
-                            .weight(0.28f)
-                            .fillMaxHeight(),
-                        shape = MaterialTheme.shapes.large,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                            .weight(auxPanelWeight.coerceAtLeast(0.001f))
+                            .fillMaxHeight()
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = "拓展栏",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "后续可放注记、错题提示或 AI 助手。",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium,
-                                color = MaterialTheme.colorScheme.surface
-                            ) {
-                                Text(
-                                    text = "当前版本仅预留区域，不承载实际功能。",
-                                    modifier = Modifier.padding(14.dp),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.secondary
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isAuxPanelExpanded,
+                            modifier = Modifier.fillMaxSize(),
+                            enter = fadeIn(animationSpec = tween(180)) +
+                                expandHorizontally(
+                                    animationSpec = tween(260),
+                                    expandFrom = Alignment.Start
+                                ),
+                            exit = fadeOut(animationSpec = tween(140)) +
+                                shrinkHorizontally(
+                                    animationSpec = tween(220),
+                                    shrinkTowards = Alignment.Start
                                 )
+                        ) {
+                            Surface(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = MaterialTheme.shapes.large,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    Text(
+                                        text = "拓展栏",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = "后续可放注记、错题提示或 AI 助手。",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = MaterialTheme.shapes.medium,
+                                        color = MaterialTheme.colorScheme.surface
+                                    ) {
+                                        Text(
+                                            text = "当前版本仅预留区域，不承载实际功能。",
+                                            modifier = Modifier.padding(14.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -454,9 +519,17 @@ private fun OptionCard(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = option.label,
+                modifier = Modifier.weight(1f),
+                text = buildString {
+                    append(option.label)
+                    if (stage == VocabularyPracticeStage.AnswerEvaluated && !option.englishHint.isNullOrBlank()) {
+                        append("  ")
+                        append(option.englishHint)
+                    }
+                },
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             if (stage == VocabularyPracticeStage.AnswerEvaluated) {

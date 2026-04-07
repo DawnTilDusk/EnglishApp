@@ -32,7 +32,8 @@ enum class AnswerStatus {
 data class VocabularyPracticeOption(
     val optionId: String,
     val label: String,
-    val isCorrect: Boolean
+    val isCorrect: Boolean,
+    val englishHint: String? = null
 )
 
 data class VocabularyPracticeQuestion(

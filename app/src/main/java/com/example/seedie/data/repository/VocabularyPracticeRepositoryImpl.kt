@@ -91,20 +91,20 @@ class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPractic
             .asSequence()
             .filter { it.wordId != wordId && it.translation != translation }
             .sortedByDescending { candidate -> candidate.partOfSpeech == partOfSpeech }
-            .map { candidate -> candidate.translation }
-            .distinct()
+            .distinctBy { candidate -> candidate.translation }
             .toList()
             .shuffled(random)
             .take(3)
 
-        val options = (distractorPool + translation)
-            .distinct()
+        val optionEntries = (distractorPool + this)
+            .distinctBy { entry -> entry.translation }
             .shuffled(random)
-            .mapIndexed { optionIndex, label ->
+            .mapIndexed { optionIndex, entry ->
                 VocabularyPracticeOption(
                     optionId = "q${questionNumber}_o${optionIndex + 1}",
-                    label = label,
-                    isCorrect = label == translation
+                    label = entry.translation,
+                    isCorrect = entry.wordId == wordId,
+                    englishHint = entry.english
                 )
             }
 
@@ -116,7 +116,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPractic
             phonetic = phonetic,
             partOfSpeech = partOfSpeech,
             translationCorrect = translation,
-            optionList = options,
+            optionList = optionEntries,
             exampleSentence = exampleSentence,
             difficultyLevel = difficultyLevel,
             rewardToken = rewardToken,
