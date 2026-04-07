@@ -9,6 +9,7 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeSession
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionType
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionRecord
 import com.example.seedie.ui.screens.learning.practice.VocabularySessionMeta
+import kotlin.random.Random
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -17,11 +18,11 @@ import javax.inject.Singleton
 class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPracticeRepository {
     private val questionRecords = linkedMapOf<String, MutableList<VocabularyQuestionRecord>>()
     private val completedResults = linkedMapOf<String, StudyResult>()
+    private val wordBank = VocabularyStaticWordPack.entries
 
     override suspend fun getPracticeSession(args: VocabularyPracticeArgs): VocabularyPracticeSession {
         val sessionId = args.sessionId ?: UUID.randomUUID().toString()
-        val questions = buildQuestionBank()
-            .take(args.wordCountTarget.coerceAtLeast(1))
+        val questions = buildQuestionBank(args = args, sessionId = sessionId)
 
         return VocabularyPracticeSession(
             sessionMeta = VocabularySessionMeta(
@@ -54,103 +55,72 @@ class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPractic
             .orEmpty()
     }
 
-    private fun buildQuestionBank(): List<VocabularyPracticeQuestion> {
-        return listOf(
-            VocabularyPracticeQuestion(
-                questionId = "q1",
-                wordId = "w1",
-                questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
-                english = "apple",
-                phonetic = "/ˈae.pəl/",
-                partOfSpeech = "n.",
-                translationCorrect = "苹果",
-                optionList = listOf(
-                    VocabularyPracticeOption("q1_a", "苹果", true),
-                    VocabularyPracticeOption("q1_b", "香蕉", false),
-                    VocabularyPracticeOption("q1_c", "橙子", false),
-                    VocabularyPracticeOption("q1_d", "西瓜", false)
-                ),
-                exampleSentence = "An apple a day keeps the doctor away.",
-                difficultyLevel = "easy",
-                rewardToken = 3,
-                estimatedDurationSec = 8
-            ),
-            VocabularyPracticeQuestion(
-                questionId = "q2",
-                wordId = "w2",
-                questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
-                english = "bridge",
-                phonetic = "/brɪdʒ/",
-                partOfSpeech = "n.",
-                translationCorrect = "桥",
-                optionList = listOf(
-                    VocabularyPracticeOption("q2_a", "山", false),
-                    VocabularyPracticeOption("q2_b", "桥", true),
-                    VocabularyPracticeOption("q2_c", "森林", false),
-                    VocabularyPracticeOption("q2_d", "河流", false)
-                ),
-                exampleSentence = "We walked across the bridge together.",
-                difficultyLevel = "easy",
-                rewardToken = 3,
-                estimatedDurationSec = 8
-            ),
-            VocabularyPracticeQuestion(
-                questionId = "q3",
-                wordId = "w3",
-                questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
-                english = "careful",
-                phonetic = "/ˈkeə.fəl/",
-                partOfSpeech = "adj.",
-                translationCorrect = "小心的",
-                optionList = listOf(
-                    VocabularyPracticeOption("q3_a", "勇敢的", false),
-                    VocabularyPracticeOption("q3_b", "安静的", false),
-                    VocabularyPracticeOption("q3_c", "小心的", true),
-                    VocabularyPracticeOption("q3_d", "整洁的", false)
-                ),
-                exampleSentence = "Please be careful with the glass bottle.",
-                difficultyLevel = "medium",
-                rewardToken = 4,
-                estimatedDurationSec = 10
-            ),
-            VocabularyPracticeQuestion(
-                questionId = "q4",
-                wordId = "w4",
-                questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
-                english = "discover",
-                phonetic = "/dɪˈskʌv.ər/",
-                partOfSpeech = "v.",
-                translationCorrect = "发现",
-                optionList = listOf(
-                    VocabularyPracticeOption("q4_a", "发现", true),
-                    VocabularyPracticeOption("q4_b", "修理", false),
-                    VocabularyPracticeOption("q4_c", "追赶", false),
-                    VocabularyPracticeOption("q4_d", "选择", false)
-                ),
-                exampleSentence = "The children discover a tiny seed in the soil.",
-                difficultyLevel = "medium",
-                rewardToken = 4,
-                estimatedDurationSec = 10
-            ),
-            VocabularyPracticeQuestion(
-                questionId = "q5",
-                wordId = "w5",
-                questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
-                english = "protect",
-                phonetic = "/prəˈtekt/",
-                partOfSpeech = "v.",
-                translationCorrect = "保护",
-                optionList = listOf(
-                    VocabularyPracticeOption("q5_a", "推动", false),
-                    VocabularyPracticeOption("q5_b", "种植", false),
-                    VocabularyPracticeOption("q5_c", "保护", true),
-                    VocabularyPracticeOption("q5_d", "清洗", false)
-                ),
-                exampleSentence = "Trees protect the soil from strong wind.",
-                difficultyLevel = "medium",
-                rewardToken = 4,
-                estimatedDurationSec = 10
+    private fun buildQuestionBank(
+        args: VocabularyPracticeArgs,
+        sessionId: String
+    ): List<VocabularyPracticeQuestion> {
+        val random = Random(sessionId.hashCode())
+        val requestedCount = args.wordCountTarget.coerceIn(1, wordBank.size)
+        val requestedDifficulty = args.difficulty.trim().lowercase()
+
+        val difficultyPool = when (requestedDifficulty) {
+            "", "mixed", "all" -> wordBank
+            else -> wordBank.filter { it.difficultyLevel == requestedDifficulty }
+        }
+
+        val basePool = if (difficultyPool.size >= requestedCount) difficultyPool else wordBank
+        val selectedEntries = basePool
+            .shuffled(random)
+            .take(requestedCount)
+
+        return selectedEntries.mapIndexed { index, entry ->
+            entry.toQuestion(
+                questionNumber = index + 1,
+                allEntries = wordBank,
+                random = random
             )
+        }
+    }
+
+    private fun StaticWordEntry.toQuestion(
+        questionNumber: Int,
+        allEntries: List<StaticWordEntry>,
+        random: Random
+    ): VocabularyPracticeQuestion {
+        val distractorPool = allEntries
+            .asSequence()
+            .filter { it.wordId != wordId && it.translation != translation }
+            .sortedByDescending { candidate -> candidate.partOfSpeech == partOfSpeech }
+            .map { candidate -> candidate.translation }
+            .distinct()
+            .toList()
+            .shuffled(random)
+            .take(3)
+
+        val options = (distractorPool + translation)
+            .distinct()
+            .shuffled(random)
+            .mapIndexed { optionIndex, label ->
+                VocabularyPracticeOption(
+                    optionId = "q${questionNumber}_o${optionIndex + 1}",
+                    label = label,
+                    isCorrect = label == translation
+                )
+            }
+
+        return VocabularyPracticeQuestion(
+            questionId = "q_$wordId",
+            wordId = wordId,
+            questionType = VocabularyQuestionType.MULTIPLE_CHOICE_TRANSLATION,
+            english = english,
+            phonetic = phonetic,
+            partOfSpeech = partOfSpeech,
+            translationCorrect = translation,
+            optionList = options,
+            exampleSentence = exampleSentence,
+            difficultyLevel = difficultyLevel,
+            rewardToken = rewardToken,
+            estimatedDurationSec = estimatedDurationSec
         )
     }
 }

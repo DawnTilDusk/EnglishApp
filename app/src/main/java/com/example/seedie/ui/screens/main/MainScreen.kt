@@ -57,7 +57,7 @@ fun MainScreen(
     }
 
     val learningModules = listOf(
-        ModuleConfig("vocabulary", "背单词", "开始今日 Garden 词包", Icons.AutoMirrored.Filled.MenuBook, isAvailable = true, hasNewContent = true),
+        ModuleConfig("vocabulary", "背单词", "静态词包已升级，支持更多词条", Icons.AutoMirrored.Filled.MenuBook, isAvailable = true, hasNewContent = true),
         ModuleConfig("grammar", "语法", "句型结构突破", Icons.Default.School),
         ModuleConfig("quiz", "词汇测验", "检验学习成果", Icons.Default.Quiz),
         ModuleConfig("textbook", "教材训练", "同步课堂进度", Icons.Default.Book),
