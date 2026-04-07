@@ -1,5 +1,6 @@
 package com.example.seedie.ui.screens.learning.practice
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -7,11 +8,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -33,10 +36,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
@@ -142,6 +149,7 @@ private fun PracticeContent(
     val currentQuestion = uiState.currentQuestion ?: return
     val totalQuestions = uiState.questions.size.coerceAtLeast(1)
     val progress = (uiState.currentQuestionIndex + 1) / totalQuestions.toFloat()
+    var isAuxPanelExpanded by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -202,90 +210,158 @@ private fun PracticeContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .gardenShadow(),
+                .gardenShadow()
+                .animateContentSize(),
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surface
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                Column(
+                    modifier = Modifier
+                        .weight(if (isAuxPanelExpanded) 0.72f else 1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text(
-                            text = currentQuestion.english,
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "${currentQuestion.phonetic}  ${currentQuestion.partOfSpeech}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(
+                                text = currentQuestion.english,
+                                style = MaterialTheme.typography.displaySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "${currentQuestion.phonetic}  ${currentQuestion.partOfSpeech}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    text = "用时 ${uiState.elapsedSeconds}s",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text(
+                                    text = "剩余 ${uiState.remainingCount} 题",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                            AuxPanelToggle(
+                                expanded = isAuxPanelExpanded,
+                                onClick = { isAuxPanelExpanded = !isAuxPanelExpanded }
+                            )
+                        }
                     }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "用时 ${uiState.elapsedSeconds}s",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = "剩余 ${uiState.remainingCount} 题",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
-                }
 
-                Text(
-                    text = "请选择最准确的中文释义",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    currentQuestion.optionList.forEach { option ->
-                        OptionCard(
-                            option = option,
-                            selectedOptionId = uiState.selectedOptionId,
-                            answerStatus = uiState.answerStatus,
-                            stage = uiState.stage,
-                            onOptionSelected = onOptionSelected
-                        )
-                    }
-                }
-
-                Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                        shape = MaterialTheme.shapes.medium
                     ) {
                         Text(
-                            text = "例句",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
                             text = currentQuestion.exampleSentence,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = if (isAuxPanelExpanded) 2 else 1,
+                            overflow = TextOverflow.Ellipsis
                         )
-                        if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
-                            Text(
-                                text = feedbackText(uiState.answerStatus, currentQuestion.translationCorrect),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = feedbackColor(uiState.answerStatus)
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        currentQuestion.optionList.forEach { option ->
+                            OptionCard(
+                                option = option,
+                                selectedOptionId = uiState.selectedOptionId,
+                                answerStatus = uiState.answerStatus,
+                                stage = uiState.stage,
+                                onOptionSelected = onOptionSelected
                             )
+                        }
+                    }
+
+                    if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = currentQuestion.translationCorrect,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Text(
+                                    text = feedbackText(uiState.answerStatus, currentQuestion.translationCorrect),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = feedbackColor(uiState.answerStatus),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (isAuxPanelExpanded) {
+                    Surface(
+                        modifier = Modifier
+                            .weight(0.28f)
+                            .fillMaxHeight(),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = "拓展栏",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "后续可放注记、错题提示或 AI 助手。",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surface
+                            ) {
+                                Text(
+                                    text = "当前版本仅预留区域，不承载实际功能。",
+                                    modifier = Modifier.padding(14.dp),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 }
@@ -397,6 +473,31 @@ private fun OptionCard(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun AuxPanelToggle(
+    expanded: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.clickable(onClick = onClick),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(34.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (expanded) ">" else "<",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
