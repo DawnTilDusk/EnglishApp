@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+import javax.inject.Inject
+
 data class AuthSession(
     val userId: String,
     val role: String,
@@ -15,7 +17,7 @@ data class AuthSession(
     val studentName: String? = null
 )
 
-class AuthService(private val client: SupabaseClient = supabaseClient) {
+class AuthService @Inject constructor(private val client: SupabaseClient) {
 
     private val _currentSession = MutableStateFlow<AuthSession?>(null)
     val currentSession: StateFlow<AuthSession?> = _currentSession.asStateFlow()
