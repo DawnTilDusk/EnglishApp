@@ -21,6 +21,7 @@ fun LoginScreen(
     val password by viewModel.password.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val isEmailValid = remember(email) { viewModel.isEmailFormatValid(email) }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -31,7 +32,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "欢迎来到 Seedie",
+                text = "Welcome to Seedie!",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -80,7 +81,7 @@ fun LoginScreen(
                     // 点击登录，如果成功，ViewModel 会调用这个闭包 (onNavigateToNext)
                     viewModel.login(onLoginSuccess = { onNavigateToNext() }) 
                 },
-                enabled = !isLoading && email.isNotBlank() && password.isNotBlank(),
+                enabled = !isLoading && isEmailValid && password.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .height(56.dp)

@@ -15,6 +15,9 @@ class LoginViewModel @Inject constructor(
     private val authService: AuthService
 ) : ViewModel() {
 
+    //pattern format checker
+    private val emailPattern = Regex(".*@.*")
+
     // UI 状态
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email.asStateFlow()
@@ -31,10 +34,17 @@ class LoginViewModel @Inject constructor(
     fun onEmailChange(newEmail: String) { _email.value = newEmail }
     fun onPasswordChange(newPassword: String) { _password.value = newPassword }
 
+    fun isEmailFormatValid(value: String = _email.value): Boolean = emailPattern.matches(value)
+
     // 核心登录方法，接收一个成功后的回调（跳转接口）
     fun login(onLoginSuccess: () -> Unit) {
         if (_email.value.isBlank() || _password.value.isBlank()) {
             _errorMessage.value = "请输入邮箱和密码"
+            return
+        }
+
+        if (!isEmailFormatValid()) {
+            _errorMessage.value = "邮箱格式不正确"
             return
         }
 
@@ -47,7 +57,7 @@ class LoginViewModel @Inject constructor(
                 // 登录成功，触发外部传入的跳转接口
                 onLoginSuccess()
             } else {
-                _errorMessage.value = result.exceptionOrNull()?.message ?: "登录失败，请检查账号密码"
+                _errorMessage.value = _errorMessage.value ?: "登录失败，请检查账号或密码"
             }
             _isLoading.value = false
         }
