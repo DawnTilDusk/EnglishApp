@@ -3,6 +3,7 @@ package com.example.seedie.data.remote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,8 @@ data class AuthSession(
 )
 
 class AuthService @Inject constructor(private val client: SupabaseClient) {
+
+    val sessionStatus: StateFlow<SessionStatus> = client.auth.sessionStatus
 
     private val _currentSession = MutableStateFlow<AuthSession?>(null)
     val currentSession: StateFlow<AuthSession?> = _currentSession.asStateFlow()
