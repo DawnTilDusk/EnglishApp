@@ -42,8 +42,8 @@ class MainViewModel @Inject constructor(
                         // 未登录，或用户主动登出
                         _isLoggedIn.value = false
                     }
-                    is SessionStatus.NetworkError -> {
-                        // 网络异常状态，为了不让用户卡在开屏页，赋值 false 退回登录界面
+                    is SessionStatus.RefreshFailure -> {
+                        // Token 刷新失败（可能已过期或被撤销），退回登录界面重新登录
                         _isLoggedIn.value = false
                     }
                 }
