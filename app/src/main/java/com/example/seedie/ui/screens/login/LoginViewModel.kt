@@ -81,7 +81,7 @@ class LoginViewModel @Inject constructor(
                 // 登录成功，触发外部传入的跳转接口
                 onLoginSuccess()
             } else {
-                _errorMessage.value = result.exceptionOrNull()?.message ?: "登录失败，请检查账号或密码"
+                _errorMessage.value = _errorMessage.value ?: "登录失败，请检查账号或密码"
             }
             _isLoading.value = false
         }
