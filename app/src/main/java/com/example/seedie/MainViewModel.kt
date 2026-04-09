@@ -20,6 +20,8 @@ class MainViewModel @Inject constructor(
     private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
     val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
 
+    private var businessSessionRestored = false
+
     init {
         checkLoginStatus()
     }
@@ -33,18 +35,23 @@ class MainViewModel @Inject constructor(
                         _isLoggedIn.value = null
                     }
                     is SessionStatus.Authenticated -> {
-                        // 本地有有效的 Token（已登录）
-                        // 尝试拉取业务层 Session（角色、昵称等）
-                        authService.restoreSessionFromAuth()
                         _isLoggedIn.value = true
+                        if (!businessSessionRestored) {
+                            businessSessionRestored = true
+                            viewModelScope.launch {
+                                authService.restoreSessionFromAuth()
+                            }
+                        }
                     }
                     is SessionStatus.NotAuthenticated -> {
                         // 未登录，或用户主动登出
                         _isLoggedIn.value = false
+                        businessSessionRestored = false
                     }
                     is SessionStatus.RefreshFailure -> {
                         // Token 刷新失败（可能已过期或被撤销），退回登录界面重新登录
                         _isLoggedIn.value = false
+                        businessSessionRestored = false
                     }
                 }
             }
