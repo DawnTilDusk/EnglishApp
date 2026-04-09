@@ -75,6 +75,11 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.ktor.client.android)
 
+    // DataStore
+    implementation(libs.androidx.dataStore)
+    implementation(libs.androidx.dataStore.core)
+    implementation(libs.androidx.dataStore.preferences)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
