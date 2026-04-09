@@ -7,6 +7,8 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 import javax.inject.Inject
 
@@ -42,7 +44,7 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
     /**
      * 登录并获取用户的身份和角色
      */
-    suspend fun login(email: String, password: String): Result<AuthSession> {
+    suspend fun login(email: String, password: String, phone: String? = null): Result<AuthSession> {
         return try {
             // 1. 调用 Supabase Auth 进行登录
             client.auth.signInWith(Email) {
@@ -52,6 +54,30 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
 
             val user = client.auth.currentUserOrNull()
                 ?: return Result.failure(Exception("Login failed: User is null"))
+
+            val profileBefore = client.postgrest["profiles"]
+                .select {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
+                .decodeSingle<Profile>()
+
+            if (profileBefore.role == "student" && profileBefore.phone.isNullOrBlank() && phone.isNullOrBlank()) {
+                client.auth.signOut()
+                _currentSession.value = null
+                return Result.failure(Exception("请填写手机号完成绑定"))
+            }
+
+            if (!phone.isNullOrBlank()) {
+                try {
+                    syncPhoneForCurrentUser(userId = user.id, phone = phone)
+                } catch (e: Exception) {
+                    client.auth.signOut()
+                    _currentSession.value = null
+                    return Result.failure(e)
+                }
+            }
 
             val session = fetchBusinessSession(userId = user.id)
             _currentSession.value = session
@@ -98,6 +124,21 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
             _currentSession.value = null
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    private suspend fun syncPhoneForCurrentUser(userId: String, phone: String) {
+        client.postgrest.rpc(
+            "set_my_phone",
+            buildJsonObject {
+                put("p_phone", phone)
+            }
+        )
+
+        client.auth.updateUser {
+            data = buildJsonObject {
+                put("phone", phone)
+            }
         }
     }
 }

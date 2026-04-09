@@ -8,7 +8,11 @@ data class Profile(
     val role: String,
     val agency_id: String?,
     val display_name: String?,
-    val status: String?
+    val status: String?,
+    val email: String? = null,
+    val phone: String? = null,
+    val phone_verified: Boolean = false,
+    val phone_updated_at: String? = null
 )
 
 @Serializable

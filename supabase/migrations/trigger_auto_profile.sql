@@ -17,14 +17,17 @@ BEGIN
     END IF;
 
     -- 步骤 A：纯粹为了满足物理外键约束，在 profiles 占坑 (业务数据全是空的/默认的)
-    INSERT INTO public.profiles (id, role, status, display_name, agency_id)
+    INSERT INTO public.profiles (id, role, status, display_name, agency_id, email)
     VALUES (
         new.id, 
         'student'::public.user_role, 
         'active',
         NULL, -- 故意留空，等待 students 表同步过来
-        '1d13f462-d263-4ce6-90c8-f867ef6a2207'::UUID -- 分配到默认的"根机构"缓冲池
-    );
+        '1d13f462-d263-4ce6-90c8-f867ef6a2207'::UUID, -- 分配到默认的"根机构"缓冲池
+        new.email
+    )
+    ON CONFLICT (id) DO UPDATE
+    SET email = EXCLUDED.email;
 
     -- 步骤 B：(你期望的 users -> students 流向) 
     -- 在业务层初始化一个学生实体。
@@ -44,6 +47,25 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+
+CREATE OR REPLACE FUNCTION public.sync_auth_user_email_to_profile()
+RETURNS trigger AS $$
+BEGIN
+    UPDATE public.profiles
+    SET email = NEW.email
+    WHERE id = NEW.id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_auth_user_email_updated ON auth.users;
+CREATE TRIGGER on_auth_user_email_updated
+  AFTER UPDATE OF email ON auth.users
+  FOR EACH ROW
+  WHEN (OLD.email IS DISTINCT FROM NEW.email)
+  EXECUTE PROCEDURE public.sync_auth_user_email_to_profile();
 
 
 -- ------------------------------------------------------------------------------

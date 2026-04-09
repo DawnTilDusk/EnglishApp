@@ -25,9 +25,16 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     role public.user_role NOT NULL DEFAULT 'student'::public.user_role,
     agency_id UUID REFERENCES public.agencies(id) ON DELETE SET NULL,
     display_name TEXT,
+    email TEXT,
+    phone TEXT,
+    phone_verified BOOLEAN NOT NULL DEFAULT false,
+    phone_updated_at TIMESTAMPTZ,
     status TEXT DEFAULT 'active',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles (email);
+CREATE INDEX IF NOT EXISTS profiles_phone_idx ON public.profiles (phone);
 
 -- 3. Students Table (extends profiles for students)
 CREATE TABLE IF NOT EXISTS public.students (
@@ -121,6 +128,22 @@ CREATE OR REPLACE FUNCTION public.get_auth_agency_id() RETURNS UUID AS $$
   SELECT agency_id FROM public.profiles WHERE id = auth.uid() LIMIT 1;
 $$ LANGUAGE sql SECURITY DEFINER;
 
+CREATE OR REPLACE FUNCTION public.set_my_phone(p_phone TEXT)
+RETURNS VOID AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Not authenticated';
+  END IF;
+
+  UPDATE public.profiles
+  SET
+    phone = p_phone,
+    phone_verified = false,
+    phone_updated_at = NOW()
+  WHERE id = auth.uid();
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 -- Clear existing policies (to allow re-running this script without errors)
 DO $$ DECLARE
     r RECORD;
@@ -145,8 +168,6 @@ CREATE POLICY "Agency admins manage own agency profiles" ON public.profiles
   FOR ALL USING (agency_id = public.get_auth_agency_id() AND public.get_auth_role() = 'agency_admin');
 CREATE POLICY "Users view own profile" ON public.profiles
   FOR SELECT USING (id = auth.uid());
-CREATE POLICY "Users update own profile" ON public.profiles
-  FOR UPDATE USING (id = auth.uid());
 
 -- RLS Policies for students
 CREATE POLICY "Company admins manage all students" ON public.students

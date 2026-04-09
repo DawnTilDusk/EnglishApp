@@ -17,6 +17,7 @@ class LoginViewModel @Inject constructor(
 
     //pattern format checker
     private val emailPattern = Regex(".*@.*")
+    private val phonePattern = Regex("^\\+?[0-9]{11,13}$")
 
     // UI 状态
     private val _email = MutableStateFlow("")
@@ -24,6 +25,9 @@ class LoginViewModel @Inject constructor(
 
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
+
+    private val _phone = MutableStateFlow("")
+    val phone: StateFlow<String> = _phone.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -33,8 +37,22 @@ class LoginViewModel @Inject constructor(
 
     fun onEmailChange(newEmail: String) { _email.value = newEmail }
     fun onPasswordChange(newPassword: String) { _password.value = newPassword }
+    fun onPhoneChange(newPhone: String) { _phone.value = newPhone }
 
     fun isEmailFormatValid(value: String = _email.value): Boolean = emailPattern.matches(value)
+
+    private fun normalizePhone(input: String): String {
+        return input
+            .trim()
+            .replace(" ", "")
+            .replace("-", "")
+    }
+
+    fun isPhoneInputValid(value: String = _phone.value): Boolean {
+        val normalized = normalizePhone(value)
+        if (normalized.isBlank()) return true
+        return phonePattern.matches(normalized)
+    }
 
     // 核心登录方法，接收一个成功后的回调（跳转接口）
     fun login(onLoginSuccess: () -> Unit) {
@@ -48,16 +66,22 @@ class LoginViewModel @Inject constructor(
             return
         }
 
+        if (!isPhoneInputValid()) {
+            _errorMessage.value = "手机号格式不正确"
+            return
+        }
+
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val result = authService.login(_email.value, _password.value)
+            val normalizedPhone = normalizePhone(_phone.value).ifBlank { null }
+            val result = authService.login(_email.value, _password.value, normalizedPhone)
             if (result.isSuccess) {
                 // 登录成功，触发外部传入的跳转接口
                 onLoginSuccess()
             } else {
-                _errorMessage.value = _errorMessage.value ?: "登录失败，请检查账号或密码"
+                _errorMessage.value = result.exceptionOrNull()?.message ?: "登录失败，请检查账号或密码"
             }
             _isLoading.value = false
         }
