@@ -21,7 +21,7 @@ BEGIN
     VALUES (
         new.id, 
         'student'::public.user_role, 
-        'active',
+        'inactive', -- 默认设置为 inactive，等待填写手机号后激活
         NULL, -- 故意留空，等待 students 表同步过来
         '1d13f462-d263-4ce6-90c8-f867ef6a2207'::UUID, -- 分配到默认的"根机构"缓冲池
         new.email

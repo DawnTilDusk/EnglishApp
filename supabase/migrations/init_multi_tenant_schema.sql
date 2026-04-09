@@ -29,9 +29,12 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     phone TEXT,
     phone_verified BOOLEAN NOT NULL DEFAULT false,
     phone_updated_at TIMESTAMPTZ,
-    status TEXT DEFAULT 'active',
+    status TEXT DEFAULT 'inactive',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Ensure the default is applied even if the table already exists
+ALTER TABLE public.profiles ALTER COLUMN status SET DEFAULT 'inactive';
 
 CREATE INDEX IF NOT EXISTS profiles_email_idx ON public.profiles (email);
 CREATE INDEX IF NOT EXISTS profiles_phone_idx ON public.profiles (phone);

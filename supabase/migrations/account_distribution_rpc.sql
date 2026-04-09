@@ -106,7 +106,7 @@ BEGIN
 
     -- Insert into profiles
     INSERT INTO public.profiles (id, role, agency_id, display_name, status)
-    VALUES (v_user_id, 'student'::public.user_role, p_agency_id, p_student_name, 'active');
+    VALUES (v_user_id, 'student'::public.user_role, p_agency_id, p_student_name, 'inactive');
 
     -- Insert into students table
     INSERT INTO public.students (id, agency_id, name, student_no, class_id)

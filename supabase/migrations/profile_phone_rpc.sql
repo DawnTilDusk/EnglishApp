@@ -9,7 +9,8 @@ BEGIN
   SET
     phone = p_phone,
     phone_verified = false,
-    phone_updated_at = NOW()
+    phone_updated_at = NOW(),
+    status = 'active'
   WHERE id = auth.uid();
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
