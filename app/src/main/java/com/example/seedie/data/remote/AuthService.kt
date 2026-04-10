@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 
+import com.example.seedie.data.local.DevicePreferencesRepository
 import javax.inject.Inject
 
 data class AuthSession(
@@ -20,7 +21,10 @@ data class AuthSession(
     val studentName: String? = null
 )
 
-class AuthService @Inject constructor(private val client: SupabaseClient) {
+class AuthService @Inject constructor(
+    private val client: SupabaseClient,
+    private val devicePreferencesRepository: DevicePreferencesRepository
+) {
 
     val sessionStatus: StateFlow<SessionStatus> = client.auth.sessionStatus
 
@@ -35,7 +39,22 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
                 return Result.success(null)
             }
 
-            val session = fetchBusinessSession(userId = user.id)
+            // Check if current_device_id matches our local deviceId
+            val profile = client.postgrest["profiles"]
+                .select {
+                    filter { eq("id", user.id) }
+                }
+                .decodeSingle<Profile>()
+
+            val localDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
+            if (profile.current_device_id != null && profile.current_device_id != localDeviceId) {
+                // Device mismatch: logged in on another device
+                client.auth.signOut()
+                _currentSession.value = null
+                return Result.failure(Exception("您的账号已在其他设备登录"))
+            }
+
+            val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profile)
             _currentSession.value = session
             Result.success(session)
         } catch (e: Exception) {
@@ -82,7 +101,24 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
                 }
             }
 
-            val session = fetchBusinessSession(userId = user.id)
+            // Sync current device ID to Supabase (for kick-out mechanism)
+            try {
+                val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
+                client.postgrest["profiles"].update(
+                    {
+                        put("current_device_id", currentDeviceId)
+                    }
+                ) {
+                    filter {
+                        eq("id", user.id)
+                    }
+                }
+            } catch (e: Exception) {
+                // Non-fatal, just log it. The login should still succeed.
+                e.printStackTrace()
+            }
+
+            val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
             _currentSession.value = session
 
             Result.success(session)
@@ -91,8 +127,8 @@ class AuthService @Inject constructor(private val client: SupabaseClient) {
         }
     }
 
-    private suspend fun fetchBusinessSession(userId: String): AuthSession {
-        val profile = client.postgrest["profiles"]
+    private suspend fun fetchBusinessSession(userId: String, preFetchedProfile: Profile? = null): AuthSession {
+        val profile = preFetchedProfile ?: client.postgrest["profiles"]
             .select {
                 filter {
                     eq("id", userId)

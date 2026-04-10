@@ -11,6 +11,8 @@ import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
 import javax.inject.Singleton
 
+import com.example.seedie.data.local.DevicePreferencesRepository
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -24,8 +26,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideAuthService(supabaseClient: SupabaseClient): AuthService {
+    fun provideAuthService(
+        supabaseClient: SupabaseClient,
+        devicePreferencesRepository: DevicePreferencesRepository
+    ): AuthService {
         // Hilt 发现 AuthService 需要 SupabaseClient，它会自动把上面那个传进来
-        return AuthService(supabaseClient)
+        return AuthService(supabaseClient, devicePreferencesRepository)
     }
 }

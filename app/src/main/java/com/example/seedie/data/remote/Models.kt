@@ -12,7 +12,8 @@ data class Profile(
     val email: String? = null,
     val phone: String? = null,
     val phone_verified: Boolean = false,
-    val phone_updated_at: String? = null
+    val phone_updated_at: String? = null,
+    val current_device_id: String? = null
 )
 
 @Serializable
