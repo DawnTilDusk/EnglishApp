@@ -81,6 +81,7 @@ BEGIN
         agency_id = NEW.agency_id,
         display_name = NEW.name,
         role = 'student'::public.user_role
+        -- 注意：这里不要覆盖 current_device_id 
     WHERE id = NEW.id;
     
     RETURN NEW;

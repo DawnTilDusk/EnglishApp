@@ -104,24 +104,32 @@ class AuthService @Inject constructor(
             // Sync current device ID to Supabase (for kick-out mechanism)
             try {
                 val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
-                client.postgrest["profiles"].update(
-                    {
-                        put("current_device_id", currentDeviceId)
-                    }
-                ) {
-                    filter {
-                        eq("id", user.id)
-                    }
-                }
+                
+                // Add log to see if it reaches here
+                android.util.Log.d("AuthService", "Updating device_id to: $currentDeviceId for user: ${user.id}")
+                
+                client.postgrest.rpc(
+                    "set_my_device_id",
+                    buildJsonObject { put("p_device_id", currentDeviceId) }
+                )
+                
+                android.util.Log.d("AuthService", "Update device_id success")
+                
+                // Fetch the fresh profile AFTER updating the device_id
+                val session = fetchBusinessSession(userId = user.id)
+                _currentSession.value = session
+
+                return Result.success(session)
             } catch (e: Exception) {
                 // Non-fatal, just log it. The login should still succeed.
-                e.printStackTrace()
+                android.util.Log.e("AuthService", "Update device_id failed", e)
+                
+                // Fallback to the old profile if update failed
+                val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
+                _currentSession.value = session
+
+                return Result.success(session)
             }
-
-            val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
-            _currentSession.value = session
-
-            Result.success(session)
         } catch (e: Exception) {
             Result.failure(e)
         }
