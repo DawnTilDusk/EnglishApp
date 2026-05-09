@@ -1,5 +1,8 @@
 package com.example.seedie.data.repository
 
+import com.example.seedie.data.local.dao.VocabularyWordDao
+import com.example.seedie.data.local.dao.WordBookDao
+import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
@@ -9,20 +12,23 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeSession
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionType
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionRecord
 import com.example.seedie.ui.screens.learning.practice.VocabularySessionMeta
-import kotlin.random.Random
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @Singleton
-class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPracticeRepository {
+class VocabularyPracticeRepositoryImpl @Inject constructor(
+    private val wordBookDao: WordBookDao,
+    private val vocabularyWordDao: VocabularyWordDao
+) : VocabularyPracticeRepository {
     private val questionRecords = linkedMapOf<String, MutableList<VocabularyQuestionRecord>>()
     private val completedResults = linkedMapOf<String, StudyResult>()
-    private val wordBank = VocabularyStaticWordPack.entries
 
     override suspend fun getPracticeSession(args: VocabularyPracticeArgs): VocabularyPracticeSession {
         val sessionId = args.sessionId ?: UUID.randomUUID().toString()
-        val questions = buildQuestionBank(args = args, sessionId = sessionId)
+        val wordBank = loadWordBank()
+        val questions = buildQuestionBank(args = args, sessionId = sessionId, wordBank = wordBank)
 
         return VocabularyPracticeSession(
             sessionMeta = VocabularySessionMeta(
@@ -57,7 +63,8 @@ class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPractic
 
     private fun buildQuestionBank(
         args: VocabularyPracticeArgs,
-        sessionId: String
+        sessionId: String,
+        wordBank: List<VocabularyWordEntity>
     ): List<VocabularyPracticeQuestion> {
         val random = Random(sessionId.hashCode())
         val requestedCount = args.wordCountTarget.coerceIn(1, wordBank.size)
@@ -82,9 +89,23 @@ class VocabularyPracticeRepositoryImpl @Inject constructor() : VocabularyPractic
         }
     }
 
-    private fun StaticWordEntry.toQuestion(
+    private suspend fun loadWordBank(): List<VocabularyWordEntity> {
+        ensureSeededWordBook()
+        val activeBook = wordBookDao.getActiveBook() ?: wordBookDao.getLatestBook()
+            ?: error("未找到可用词书")
+        return vocabularyWordDao.getWordsByBook(activeBook.bookId)
+            .ifEmpty { error("当前词书没有任何单词") }
+    }
+
+    private suspend fun ensureSeededWordBook() {
+        if (wordBookDao.getBookCount() > 0) return
+        wordBookDao.insertBook(VocabularyStaticWordPack.defaultBookEntity())
+        vocabularyWordDao.insertWords(VocabularyStaticWordPack.defaultWordEntities())
+    }
+
+    private fun VocabularyWordEntity.toQuestion(
         questionNumber: Int,
-        allEntries: List<StaticWordEntry>,
+        allEntries: List<VocabularyWordEntity>,
         random: Random
     ): VocabularyPracticeQuestion {
         val distractorPool = allEntries

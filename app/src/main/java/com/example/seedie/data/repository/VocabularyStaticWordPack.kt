@@ -1,5 +1,8 @@
 package com.example.seedie.data.repository
 
+import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.local.entity.WordBookEntity
+
 internal data class StaticWordEntry(
     val wordId: String,
     val english: String,
@@ -13,7 +16,15 @@ internal data class StaticWordEntry(
 )
 
 internal object VocabularyStaticWordPack {
-    val entries: List<StaticWordEntry> = listOf(
+    const val DEFAULT_BOOK_ID = "seedie-default-book"
+
+    private const val DEFAULT_BOOK_TITLE = "Seedie 默认词书"
+    private const val DEFAULT_BOOK_DESCRIPTION = "内置基础词汇包，供本地练习与首启初始化使用"
+    private const val DEFAULT_LANGUAGE = "en-US"
+    private const val DEFAULT_DIFFICULTY = "mixed"
+    private const val DEFAULT_VERSION = 1
+
+    private val entries: List<StaticWordEntry> = listOf(
         StaticWordEntry("w1", "apple", "/ˈae.pəl/", "n.", "苹果", "An apple a day keeps the doctor away.", "easy", 3, 8),
         StaticWordEntry("w2", "bridge", "/brɪdʒ/", "n.", "桥", "We walked across the bridge together.", "easy", 3, 8),
         StaticWordEntry("w3", "careful", "/ˈkeə.fəl/", "adj.", "小心的", "Please be careful with the glass bottle.", "easy", 3, 8),
@@ -39,4 +50,38 @@ internal object VocabularyStaticWordPack {
         StaticWordEntry("w23", "resource", "/rɪˈzɔːs/", "n.", "资源", "Books are an important learning resource.", "hard", 5, 12),
         StaticWordEntry("w24", "create", "/kriˈeɪt/", "v.", "创造", "Children create stories with colorful cards.", "hard", 5, 12)
     )
+
+    fun defaultBookEntity(): WordBookEntity {
+        return WordBookEntity(
+            bookId = DEFAULT_BOOK_ID,
+            title = DEFAULT_BOOK_TITLE,
+            description = DEFAULT_BOOK_DESCRIPTION,
+            language = DEFAULT_LANGUAGE,
+            difficulty = DEFAULT_DIFFICULTY,
+            version = DEFAULT_VERSION,
+            sourceType = "bundled",
+            downloadStatus = "downloaded",
+            isActive = true,
+            wordCount = entries.size,
+            updatedAt = 1L
+        )
+    }
+
+    fun defaultWordEntities(): List<VocabularyWordEntity> {
+        return entries.mapIndexed { index, entry ->
+            VocabularyWordEntity(
+                wordId = entry.wordId,
+                bookId = DEFAULT_BOOK_ID,
+                english = entry.english,
+                phonetic = entry.phonetic,
+                partOfSpeech = entry.partOfSpeech,
+                translation = entry.translation,
+                exampleSentence = entry.exampleSentence,
+                difficultyLevel = entry.difficultyLevel,
+                rewardToken = entry.rewardToken,
+                estimatedDurationSec = entry.estimatedDurationSec,
+                sortOrder = index
+            )
+        }
+    }
 }

@@ -3,10 +3,13 @@ package com.example.seedie.di
 import android.content.Context
 import androidx.room.Room
 import com.example.seedie.data.local.SeedieDatabase
+import com.example.seedie.data.local.SeedieDatabaseMigrations
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.dao.GardenPlotDao
+import com.example.seedie.data.local.dao.VocabularyWordDao
+import com.example.seedie.data.local.dao.WordBookDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,7 +30,9 @@ object DatabaseModule {
             context,
             SeedieDatabase::class.java,
             "seedie_database"
-        ).build()
+        )
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_1_2)
+            .build()
     }
 
     @Provides
@@ -41,4 +46,10 @@ object DatabaseModule {
 
     @Provides
     fun provideEconomyTransactionDao(database: SeedieDatabase): EconomyTransactionDao = database.economyTransactionDao()
+
+    @Provides
+    fun provideWordBookDao(database: SeedieDatabase): WordBookDao = database.wordBookDao()
+
+    @Provides
+    fun provideVocabularyWordDao(database: SeedieDatabase): VocabularyWordDao = database.vocabularyWordDao()
 }
