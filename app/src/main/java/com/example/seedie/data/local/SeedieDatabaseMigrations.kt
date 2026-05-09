@@ -43,7 +43,7 @@ object SeedieDatabaseMigrations {
             )
 
             database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_vocabulary_words_bookId ON vocabulary_words(bookId)"
+                "CREATE INDEX IF NOT EXISTS index_· ·   1vocabulary_words_bookId ON vocabulary_words(bookId)"
             )
             database.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_words_bookId_difficultyLevel ON vocabulary_words(bookId, difficultyLevel)"
