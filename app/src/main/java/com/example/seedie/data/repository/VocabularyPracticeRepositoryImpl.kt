@@ -22,7 +22,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     private val vocabularyWordDao: VocabularyWordDao
 ) : VocabularyPracticeRepository {
     private companion object {
-        const val STUDY_GROUP_SIZE = 10
+        const val STUDY_GROUP_SIZE = 5
         const val DEFAULT_REVIEW_COUNT = 5
     }
 
@@ -39,12 +39,13 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         }.ifEmpty { wordBank }
 
         val random = Random(sessionId.hashCode())
-        val shuffledPool = filteredPool.shuffled(random)
-        val studyEntries = shuffledPool.take(STUDY_GROUP_SIZE.coerceAtMost(shuffledPool.size))
+        val studyBaseEntries = filteredPool.take(STUDY_GROUP_SIZE.coerceAtMost(filteredPool.size))
+        val studyEntries = studyBaseEntries.shuffled(random)
         val reviewTarget = args.wordCountTarget.coerceAtLeast(DEFAULT_REVIEW_COUNT)
-        val reviewEntries = shuffledPool
-            .drop(studyEntries.size)
-            .take(reviewTarget.coerceAtMost((shuffledPool.size - studyEntries.size).coerceAtLeast(0)))
+        val reviewEntries = filteredPool
+            .drop(studyBaseEntries.size)
+            .shuffled(random)
+            .take(reviewTarget.coerceAtMost((filteredPool.size - studyBaseEntries.size).coerceAtLeast(0)))
 
         return VocabularyPracticeSession(
             sessionMeta = VocabularySessionMeta(

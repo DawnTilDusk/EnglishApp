@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class VocabularyPracticeViewModel @Inject constructor(
@@ -44,6 +45,11 @@ class VocabularyPracticeViewModel @Inject constructor(
     private var completedReviewCount = 0
     private var sentBackToStudyCount = 0
     private var sessionFinished = false
+    private val studyQuestionTypes = listOf(
+        VocabularyQuestionType.StudyEnglishToChinese,
+        VocabularyQuestionType.StudyChineseToEnglish,
+        VocabularyQuestionType.StudyContextChoice
+    )
 
     fun initialize(args: VocabularyPracticeArgs) {
         if (initializedArgs == args && currentSession != null) return
@@ -128,7 +134,6 @@ class VocabularyPracticeViewModel @Inject constructor(
         val progress = progressMap[wordId] ?: return
         moveCurrentStudyWordToTail(wordId)
         progressMap[wordId] = progress.copy(
-            studyStageIndex = 0,
             totalWrongCount = progress.totalWrongCount + 1,
             revealCount = progress.revealCount + 1
         )
@@ -146,7 +151,7 @@ class VocabularyPracticeViewModel @Inject constructor(
 
         presentEvaluatedState(
             answerStatus = AnswerStatus.Revealed,
-            feedbackMessage = "已直接看答案：${prompt.correctAnswerText}。该单词回到学习队尾，并从第 1 关重新开始。",
+            feedbackMessage = "已直接看答案：${prompt.correctAnswerText}。该单词回到学习队尾；后续将随机进入其未通过关卡。",
             correctDelta = 0,
             wrongDelta = 0,
             skippedDelta = 1,
@@ -289,30 +294,21 @@ class VocabularyPracticeViewModel @Inject constructor(
     ) {
         val wordId = prompt.word.wordId
         val progress = progressMap[wordId] ?: return
-        val feedbackMessage = when (prompt.questionType) {
-            VocabularyQuestionType.StudyEnglishToChinese -> {
-                progressMap[wordId] = progress.copy(studyStageIndex = 1)
-                "第 1 关通过，进入第 2 关：根据中文选英文。"
-            }
+        if (prompt.questionType !in studyQuestionTypes) return
+        val passedTypes = progress.passedStudyQuestionTypes + prompt.questionType
+        val allPassed = passedTypes.containsAll(studyQuestionTypes)
+        progressMap[wordId] = progress.copy(
+            passedStudyQuestionTypes = passedTypes,
+            isMasteredToday = allPassed
+        )
 
-            VocabularyQuestionType.StudyChineseToEnglish -> {
-                progressMap[wordId] = progress.copy(studyStageIndex = 2)
-                "第 2 关通过，进入第 3 关：结合语境选词。"
-            }
-
-            VocabularyQuestionType.StudyContextChoice -> {
-                progressMap[wordId] = progress.copy(
-                    studyStageIndex = 3,
-                    isMasteredToday = true
-                )
-                if (studyQueue.firstOrNull() == wordId) {
-                    studyQueue.removeFirst()
-                }
-                masteredStudyCount += 1
-                "三阶段全部通过，已加入今日已掌握。"
-            }
-
-            VocabularyQuestionType.ReviewSpelling -> return
+        val feedbackMessage = if (allPassed) {
+            removeWordFromStudyQueue(wordId)
+            masteredStudyCount += 1
+            "当前单词 3 个关卡均通过，已标记掌握。"
+        } else {
+            moveCurrentStudyWordToTail(wordId)
+            "本关已通过，单词移至队尾；后续将随机进入该单词未通过关卡。"
         }
 
         submitRecord(
@@ -341,15 +337,9 @@ class VocabularyPracticeViewModel @Inject constructor(
     ) {
         val wordId = prompt.word.wordId
         val progress = progressMap[wordId] ?: return
-        val nextStudyStageIndex = when (prompt.questionType) {
-            VocabularyQuestionType.StudyEnglishToChinese -> 0
-            VocabularyQuestionType.StudyChineseToEnglish -> 0
-            VocabularyQuestionType.StudyContextChoice -> 1
-            VocabularyQuestionType.ReviewSpelling -> return
-        }
+        if (prompt.questionType !in studyQuestionTypes) return
         moveCurrentStudyWordToTail(wordId)
         progressMap[wordId] = progress.copy(
-            studyStageIndex = nextStudyStageIndex,
             totalWrongCount = progress.totalWrongCount + 1
         )
         wrongWordIds += wordId
@@ -364,14 +354,9 @@ class VocabularyPracticeViewModel @Inject constructor(
             usedFirstLetterHint = false
         )
 
-        val fallbackStageLabel = when (nextStudyStageIndex) {
-            0 -> "第 1 关"
-            1 -> "第 2 关"
-            else -> "当前关卡"
-        }
         presentEvaluatedState(
             answerStatus = AnswerStatus.Wrong,
-            feedbackMessage = "答错了，正确答案是 ${prompt.correctAnswerText}。该单词已移到队尾，并回退到$fallbackStageLabel。",
+            feedbackMessage = "答错了，正确答案是 ${prompt.correctAnswerText}。该单词已移到队尾；下次将随机进入它的未通过关卡。",
             correctDelta = 0,
             wrongDelta = 1,
             skippedDelta = 0,
@@ -429,7 +414,7 @@ class VocabularyPracticeViewModel @Inject constructor(
 
         if (wrongStreak >= 4) {
             progressMap[wordId] = updatedProgress.copy(
-                studyStageIndex = 0,
+                passedStudyQuestionTypes = emptySet(),
                 consecutiveReviewWrongCount = 0,
                 isMasteredToday = false,
                 isReviewCompleted = false
@@ -487,11 +472,27 @@ class VocabularyPracticeViewModel @Inject constructor(
 
         val (section, wordId) = nextEntry
         val word = wordMap[wordId] ?: return
-        val progress = progressMap[wordId] ?: VocabularyWordProgress(wordId = wordId)
+        var progress = progressMap[wordId] ?: VocabularyWordProgress(wordId = wordId)
+        if (section == VocabularyPracticeMode.Study && progress.passedStudyQuestionTypes.containsAll(studyQuestionTypes)) {
+            removeWordFromStudyQueue(wordId)
+            if (!progress.isMasteredToday) {
+                masteredStudyCount += 1
+                progress = progress.copy(isMasteredToday = true)
+                progressMap[wordId] = progress
+            }
+            advanceToNextPrompt()
+            return
+        }
+        val randomStudyQuestionType = if (section == VocabularyPracticeMode.Study) {
+            pickRandomUnpassedStudyQuestionType(progress)
+        } else {
+            null
+        }
         val prompt = buildPrompt(
             section = section,
             word = word,
-            progress = progress
+            progress = progress,
+            forcedStudyQuestionType = randomStudyQuestionType
         )
 
         _uiState.update {
@@ -538,11 +539,12 @@ class VocabularyPracticeViewModel @Inject constructor(
     private fun buildPrompt(
         section: VocabularyPracticeMode,
         word: VocabularyPracticeWord,
-        progress: VocabularyWordProgress
+        progress: VocabularyWordProgress,
+        forcedStudyQuestionType: VocabularyQuestionType? = null
     ): VocabularyPracticePrompt {
         return if (section == VocabularyPracticeMode.Study) {
-            when (progress.studyStageIndex) {
-                0 -> VocabularyPracticePrompt(
+            when (forcedStudyQuestionType) {
+                VocabularyQuestionType.StudyEnglishToChinese -> VocabularyPracticePrompt(
                     promptId = "${word.wordId}_study_1",
                     word = word,
                     section = section,
@@ -556,7 +558,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
 
-                1 -> VocabularyPracticePrompt(
+                VocabularyQuestionType.StudyChineseToEnglish -> VocabularyPracticePrompt(
                     promptId = "${word.wordId}_study_2",
                     word = word,
                     section = section,
@@ -570,7 +572,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
 
-                else -> VocabularyPracticePrompt(
+                VocabularyQuestionType.StudyContextChoice -> VocabularyPracticePrompt(
                     promptId = "${word.wordId}_study_3",
                     word = word,
                     section = section,
@@ -583,6 +585,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     correctAnswerText = word.english,
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
+                else -> error("学习板块没有可用的未通过关卡")
             }
         } else {
             VocabularyPracticePrompt(
@@ -718,6 +721,16 @@ class VocabularyPracticeViewModel @Inject constructor(
             studyQueue.removeFirst()
             studyQueue.addLast(wordId)
         }
+    }
+
+    private fun removeWordFromStudyQueue(wordId: String) {
+        studyQueue.remove(wordId)
+    }
+
+    private fun pickRandomUnpassedStudyQuestionType(progress: VocabularyWordProgress): VocabularyQuestionType? {
+        val pendingTypes = studyQuestionTypes.filterNot { it in progress.passedStudyQuestionTypes }
+        if (pendingTypes.isEmpty()) return null
+        return pendingTypes.random(Random.Default)
     }
 
     private fun submitRecord(

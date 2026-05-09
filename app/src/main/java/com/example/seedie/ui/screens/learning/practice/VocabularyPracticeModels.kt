@@ -64,7 +64,7 @@ data class VocabularyPracticeWord(
 
 data class VocabularyWordProgress(
     val wordId: String,
-    val studyStageIndex: Int = 0,
+    val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
     val consecutiveReviewWrongCount: Int = 0,
     val totalWrongCount: Int = 0,
     val revealCount: Int = 0,
