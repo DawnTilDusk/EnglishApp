@@ -537,19 +537,12 @@ private fun PromptCard(
     currentPrompt: VocabularyPracticePrompt,
     isAuxPanelExpanded: Boolean
 ) {
-    val isContextPrompt = currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice
-    val promptText = if (isContextPrompt && uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
-        currentPrompt.word.contextSentence
-    } else {
-        currentPrompt.promptBody
-    }
     val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
-        currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice &&
         currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling
     val overlayText = when (currentPrompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese -> "作答之后展示补充提示"
         VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示补充提示"
-        VocabularyQuestionType.StudyContextChoice -> ""
+        VocabularyQuestionType.StudyContextChoice -> "作答之后展示中文释义"
         VocabularyQuestionType.ReviewSpelling -> "5 秒无操作将提示首字母"
     }
 
@@ -563,7 +556,7 @@ private fun PromptCard(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Text(
-                text = promptText,
+                text = currentPrompt.promptBody,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
