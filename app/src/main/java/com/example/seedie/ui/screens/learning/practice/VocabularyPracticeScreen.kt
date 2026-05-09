@@ -1,11 +1,15 @@
 package com.example.seedie.ui.screens.learning.practice
 
+import android.speech.tts.TextToSpeech
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,8 +23,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
@@ -29,33 +33,37 @@ import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.theme.gardenShadow
+import java.util.Locale
 
 @Composable
 fun VocabularyPracticeRoute(
@@ -64,14 +72,42 @@ fun VocabularyPracticeRoute(
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
+    var speakerReady by remember { mutableStateOf(false) }
 
     LaunchedEffect(args) {
         viewModel.initialize(args)
     }
 
+    DisposableEffect(context) {
+        var textToSpeech: TextToSpeech? = null
+        textToSpeech = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                speakerReady = true
+                textToSpeech?.language = Locale.US
+            }
+        }
+        speaker = textToSpeech
+        onDispose {
+            textToSpeech?.stop()
+            textToSpeech?.shutdown()
+            speaker = null
+            speakerReady = false
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.studyResults.collect { result ->
             onFinishSession(result)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.pronunciationEvents.collect { english ->
+            if (speakerReady) {
+                speaker?.speak(english, TextToSpeech.QUEUE_FLUSH, null, english)
+            }
         }
     }
 
@@ -81,9 +117,11 @@ fun VocabularyPracticeRoute(
         onConfirmExit = viewModel::onConfirmExit,
         onDismissExitDialog = viewModel::onDismissExitDialog,
         onOptionSelected = viewModel::onOptionSelected,
+        onSpellingInputChanged = viewModel::onSpellingInputChanged,
         onSubmitAnswer = viewModel::onSubmitAnswer,
+        onRevealAnswer = viewModel::onRevealAnswer,
         onNextQuestion = viewModel::onNextQuestion,
-        onSkipQuestion = viewModel::onSkipQuestion,
+        onReplayPronunciation = viewModel::onReplayPronunciation,
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
     )
@@ -96,9 +134,11 @@ private fun VocabularyPracticeScreen(
     onConfirmExit: () -> Unit,
     onDismissExitDialog: () -> Unit,
     onOptionSelected: (String) -> Unit,
+    onSpellingInputChanged: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
+    onRevealAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
-    onSkipQuestion: () -> Unit,
+    onReplayPronunciation: () -> Unit,
     onRetryLoad: () -> Unit,
     onFinishSession: () -> Unit
 ) {
@@ -116,7 +156,7 @@ private fun VocabularyPracticeScreen(
                 }
             },
             title = { Text("退出后将结束本次学习") },
-            text = { Text("已完成的题目会被记录，但你将离开当前练习。") }
+            text = { Text("已完成的作答会被记录，但你将离开当前练习。") }
         )
     }
 
@@ -138,9 +178,11 @@ private fun VocabularyPracticeScreen(
             uiState = uiState,
             onBackClick = onBackClick,
             onOptionSelected = onOptionSelected,
+            onSpellingInputChanged = onSpellingInputChanged,
             onSubmitAnswer = onSubmitAnswer,
+            onRevealAnswer = onRevealAnswer,
             onNextQuestion = onNextQuestion,
-            onSkipQuestion = onSkipQuestion
+            onReplayPronunciation = onReplayPronunciation
         )
     }
 }
@@ -150,13 +192,19 @@ private fun PracticeContent(
     uiState: VocabularyPracticeUiState,
     onBackClick: () -> Unit,
     onOptionSelected: (String) -> Unit,
+    onSpellingInputChanged: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
+    onRevealAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
-    onSkipQuestion: () -> Unit
+    onReplayPronunciation: () -> Unit
 ) {
-    val currentQuestion = uiState.currentQuestion ?: return
-    val totalQuestions = uiState.questions.size.coerceAtLeast(1)
-    val progress = (uiState.currentQuestionIndex + 1) / totalQuestions.toFloat()
+    val currentPrompt = uiState.currentPrompt ?: return
+    val totalStudy = uiState.session?.studyWords?.size?.coerceAtLeast(1) ?: 1
+    val totalReview = uiState.session?.reviewWords?.size?.coerceAtLeast(1) ?: 1
+    val progress = when (uiState.currentSection) {
+        VocabularyPracticeMode.Study -> uiState.masteredStudyCount / totalStudy.toFloat()
+        VocabularyPracticeMode.Review -> uiState.completedReviewCount / totalReview.toFloat()
+    }
     var isAuxPanelExpanded by rememberSaveable { mutableStateOf(false) }
     val mainPanelWeight by animateFloatAsState(
         targetValue = if (isAuxPanelExpanded) 0.64f else 1f,
@@ -211,11 +259,22 @@ private fun PracticeContent(
                     TokenBadge(tokens = uiState.earnedTokens)
                 }
 
-                Text(
-                    text = "第 ${uiState.currentQuestionIndex + 1} / $totalQuestions 题",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.secondary
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionBadge(
+                        title = if (uiState.currentSection == VocabularyPracticeMode.Study) "学习" else "复习",
+                        subtitle = currentPrompt.stageTitle
+                    )
+                    Text(
+                        text = progressText(uiState = uiState, totalStudy = totalStudy, totalReview = totalReview),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.End
+                    )
+                }
 
                 LinearProgressIndicator(
                     progress = { progress },
@@ -252,13 +311,13 @@ private fun PracticeContent(
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
-                                text = currentQuestion.english,
+                                text = currentPrompt.promptTitle,
                                 style = MaterialTheme.typography.displaySmall,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "${currentQuestion.phonetic}  ${currentQuestion.partOfSpeech}",
+                                text = currentPrompt.helperText,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.secondary
                             )
@@ -273,7 +332,7 @@ private fun PracticeContent(
                                     style = MaterialTheme.typography.titleMedium
                                 )
                                 Text(
-                                    text = "剩余 ${uiState.remainingCount} 题",
+                                    text = queueStatusText(uiState),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.secondary
                                 )
@@ -285,59 +344,35 @@ private fun PracticeContent(
                         }
                     }
 
-                    Surface(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                        shape = MaterialTheme.shapes.medium
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = currentQuestion.exampleSentence,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .then(
-                                        if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
-                                            Modifier
-                                        } else {
-                                            Modifier.blur(10.dp)
-                                        }
-                                    ),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                maxLines = if (isAuxPanelExpanded) 2 else 1,
-                                overflow = TextOverflow.Ellipsis
+                    PromptCard(
+                        uiState = uiState,
+                        currentPrompt = currentPrompt,
+                        isAuxPanelExpanded = isAuxPanelExpanded
+                    )
+
+                    when (currentPrompt.questionType) {
+                        VocabularyQuestionType.ReviewSpelling -> {
+                            ReviewInputCard(
+                                uiState = uiState,
+                                currentPrompt = currentPrompt,
+                                onValueChange = onSpellingInputChanged
                             )
-                            if (uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
-                                Box(
-                                    modifier = Modifier
-                                        .matchParentSize()
-                                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "作答之后展示例句",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.secondary,
-                                        textAlign = TextAlign.Center
+                        }
+
+                        VocabularyQuestionType.StudyEnglishToChinese,
+                        VocabularyQuestionType.StudyChineseToEnglish,
+                        VocabularyQuestionType.StudyContextChoice -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                currentPrompt.optionList.forEach { option ->
+                                    OptionCard(
+                                        option = option,
+                                        selectedOptionId = uiState.selectedOptionId,
+                                        answerStatus = uiState.answerStatus,
+                                        stage = uiState.stage,
+                                        onOptionSelected = onOptionSelected
                                     )
                                 }
                             }
-                        }
-                    }
-
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        currentQuestion.optionList.forEach { option ->
-                            OptionCard(
-                                option = option,
-                                selectedOptionId = uiState.selectedOptionId,
-                                answerStatus = uiState.answerStatus,
-                                stage = uiState.stage,
-                                onOptionSelected = onOptionSelected
-                            )
                         }
                     }
 
@@ -354,14 +389,14 @@ private fun PracticeContent(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = currentQuestion.translationCorrect,
+                                    text = currentPrompt.correctAnswerText,
                                     style = MaterialTheme.typography.headlineSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Center
                                 )
                                 Text(
-                                    text = feedbackText(uiState.answerStatus, currentQuestion.translationCorrect),
+                                    text = uiState.feedbackMessage,
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = feedbackColor(uiState.answerStatus),
                                     textAlign = TextAlign.Center
@@ -403,28 +438,21 @@ private fun PracticeContent(
                                     verticalArrangement = Arrangement.spacedBy(12.dp)
                                 ) {
                                     Text(
-                                        text = "拓展栏",
+                                        text = "练习状态",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = "后续可放注记、错题提示或 AI 助手。",
+                                        text = "双流程会根据作答结果动态重排队列。",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Surface(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = MaterialTheme.shapes.medium,
-                                        color = MaterialTheme.colorScheme.surface
-                                    ) {
-                                        Text(
-                                            text = "当前版本仅预留区域，不承载实际功能。",
-                                            modifier = Modifier.padding(14.dp),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.secondary
-                                        )
-                                    }
+                                    SummaryRow("学习队列", "${uiState.studyQueueSize} 个")
+                                    SummaryRow("复习队列", "${uiState.reviewQueueSize} 个")
+                                    SummaryRow("已掌握", "${uiState.masteredStudyCount} 个")
+                                    SummaryRow("已复习", "${uiState.completedReviewCount} 个")
+                                    SummaryRow("打回学习", "${uiState.sentBackToStudyCount} 次")
                                 }
                             }
                         }
@@ -446,27 +474,157 @@ private fun PracticeContent(
                     .padding(20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedButton(
-                    onClick = onSkipQuestion,
-                    modifier = Modifier.weight(1f),
-                    enabled = uiState.stage == VocabularyPracticeStage.Ready
-                ) {
-                    Text("跳过")
-                }
                 if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+                    OutlinedButton(
+                        onClick = onReplayPronunciation,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("再听一遍")
+                    }
                     Button(
                         onClick = onNextQuestion,
                         modifier = Modifier.weight(2f)
                     ) {
-                        Text(if (uiState.remainingCount == 0) "查看结果" else "下一题")
+                        Text(nextButtonLabel(uiState))
                     }
                 } else {
+                    OutlinedButton(
+                        onClick = if (currentPrompt.section == VocabularyPracticeMode.Study) {
+                            onRevealAnswer
+                        } else {
+                            onReplayPronunciation
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = uiState.stage == VocabularyPracticeStage.Ready
+                    ) {
+                        Text(
+                            if (currentPrompt.section == VocabularyPracticeMode.Study) {
+                                "没见过，直接看答案"
+                            } else {
+                                "播放发音"
+                            }
+                        )
+                    }
                     Button(
                         onClick = onSubmitAnswer,
                         modifier = Modifier.weight(2f),
                         enabled = uiState.canSubmitAnswer
                     ) {
-                        Text("提交答案")
+                        Text(if (currentPrompt.questionType == VocabularyQuestionType.ReviewSpelling) "提交拼写" else "提交答案")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PromptCard(
+    uiState: VocabularyPracticeUiState,
+    currentPrompt: VocabularyPracticePrompt,
+    isAuxPanelExpanded: Boolean
+) {
+    val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
+        currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice &&
+        currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling
+    val overlayText = when (currentPrompt.questionType) {
+        VocabularyQuestionType.StudyEnglishToChinese -> "作答之后展示补充提示"
+        VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示补充提示"
+        VocabularyQuestionType.StudyContextChoice -> ""
+        VocabularyQuestionType.ReviewSpelling -> "5 秒无操作将提示首字母"
+    }
+
+    Surface(
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Text(
+                text = currentPrompt.promptBody,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = if (isAuxPanelExpanded) 4 else 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            if (overlayText.isNotBlank() && uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = overlayText,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.secondary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReviewInputCard(
+    uiState: VocabularyPracticeUiState,
+    currentPrompt: VocabularyPracticePrompt,
+    onValueChange: (String) -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedTextField(
+                value = uiState.spellingInput,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = uiState.stage == VocabularyPracticeStage.Ready,
+                singleLine = true,
+                label = { Text("请输入英文单词") },
+                placeholder = { Text("例如：${currentPrompt.firstLetterHint ?: "_"}...") },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    keyboardType = KeyboardType.Text
+                )
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "提示倒计时 ${uiState.reviewHintCountdownSec}s",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                if (uiState.showFirstLetterHint && !uiState.firstLetterHint.isNullOrBlank()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        shape = CircleShape
+                    ) {
+                        Text(
+                            text = "首字母 ${uiState.firstLetterHint}",
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }
@@ -509,7 +667,7 @@ private fun OptionCard(
         color = containerColor,
         tonalElevation = if (isSelected) 2.dp else 0.dp,
         shadowElevation = 0.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, borderColor)
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Row(
             modifier = Modifier
@@ -551,6 +709,33 @@ private fun OptionCard(
 }
 
 @Composable
+private fun SectionBadge(
+    title: String,
+    subtitle: String
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+        shape = CircleShape
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
+    }
+}
+
+@Composable
 private fun AuxPanelToggle(
     expanded: Boolean,
     onClick: () -> Unit
@@ -561,8 +746,7 @@ private fun AuxPanelToggle(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
     ) {
         Box(
-            modifier = Modifier
-                .size(34.dp),
+            modifier = Modifier.size(34.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -619,12 +803,15 @@ private fun CompletedState(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                SummaryRow("已掌握学习词", uiState.masteredStudyCount.toString())
+                SummaryRow("已完成复习词", uiState.completedReviewCount.toString())
                 SummaryRow("完成题数", totalAnswered.toString())
                 SummaryRow("正确题数", uiState.correctCount.toString())
                 SummaryRow("错误题数", uiState.wrongCount.toString())
                 SummaryRow("跳过题数", uiState.skippedCount.toString())
+                SummaryRow("打回学习", uiState.sentBackToStudyCount.toString())
                 SummaryRow("学习时长", "${uiState.elapsedSeconds}s")
-                SummaryRow("词汇增量", "+${uiState.correctCount}")
+                SummaryRow("词汇增量", "+${uiState.masteredStudyCount}")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -776,19 +963,39 @@ private fun SummaryRow(label: String, value: String) {
     }
 }
 
-private fun feedbackText(answerStatus: AnswerStatus, correctAnswer: String): String {
-    return when (answerStatus) {
-        AnswerStatus.Correct -> "回答正确，继续保持。"
-        AnswerStatus.Wrong -> "回答错误，正确答案是：$correctAnswer"
-        AnswerStatus.Skipped -> "本题已跳过，正确答案是：$correctAnswer"
-        AnswerStatus.Unanswered -> ""
-    }
-}
-
 @Composable
 private fun feedbackColor(answerStatus: AnswerStatus) = when (answerStatus) {
     AnswerStatus.Correct -> MaterialTheme.colorScheme.primary
     AnswerStatus.Wrong,
-    AnswerStatus.Skipped -> MaterialTheme.colorScheme.error
+    AnswerStatus.Skipped,
+    AnswerStatus.Revealed,
+    AnswerStatus.TimedOut -> MaterialTheme.colorScheme.error
     AnswerStatus.Unanswered -> MaterialTheme.colorScheme.onSurface
+}
+
+private fun progressText(
+    uiState: VocabularyPracticeUiState,
+    totalStudy: Int,
+    totalReview: Int
+): String {
+    return when (uiState.currentSection) {
+        VocabularyPracticeMode.Study -> "已掌握 ${uiState.masteredStudyCount} / $totalStudy"
+        VocabularyPracticeMode.Review -> "已完成复习 ${uiState.completedReviewCount} / $totalReview"
+    }
+}
+
+private fun queueStatusText(uiState: VocabularyPracticeUiState): String {
+    return if (uiState.currentSection == VocabularyPracticeMode.Study) {
+        "学习队列 ${uiState.studyQueueSize} 个"
+    } else {
+        "复习队列 ${uiState.reviewQueueSize} 个"
+    }
+}
+
+private fun nextButtonLabel(uiState: VocabularyPracticeUiState): String {
+    return if (uiState.studyQueueSize == 0 && uiState.reviewQueueSize == 0) {
+        "查看结果"
+    } else {
+        "下一题"
+    }
 }

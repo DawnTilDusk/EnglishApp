@@ -18,15 +18,25 @@ enum class VocabularyPracticeStage {
     Error
 }
 
+enum class VocabularyPracticeMode {
+    Study,
+    Review
+}
+
 enum class VocabularyQuestionType {
-    MULTIPLE_CHOICE_TRANSLATION
+    StudyEnglishToChinese,
+    StudyChineseToEnglish,
+    StudyContextChoice,
+    ReviewSpelling
 }
 
 enum class AnswerStatus {
     Unanswered,
     Correct,
     Wrong,
-    Skipped
+    Skipped,
+    Revealed,
+    TimedOut
 }
 
 data class VocabularyPracticeOption(
@@ -36,19 +46,44 @@ data class VocabularyPracticeOption(
     val englishHint: String? = null
 )
 
-data class VocabularyPracticeQuestion(
-    val questionId: String,
+data class VocabularyPracticeWord(
     val wordId: String,
-    val questionType: VocabularyQuestionType,
     val english: String,
     val phonetic: String,
     val partOfSpeech: String,
-    val translationCorrect: String,
-    val optionList: List<VocabularyPracticeOption>,
+    val translation: String,
     val exampleSentence: String,
     val difficultyLevel: String,
     val rewardToken: Int,
-    val estimatedDurationSec: Int
+    val estimatedDurationSec: Int,
+    val translationOptions: List<VocabularyPracticeOption>,
+    val englishOptions: List<VocabularyPracticeOption>,
+    val contextOptions: List<VocabularyPracticeOption>,
+    val contextSentence: String
+)
+
+data class VocabularyWordProgress(
+    val wordId: String,
+    val studyStageIndex: Int = 0,
+    val consecutiveReviewWrongCount: Int = 0,
+    val totalWrongCount: Int = 0,
+    val revealCount: Int = 0,
+    val isMasteredToday: Boolean = false,
+    val isReviewCompleted: Boolean = false
+)
+
+data class VocabularyPracticePrompt(
+    val promptId: String,
+    val word: VocabularyPracticeWord,
+    val section: VocabularyPracticeMode,
+    val questionType: VocabularyQuestionType,
+    val stageTitle: String,
+    val promptTitle: String,
+    val promptBody: String,
+    val helperText: String,
+    val optionList: List<VocabularyPracticeOption> = emptyList(),
+    val correctAnswerText: String,
+    val firstLetterHint: String? = null
 )
 
 data class VocabularySessionMeta(
@@ -63,33 +98,49 @@ data class VocabularySessionMeta(
 
 data class VocabularyPracticeSession(
     val sessionMeta: VocabularySessionMeta,
-    val questions: List<VocabularyPracticeQuestion>
+    val studyWords: List<VocabularyPracticeWord>,
+    val reviewWords: List<VocabularyPracticeWord>
 )
 
 data class VocabularyQuestionRecord(
     val sessionId: String,
-    val questionId: String,
+    val promptId: String,
     val wordId: String,
+    val section: VocabularyPracticeMode,
+    val questionType: VocabularyQuestionType,
     val selectedOptionId: String?,
+    val typedAnswer: String?,
     val isCorrect: Boolean,
     val isSkipped: Boolean,
+    val usedRevealAnswer: Boolean,
+    val usedFirstLetterHint: Boolean,
     val elapsedSeconds: Int
 )
 
 data class VocabularyPracticeUiState(
     val stage: VocabularyPracticeStage = VocabularyPracticeStage.Loading,
     val sessionMeta: VocabularySessionMeta? = null,
-    val questions: List<VocabularyPracticeQuestion> = emptyList(),
-    val currentQuestionIndex: Int = 0,
-    val currentQuestion: VocabularyPracticeQuestion? = null,
+    val session: VocabularyPracticeSession? = null,
+    val currentSection: VocabularyPracticeMode = VocabularyPracticeMode.Study,
+    val currentPrompt: VocabularyPracticePrompt? = null,
+    val currentWordProgress: VocabularyWordProgress? = null,
+    val studyQueueSize: Int = 0,
+    val reviewQueueSize: Int = 0,
+    val masteredStudyCount: Int = 0,
+    val completedReviewCount: Int = 0,
+    val sentBackToStudyCount: Int = 0,
     val selectedOptionId: String? = null,
+    val spellingInput: String = "",
     val answerStatus: AnswerStatus = AnswerStatus.Unanswered,
+    val feedbackMessage: String = "",
+    val reviewHintCountdownSec: Int = 5,
+    val showFirstLetterHint: Boolean = false,
+    val firstLetterHint: String? = null,
     val correctCount: Int = 0,
     val wrongCount: Int = 0,
     val skippedCount: Int = 0,
     val earnedTokens: Int = 0,
     val elapsedSeconds: Int = 0,
-    val remainingCount: Int = 0,
     val canSubmitAnswer: Boolean = false,
     val canGoNext: Boolean = false,
     val showExitConfirmDialog: Boolean = false,
