@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
@@ -293,7 +295,9 @@ private fun PracticeContent(
                     modifier = Modifier
                         .weight(mainPanelWeight)
                         .fillMaxHeight(),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(
+                        if (currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice) 18.dp else 14.dp
+                    )
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -306,8 +310,12 @@ private fun PracticeContent(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    text = currentPrompt.promptTitle,
-                                    style = MaterialTheme.typography.displaySmall,
+                                    text = contextHeadlineText(uiState, currentPrompt),
+                                    style = if (currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice) {
+                                        MaterialTheme.typography.displayMedium
+                                    } else {
+                                        MaterialTheme.typography.displaySmall
+                                    },
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
                                 )
@@ -375,7 +383,10 @@ private fun PracticeContent(
                         VocabularyQuestionType.StudyEnglishToChinese,
                         VocabularyQuestionType.StudyChineseToEnglish,
                         VocabularyQuestionType.StudyContextChoice -> {
-                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Column(
+                                modifier = Modifier.padding(top = if (currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice) 6.dp else 0.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
                                 currentPrompt.optionList.forEach { option ->
                                     OptionCard(
                                         option = option,
@@ -389,7 +400,10 @@ private fun PracticeContent(
                         }
                     }
 
-                    if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+                    if (
+                        uiState.stage == VocabularyPracticeStage.AnswerEvaluated &&
+                        currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice
+                    ) {
                         Surface(
                             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                             shape = MaterialTheme.shapes.medium
@@ -537,12 +551,14 @@ private fun PromptCard(
     currentPrompt: VocabularyPracticePrompt,
     isAuxPanelExpanded: Boolean
 ) {
+    val isContextPrompt = currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice
     val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
-        currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling
+        currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling &&
+        currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice
     val overlayText = when (currentPrompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese -> "作答之后展示补充提示"
         VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示补充提示"
-        VocabularyQuestionType.StudyContextChoice -> "作答之后展示中文释义"
+        VocabularyQuestionType.StudyContextChoice -> ""
         VocabularyQuestionType.ReviewSpelling -> "5 秒无操作将提示首字母"
     }
 
@@ -553,16 +569,25 @@ private fun PromptCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .heightIn(min = if (isContextPrompt) 108.dp else 0.dp)
+                .padding(horizontal = 16.dp, vertical = if (isContextPrompt) 18.dp else 12.dp)
         ) {
             Text(
-                text = currentPrompt.promptBody,
+                text = if (isContextPrompt) currentPrompt.promptTitle else currentPrompt.promptBody,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = if (isAuxPanelExpanded) 4 else 2,
+                style = if (isContextPrompt) {
+                    MaterialTheme.typography.headlineSmall
+                } else {
+                    MaterialTheme.typography.bodyLarge
+                },
+                color = if (isContextPrompt) Color(0xFF7A5230) else MaterialTheme.colorScheme.onSurface,
+                maxLines = if (isContextPrompt) {
+                    if (isAuxPanelExpanded) 5 else 3
+                } else {
+                    if (isAuxPanelExpanded) 4 else 2
+                },
                 overflow = TextOverflow.Ellipsis
             )
             if (overlayText.isNotBlank() && uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
@@ -992,4 +1017,23 @@ private fun stageChipText(prompt: VocabularyPracticePrompt): String? {
         VocabularyQuestionType.StudyContextChoice,
         VocabularyQuestionType.ReviewSpelling -> null
     }
+}
+
+private fun contextHeadlineText(
+    uiState: VocabularyPracticeUiState,
+    prompt: VocabularyPracticePrompt
+): String {
+    if (prompt.questionType != VocabularyQuestionType.StudyContextChoice) {
+        return prompt.promptTitle
+    }
+    return if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+        prompt.correctAnswerText
+    } else {
+        buildMaskedWord(prompt.correctAnswerText)
+    }
+}
+
+private fun buildMaskedWord(answer: String): String {
+    val visibleCharCount = answer.count { !it.isWhitespace() }
+    return "█".repeat(visibleCharCount.coerceAtLeast(3))
 }
