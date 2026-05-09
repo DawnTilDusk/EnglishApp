@@ -543,13 +543,14 @@ class VocabularyPracticeViewModel @Inject constructor(
         forcedStudyQuestionType: VocabularyQuestionType? = null
     ): VocabularyPracticePrompt {
         return if (section == VocabularyPracticeMode.Study) {
+            val currentStageTitle = "第${progress.passedStudyQuestionTypes.size + 1}关"
             when (forcedStudyQuestionType) {
                 VocabularyQuestionType.StudyEnglishToChinese -> VocabularyPracticePrompt(
                     promptId = "${word.wordId}_study_1",
                     word = word,
                     section = section,
                     questionType = VocabularyQuestionType.StudyEnglishToChinese,
-                    stageTitle = "第1关",
+                    stageTitle = currentStageTitle,
                     promptTitle = word.english,
                     promptBody = "根据英文选择正确中文释义",
                     helperText = "${word.phonetic}  ${word.partOfSpeech}",
@@ -563,7 +564,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     word = word,
                     section = section,
                     questionType = VocabularyQuestionType.StudyChineseToEnglish,
-                    stageTitle = "第2关",
+                    stageTitle = currentStageTitle,
                     promptTitle = word.translation,
                     promptBody = "根据中文选择正确英文单词",
                     helperText = "${word.partOfSpeech}  ${word.phonetic}",
@@ -577,7 +578,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     word = word,
                     section = section,
                     questionType = VocabularyQuestionType.StudyContextChoice,
-                    stageTitle = "第3关",
+                    stageTitle = currentStageTitle,
                     promptTitle = word.contextSentence,
                     promptBody = "中文释义：${word.translation}",
                     helperText = "",
