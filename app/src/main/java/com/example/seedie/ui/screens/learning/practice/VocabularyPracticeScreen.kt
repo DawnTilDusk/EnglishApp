@@ -259,22 +259,13 @@ private fun PracticeContent(
                     TokenBadge(tokens = uiState.earnedTokens)
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    SectionBadge(
-                        title = if (uiState.currentSection == VocabularyPracticeMode.Study) "学习" else "复习",
-                        subtitle = currentPrompt.stageTitle
-                    )
-                    Text(
-                        text = progressText(uiState = uiState, totalStudy = totalStudy, totalReview = totalReview),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        textAlign = TextAlign.End
-                    )
-                }
+                Text(
+                    text = progressText(uiState = uiState, totalStudy = totalStudy, totalReview = totalReview),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 LinearProgressIndicator(
                     progress = { progress },
@@ -310,17 +301,39 @@ private fun PracticeContent(
                         verticalAlignment = Alignment.Top
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = currentPrompt.promptTitle,
-                                style = MaterialTheme.typography.displaySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = currentPrompt.helperText,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = currentPrompt.promptTitle,
+                                    style = MaterialTheme.typography.displaySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                val stageChip = stageChipText(currentPrompt)
+                                if (stageChip != null) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                        shape = CircleShape
+                                    ) {
+                                        Text(
+                                            text = stageChip,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                            if (currentPrompt.helperText.isNotBlank()) {
+                                Text(
+                                    text = currentPrompt.helperText,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -524,6 +537,12 @@ private fun PromptCard(
     currentPrompt: VocabularyPracticePrompt,
     isAuxPanelExpanded: Boolean
 ) {
+    val isContextPrompt = currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice
+    val promptText = if (isContextPrompt && uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
+        currentPrompt.word.contextSentence
+    } else {
+        currentPrompt.promptBody
+    }
     val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
         currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice &&
         currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling
@@ -544,7 +563,7 @@ private fun PromptCard(
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             Text(
-                text = currentPrompt.promptBody,
+                text = promptText,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
@@ -704,33 +723,6 @@ private fun OptionCard(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SectionBadge(
-    title: String,
-    subtitle: String
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-        shape = CircleShape
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
         }
     }
 }
@@ -997,5 +989,14 @@ private fun nextButtonLabel(uiState: VocabularyPracticeUiState): String {
         "查看结果"
     } else {
         "下一题"
+    }
+}
+
+private fun stageChipText(prompt: VocabularyPracticePrompt): String? {
+    return when (prompt.questionType) {
+        VocabularyQuestionType.StudyEnglishToChinese,
+        VocabularyQuestionType.StudyChineseToEnglish -> prompt.stageTitle
+        VocabularyQuestionType.StudyContextChoice,
+        VocabularyQuestionType.ReviewSpelling -> null
     }
 }
