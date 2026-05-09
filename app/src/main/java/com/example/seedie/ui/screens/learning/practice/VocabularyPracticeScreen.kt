@@ -30,12 +30,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -122,6 +124,7 @@ fun VocabularyPracticeRoute(
         onSpellingInputChanged = viewModel::onSpellingInputChanged,
         onSubmitAnswer = viewModel::onSubmitAnswer,
         onRevealAnswer = viewModel::onRevealAnswer,
+        onRevealPhoneticHint = viewModel::onRevealPhoneticHint,
         onNextQuestion = viewModel::onNextQuestion,
         onReplayPronunciation = viewModel::onReplayPronunciation,
         onRetryLoad = viewModel::onRetryLoad,
@@ -139,6 +142,7 @@ private fun VocabularyPracticeScreen(
     onSpellingInputChanged: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
     onRevealAnswer: () -> Unit,
+    onRevealPhoneticHint: () -> Unit,
     onNextQuestion: () -> Unit,
     onReplayPronunciation: () -> Unit,
     onRetryLoad: () -> Unit,
@@ -183,6 +187,7 @@ private fun VocabularyPracticeScreen(
             onSpellingInputChanged = onSpellingInputChanged,
             onSubmitAnswer = onSubmitAnswer,
             onRevealAnswer = onRevealAnswer,
+            onRevealPhoneticHint = onRevealPhoneticHint,
             onNextQuestion = onNextQuestion,
             onReplayPronunciation = onReplayPronunciation
         )
@@ -197,6 +202,7 @@ private fun PracticeContent(
     onSpellingInputChanged: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
     onRevealAnswer: () -> Unit,
+    onRevealPhoneticHint: () -> Unit,
     onNextQuestion: () -> Unit,
     onReplayPronunciation: () -> Unit
 ) {
@@ -310,7 +316,15 @@ private fun PracticeContent(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    text = contextHeadlineText(uiState, currentPrompt),
+                                    text = headlineText(currentPrompt),
+                                    modifier = if (
+                                        currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice &&
+                                        uiState.stage != VocabularyPracticeStage.AnswerEvaluated
+                                    ) {
+                                        Modifier.blur(12.dp)
+                                    } else {
+                                        Modifier
+                                    },
                                     style = if (currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice) {
                                         MaterialTheme.typography.displayMedium
                                     } else {
@@ -335,7 +349,13 @@ private fun PracticeContent(
                                     }
                                 }
                             }
-                            if (currentPrompt.helperText.isNotBlank()) {
+                            if (currentPrompt.questionType == VocabularyQuestionType.StudyChineseToEnglish) {
+                                ChineseToEnglishHintRow(
+                                    uiState = uiState,
+                                    currentPrompt = currentPrompt,
+                                    onRevealPhoneticHint = onRevealPhoneticHint
+                                )
+                            } else if (currentPrompt.helperText.isNotBlank()) {
                                 Text(
                                     text = currentPrompt.helperText,
                                     style = MaterialTheme.typography.titleMedium,
@@ -553,11 +573,16 @@ private fun PromptCard(
 ) {
     val isContextPrompt = currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice
     val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
-        currentPrompt.questionType != VocabularyQuestionType.ReviewSpelling &&
-        currentPrompt.questionType != VocabularyQuestionType.StudyContextChoice
+        currentPrompt.questionType == VocabularyQuestionType.StudyChineseToEnglish
+    val promptText = when (currentPrompt.questionType) {
+        VocabularyQuestionType.StudyEnglishToChinese,
+        VocabularyQuestionType.StudyChineseToEnglish -> currentPrompt.word.exampleSentence
+        VocabularyQuestionType.StudyContextChoice -> currentPrompt.promptTitle
+        VocabularyQuestionType.ReviewSpelling -> currentPrompt.promptBody
+    }
     val overlayText = when (currentPrompt.questionType) {
-        VocabularyQuestionType.StudyEnglishToChinese -> "作答之后展示补充提示"
-        VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示补充提示"
+        VocabularyQuestionType.StudyEnglishToChinese -> ""
+        VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示例句"
         VocabularyQuestionType.StudyContextChoice -> ""
         VocabularyQuestionType.ReviewSpelling -> "5 秒无操作将提示首字母"
     }
@@ -569,22 +594,22 @@ private fun PromptCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (isContextPrompt) 108.dp else 0.dp)
-                .padding(horizontal = 16.dp, vertical = if (isContextPrompt) 18.dp else 12.dp)
+                .heightIn(min = if (isContextPrompt) 72.dp else 0.dp)
+                .padding(horizontal = 16.dp, vertical = if (isContextPrompt) 10.dp else 12.dp)
         ) {
             Text(
-                text = if (isContextPrompt) currentPrompt.promptTitle else currentPrompt.promptBody,
+                text = promptText,
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
                 style = if (isContextPrompt) {
-                    MaterialTheme.typography.headlineSmall
+                    MaterialTheme.typography.titleLarge
                 } else {
                     MaterialTheme.typography.bodyLarge
                 },
                 color = if (isContextPrompt) Color(0xFF7A5230) else MaterialTheme.colorScheme.onSurface,
                 maxLines = if (isContextPrompt) {
-                    if (isAuxPanelExpanded) 5 else 3
+                    if (isAuxPanelExpanded) 3 else 2
                 } else {
                     if (isAuxPanelExpanded) 4 else 2
                 },
@@ -607,6 +632,45 @@ private fun PromptCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ChineseToEnglishHintRow(
+    uiState: VocabularyPracticeUiState,
+    currentPrompt: VocabularyPracticePrompt,
+    onRevealPhoneticHint: () -> Unit
+) {
+    val shouldRevealPhonetic = uiState.stage == VocabularyPracticeStage.AnswerEvaluated || uiState.showPhoneticHint
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = currentPrompt.word.partOfSpeech,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        IconButton(
+            onClick = onRevealPhoneticHint,
+            enabled = uiState.stage == VocabularyPracticeStage.Ready && !uiState.showPhoneticHint
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lightbulb,
+                contentDescription = "Reveal phonetic hint",
+                tint = if (uiState.stage == VocabularyPracticeStage.Ready && !uiState.showPhoneticHint) {
+                    MaterialTheme.colorScheme.tertiary
+                } else {
+                    MaterialTheme.colorScheme.secondary
+                }
+            )
+        }
+        Text(
+            text = currentPrompt.word.phonetic,
+            modifier = if (shouldRevealPhonetic) Modifier else Modifier.blur(10.dp),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
     }
 }
 
@@ -1019,21 +1083,10 @@ private fun stageChipText(prompt: VocabularyPracticePrompt): String? {
     }
 }
 
-private fun contextHeadlineText(
-    uiState: VocabularyPracticeUiState,
-    prompt: VocabularyPracticePrompt
-): String {
-    if (prompt.questionType != VocabularyQuestionType.StudyContextChoice) {
-        return prompt.promptTitle
-    }
-    return if (uiState.stage == VocabularyPracticeStage.AnswerEvaluated) {
+private fun headlineText(prompt: VocabularyPracticePrompt): String {
+    return if (prompt.questionType == VocabularyQuestionType.StudyContextChoice) {
         prompt.correctAnswerText
     } else {
-        buildMaskedWord(prompt.correctAnswerText)
+        prompt.promptTitle
     }
-}
-
-private fun buildMaskedWord(answer: String): String {
-    val visibleCharCount = answer.count { !it.isWhitespace() }
-    return "█".repeat(visibleCharCount.coerceAtLeast(3))
 }

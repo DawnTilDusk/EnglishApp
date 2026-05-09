@@ -166,6 +166,21 @@ class VocabularyPracticeViewModel @Inject constructor(
         }
     }
 
+    fun onRevealPhoneticHint() {
+        val state = _uiState.value
+        val prompt = state.currentPrompt ?: return
+        if (
+            state.stage != VocabularyPracticeStage.Ready ||
+            prompt.questionType != VocabularyQuestionType.StudyChineseToEnglish
+        ) {
+            return
+        }
+        _uiState.update { it.copy(showPhoneticHint = true) }
+        viewModelScope.launch {
+            _pronunciationEvents.emit(prompt.word.english)
+        }
+    }
+
     fun onNextQuestion() {
         if (_uiState.value.stage != VocabularyPracticeStage.AnswerEvaluated) return
         advanceToNextPrompt()
@@ -415,6 +430,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         if (wrongStreak >= 4) {
             progressMap[wordId] = updatedProgress.copy(
                 passedStudyQuestionTypes = emptySet(),
+                hasSeenStudyWord = false,
                 consecutiveReviewWrongCount = 0,
                 isMasteredToday = false,
                 isReviewCompleted = false
@@ -484,7 +500,13 @@ class VocabularyPracticeViewModel @Inject constructor(
             return
         }
         val randomStudyQuestionType = if (section == VocabularyPracticeMode.Study) {
-            pickRandomUnpassedStudyQuestionType(progress)
+            if (!progress.hasSeenStudyWord) {
+                progress = progress.copy(hasSeenStudyWord = true)
+                progressMap[wordId] = progress
+                VocabularyQuestionType.StudyEnglishToChinese
+            } else {
+                pickRandomUnpassedStudyQuestionType(progress)
+            }
         } else {
             null
         }
@@ -508,6 +530,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                 feedbackMessage = "",
                 reviewHintCountdownSec = 5,
                 showFirstLetterHint = false,
+                showPhoneticHint = false,
                 firstLetterHint = prompt.firstLetterHint,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,

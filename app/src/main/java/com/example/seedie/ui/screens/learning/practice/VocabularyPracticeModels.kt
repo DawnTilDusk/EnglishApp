@@ -65,6 +65,7 @@ data class VocabularyPracticeWord(
 data class VocabularyWordProgress(
     val wordId: String,
     val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
+    val hasSeenStudyWord: Boolean = false,
     val consecutiveReviewWrongCount: Int = 0,
     val totalWrongCount: Int = 0,
     val revealCount: Int = 0,
@@ -135,6 +136,7 @@ data class VocabularyPracticeUiState(
     val feedbackMessage: String = "",
     val reviewHintCountdownSec: Int = 5,
     val showFirstLetterHint: Boolean = false,
+    val showPhoneticHint: Boolean = false,
     val firstLetterHint: String? = null,
     val correctCount: Int = 0,
     val wrongCount: Int = 0,
