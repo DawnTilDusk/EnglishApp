@@ -1075,8 +1075,8 @@ private fun nextButtonLabel(uiState: VocabularyPracticeUiState): String {
 private fun stageChipText(prompt: VocabularyPracticePrompt): String? {
     return when (prompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese,
-        VocabularyQuestionType.StudyChineseToEnglish -> prompt.stageTitle
-        VocabularyQuestionType.StudyContextChoice,
+        VocabularyQuestionType.StudyChineseToEnglish,
+        VocabularyQuestionType.StudyContextChoice -> prompt.stageTitle
         VocabularyQuestionType.ReviewSpelling -> null
     }
 }
