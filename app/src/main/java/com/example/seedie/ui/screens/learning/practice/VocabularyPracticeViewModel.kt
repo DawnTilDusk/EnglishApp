@@ -21,6 +21,9 @@ import kotlin.random.Random
 class VocabularyPracticeViewModel @Inject constructor(
     private val repository: VocabularyPracticeRepository
 ) : ViewModel() {
+    private companion object {
+        const val STAGE_ONE_ACTIVE_QUEUE_SIZE = 4
+    }
 
     private val _uiState = MutableStateFlow(VocabularyPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -39,8 +42,12 @@ class VocabularyPracticeViewModel @Inject constructor(
     private val reviewQueue = ArrayDeque<String>()
     private val wordMap = linkedMapOf<String, VocabularyPracticeWord>()
     private val progressMap = linkedMapOf<String, VocabularyWordProgress>()
+    private val studyWordOrder = mutableListOf<String>()
     private val pronouncedWordKeys = linkedSetOf<String>()
     private var currentSession: VocabularyPracticeSession? = null
+    private var nextStudyWordIndex = 0
+    private var introducedStudyCount = 0
+    private var studyTargetCount = 0
     private var masteredStudyCount = 0
     private var completedReviewCount = 0
     private var sentBackToStudyCount = 0
@@ -206,22 +213,26 @@ class VocabularyPracticeViewModel @Inject constructor(
                     _uiState.value = VocabularyPracticeUiState(stage = VocabularyPracticeStage.Empty)
                 } else {
                     currentSession = session
+                    studyTargetCount = session.studyWords.size
                     session.studyWords.forEach { word ->
                         wordMap[word.wordId] = word
                         progressMap[word.wordId] = VocabularyWordProgress(wordId = word.wordId)
-                        studyQueue.addLast(word.wordId)
+                        studyWordOrder += word.wordId
                     }
                     session.reviewWords.forEach { word ->
                         wordMap[word.wordId] = word
                         progressMap[word.wordId] = progressMap[word.wordId] ?: VocabularyWordProgress(wordId = word.wordId)
                         reviewQueue.addLast(word.wordId)
                     }
+                    fillStudyQueueIfNeeded()
                     _uiState.value = VocabularyPracticeUiState(
                         stage = VocabularyPracticeStage.Ready,
                         sessionMeta = session.sessionMeta,
                         session = session,
                         studyQueueSize = studyQueue.size,
-                        reviewQueueSize = reviewQueue.size
+                        reviewQueueSize = reviewQueue.size,
+                        introducedStudyCount = introducedStudyCount,
+                        studyTargetCount = studyTargetCount
                     )
                     startTimer()
                     advanceToNextPrompt()
@@ -320,6 +331,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         val feedbackMessage = if (allPassed) {
             removeWordFromStudyQueue(wordId)
             masteredStudyCount += 1
+            fillStudyQueueIfNeeded()
             "当前单词 3 个关卡均通过，已标记掌握。"
         } else {
             moveCurrentStudyWordToTail(wordId)
@@ -478,6 +490,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                     showFinishDialog = true,
                     studyQueueSize = studyQueue.size,
                     reviewQueueSize = reviewQueue.size,
+                    introducedStudyCount = introducedStudyCount,
+                    studyTargetCount = studyTargetCount,
                     masteredStudyCount = masteredStudyCount,
                     completedReviewCount = completedReviewCount,
                     sentBackToStudyCount = sentBackToStudyCount
@@ -534,6 +548,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                 firstLetterHint = prompt.firstLetterHint,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
                 masteredStudyCount = masteredStudyCount,
                 completedReviewCount = completedReviewCount,
                 sentBackToStudyCount = sentBackToStudyCount,
@@ -647,6 +663,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                 earnedTokens = it.earnedTokens + earnedTokensDelta,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
                 masteredStudyCount = masteredStudyCount,
                 completedReviewCount = completedReviewCount,
                 sentBackToStudyCount = sentBackToStudyCount,
@@ -751,6 +769,24 @@ class VocabularyPracticeViewModel @Inject constructor(
         studyQueue.remove(wordId)
     }
 
+    private fun fillStudyQueueIfNeeded() {
+        while (studyQueue.size < STAGE_ONE_ACTIVE_QUEUE_SIZE) {
+            val appended = enqueueNextStudyWordIfAvailable()
+            if (!appended) break
+        }
+    }
+
+    private fun enqueueNextStudyWordIfAvailable(): Boolean {
+        if (nextStudyWordIndex >= studyWordOrder.size) return false
+        val wordId = studyWordOrder[nextStudyWordIndex]
+        nextStudyWordIndex += 1
+        introducedStudyCount += 1
+        if (studyQueue.none { it == wordId }) {
+            studyQueue.addLast(wordId)
+        }
+        return true
+    }
+
     private fun pickRandomUnpassedStudyQuestionType(progress: VocabularyWordProgress): VocabularyQuestionType? {
         val pendingTypes = studyQuestionTypes.filterNot { it in progress.passedStudyQuestionTypes }
         if (pendingTypes.isEmpty()) return null
@@ -802,8 +838,12 @@ class VocabularyPracticeViewModel @Inject constructor(
         reviewQueue.clear()
         wordMap.clear()
         progressMap.clear()
+        studyWordOrder.clear()
         pronouncedWordKeys.clear()
         currentSession = null
+        nextStudyWordIndex = 0
+        introducedStudyCount = 0
+        studyTargetCount = 0
         masteredStudyCount = 0
         completedReviewCount = 0
         sentBackToStudyCount = 0

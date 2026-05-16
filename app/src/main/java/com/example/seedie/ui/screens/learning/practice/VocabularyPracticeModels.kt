@@ -4,7 +4,7 @@ data class VocabularyPracticeArgs(
     val sessionId: String? = null,
     val sourceModuleId: String = "vocabulary",
     val planId: String? = null,
-    val wordCountTarget: Int = 5,
+    val wordCountTarget: Int = 10,
     val difficulty: String = "easy",
     val resumeToken: String? = null
 )
@@ -127,6 +127,8 @@ data class VocabularyPracticeUiState(
     val currentWordProgress: VocabularyWordProgress? = null,
     val studyQueueSize: Int = 0,
     val reviewQueueSize: Int = 0,
+    val introducedStudyCount: Int = 0,
+    val studyTargetCount: Int = 0,
     val masteredStudyCount: Int = 0,
     val completedReviewCount: Int = 0,
     val sentBackToStudyCount: Int = 0,

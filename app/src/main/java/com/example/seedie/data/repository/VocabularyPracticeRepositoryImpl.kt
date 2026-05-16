@@ -22,8 +22,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     private val vocabularyWordDao: VocabularyWordDao
 ) : VocabularyPracticeRepository {
     private companion object {
-        const val STUDY_GROUP_SIZE = 5
-        const val DEFAULT_REVIEW_COUNT = 5
+        const val STAGE_ONE_STUDY_TARGET_COUNT = 10
     }
 
     private val questionRecords = linkedMapOf<String, MutableList<VocabularyQuestionRecord>>()
@@ -39,13 +38,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         }.ifEmpty { wordBank }
 
         val random = Random(sessionId.hashCode())
-        val studyBaseEntries = filteredPool.take(STUDY_GROUP_SIZE.coerceAtMost(filteredPool.size))
-        val studyEntries = studyBaseEntries.shuffled(random)
-        val reviewTarget = args.wordCountTarget.coerceAtLeast(DEFAULT_REVIEW_COUNT)
-        val reviewEntries = filteredPool
-            .drop(studyBaseEntries.size)
-            .shuffled(random)
-            .take(reviewTarget.coerceAtMost((filteredPool.size - studyBaseEntries.size).coerceAtLeast(0)))
+        val studyEntries = filteredPool.take(STAGE_ONE_STUDY_TARGET_COUNT.coerceAtMost(filteredPool.size))
 
         return VocabularyPracticeSession(
             sessionMeta = VocabularySessionMeta(
@@ -60,9 +53,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             studyWords = studyEntries.map { entry ->
                 entry.toPracticeWord(allEntries = wordBank, random = random)
             },
-            reviewWords = reviewEntries.map { entry ->
-                entry.toPracticeWord(allEntries = wordBank, random = random)
-            }
+            reviewWords = emptyList()
         )
     }
 

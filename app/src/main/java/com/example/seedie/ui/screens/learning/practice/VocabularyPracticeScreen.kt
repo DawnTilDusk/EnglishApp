@@ -491,15 +491,14 @@ private fun PracticeContent(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = "双流程会根据作答结果动态重排队列。",
+                                        text = "阶段一使用滚动学习队列：学会一个，顺序补入一个新词。",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    SummaryRow("学习队列", "${uiState.studyQueueSize} 个")
-                                    SummaryRow("复习队列", "${uiState.reviewQueueSize} 个")
+                                    SummaryRow("活跃队列", "${uiState.studyQueueSize} 个")
+                                    SummaryRow("已引入", "${uiState.introducedStudyCount} / ${uiState.studyTargetCount}")
                                     SummaryRow("已掌握", "${uiState.masteredStudyCount} 个")
-                                    SummaryRow("已复习", "${uiState.completedReviewCount} 个")
-                                    SummaryRow("打回学习", "${uiState.sentBackToStudyCount} 次")
+                                    SummaryRow("复习队列", "${uiState.reviewQueueSize} 个")
                                 }
                             }
                         }
@@ -878,12 +877,11 @@ private fun CompletedState(
                     color = MaterialTheme.colorScheme.secondary
                 )
                 SummaryRow("已掌握学习词", uiState.masteredStudyCount.toString())
-                SummaryRow("已完成复习词", uiState.completedReviewCount.toString())
+                SummaryRow("本轮已引入", "${uiState.introducedStudyCount} / ${uiState.studyTargetCount}")
                 SummaryRow("完成题数", totalAnswered.toString())
                 SummaryRow("正确题数", uiState.correctCount.toString())
                 SummaryRow("错误题数", uiState.wrongCount.toString())
                 SummaryRow("跳过题数", uiState.skippedCount.toString())
-                SummaryRow("打回学习", uiState.sentBackToStudyCount.toString())
                 SummaryRow("学习时长", "${uiState.elapsedSeconds}s")
                 SummaryRow("词汇增量", "+${uiState.masteredStudyCount}")
                 Row(
@@ -1060,7 +1058,7 @@ private fun progressText(
 
 private fun queueStatusText(uiState: VocabularyPracticeUiState): String {
     return if (uiState.currentSection == VocabularyPracticeMode.Study) {
-        "学习队列 ${uiState.studyQueueSize} 个"
+        "活跃队列 ${uiState.studyQueueSize} 个 · 已引入 ${uiState.introducedStudyCount}/${uiState.studyTargetCount}"
     } else {
         "复习队列 ${uiState.reviewQueueSize} 个"
     }
