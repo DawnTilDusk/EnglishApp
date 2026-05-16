@@ -1,4 +1,5 @@
 package com.example.seedie.ui.screens.learning.practice
+import com.example.seedie.domain.model.StudyResult
 
 data class VocabularyPracticeArgs(
     val sessionId: String? = null,
