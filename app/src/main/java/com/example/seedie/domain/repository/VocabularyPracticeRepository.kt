@@ -14,6 +14,11 @@ interface VocabularyPracticeRepository {
 
     suspend fun markStudyRoundReviewPending(roundId: String)
 
+    suspend fun markReviewWordMastered(
+        roundId: String,
+        wordId: String
+    )
+
     suspend fun markReviewCompleted(roundId: String)
 
     suspend fun getPendingReviewEntry(): PendingReviewEntry?

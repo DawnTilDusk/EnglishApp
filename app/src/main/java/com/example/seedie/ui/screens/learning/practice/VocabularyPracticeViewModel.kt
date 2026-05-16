@@ -335,7 +335,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         carryoverResult = null
 
         viewModelScope.launch {
-            if (currentEntryMode == VocabularyPracticeMode.Review) {
+            if (currentEntryMode == VocabularyPracticeMode.Review && isCompleted) {
                 currentRoundId?.let { repository.markReviewCompleted(it) }
             }
             repository.finishPracticeSession(result)
@@ -521,6 +521,14 @@ class VocabularyPracticeViewModel @Inject constructor(
                 isReviewCompleted = true
             )
             completedReviewCount += 1
+            currentRoundId?.let { roundId ->
+                viewModelScope.launch {
+                    repository.markReviewWordMastered(
+                        roundId = roundId,
+                        wordId = wordId
+                    )
+                }
+            }
             presentEvaluatedState(
                 answerStatus = AnswerStatus.Correct,
                 feedbackMessage = "拼写正确，当前复习单词已完成。",

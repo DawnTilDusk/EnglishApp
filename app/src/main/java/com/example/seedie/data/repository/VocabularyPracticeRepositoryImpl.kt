@@ -48,6 +48,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         const val WORD_STATUS_LEARNING = "LEARNING"
         const val WORD_STATUS_LEARNED = "LEARNED"
         const val WORD_STATUS_REVIEW_PENDING = "REVIEW_PENDING"
+        const val WORD_STATUS_MASTERED = "MASTERED"
         const val ROUND_STATUS_ACTIVE = "ACTIVE"
         const val ROUND_STATUS_REVIEW_PENDING = "REVIEW_PENDING"
         const val ROUND_STATUS_REVIEW_COMPLETED = "REVIEW_COMPLETED"
@@ -222,10 +223,26 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             if (round.status == ROUND_STATUS_REVIEW_PENDING || round.status == ROUND_STATUS_REVIEW_COMPLETED) {
                 return@withTransaction
             }
+            val roundWordIds = vocabularyStudyRoundWordDao.getRoundWords(roundId).map { it.wordId }
+            val roundEntries = if (roundWordIds.isEmpty()) {
+                emptyList()
+            } else {
+                vocabularyWordDao.getWordsByIds(round.bookId, roundWordIds)
+            }
+            val nextBatchCursor = roundEntries
+                .maxByOrNull { it.sortOrder }
+                ?.sortOrder
+                ?.let { maxSortOrder ->
+                    vocabularyWordDao.getWordsByBook(round.bookId)
+                        .firstOrNull { it.sortOrder > maxSortOrder }
+                        ?.sortOrder
+                }
+                ?: CURSOR_END_SENTINEL
             val masteredWordIds = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).map { it.wordId }
             vocabularyStudyRoundDao.insertOrReplace(
                 round.copy(
                     status = ROUND_STATUS_REVIEW_PENDING,
+                    nextWordSortOrderCursor = nextBatchCursor,
                     updatedAt = now
                 )
             )
@@ -240,7 +257,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             vocabularyBookProgressDao.insertOrReplace(
                 currentBookProgress.copy(
-                    nextWordSortOrderCursor = round.nextWordSortOrderCursor,
+                    nextWordSortOrderCursor = nextBatchCursor,
                     activeRoundId = null,
                     learnedWordCount = currentBookProgress.learnedWordCount + round.masteredWordCount,
                     updatedAt = now
@@ -262,17 +279,60 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun markReviewWordMastered(
+        roundId: String,
+        wordId: String
+    ) {
+        val now = System.currentTimeMillis()
+        database.withTransaction {
+            val round = vocabularyStudyRoundDao.getRoundById(roundId) ?: return@withTransaction
+            if (round.status != ROUND_STATUS_REVIEW_PENDING) return@withTransaction
+            vocabularyStudyRoundWordDao.deleteByRoundIdAndWordId(roundId, wordId)
+            vocabularyWordLearningProgressDao.insertOrReplace(
+                VocabularyWordLearningProgressEntity(
+                    bookId = round.bookId,
+                    wordId = wordId,
+                    status = WORD_STATUS_MASTERED,
+                    lastStudiedAt = now,
+                    learnedAt = now
+                )
+            )
+            if (vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).isEmpty()) {
+                vocabularyStudyRoundDao.insertOrReplace(
+                    round.copy(
+                        status = ROUND_STATUS_REVIEW_COMPLETED,
+                        updatedAt = now
+                    )
+                )
+            }
+        }
+    }
+
     override suspend fun markReviewCompleted(roundId: String) {
         val now = System.currentTimeMillis()
         database.withTransaction {
             val round = vocabularyStudyRoundDao.getRoundById(roundId) ?: return@withTransaction
             if (round.status == ROUND_STATUS_REVIEW_COMPLETED) return@withTransaction
+            val remainingWordIds = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).map { it.wordId }
             vocabularyStudyRoundDao.insertOrReplace(
                 round.copy(
                     status = ROUND_STATUS_REVIEW_COMPLETED,
                     updatedAt = now
                 )
             )
+            if (remainingWordIds.isNotEmpty()) {
+                vocabularyWordLearningProgressDao.insertOrReplace(
+                    remainingWordIds.map { wordId ->
+                        VocabularyWordLearningProgressEntity(
+                            bookId = round.bookId,
+                            wordId = wordId,
+                            status = WORD_STATUS_MASTERED,
+                            lastStudiedAt = now,
+                            learnedAt = now
+                        )
+                    }
+                )
+            }
             vocabularyStudyRoundWordDao.deleteByRoundId(roundId)
         }
     }
@@ -412,10 +472,36 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         random: Random,
         bookProgress: VocabularyBookProgressEntity
     ): VocabularyPracticeSession {
+        if (bookProgress.nextWordSortOrderCursor == CURSOR_END_SENTINEL) {
+            return VocabularyPracticeSession(
+                sessionMeta = VocabularySessionMeta(
+                    sessionId = sessionId,
+                    moduleId = args.sourceModuleId,
+                    startedAt = System.currentTimeMillis(),
+                    targetWordCount = 0,
+                    difficulty = args.difficulty,
+                    source = args.planId ?: "learning_hub",
+                    resumeSupported = true
+                ),
+                studyWords = emptyList(),
+                reviewWords = emptyList()
+            )
+        }
         val startSortOrder = filteredPool.firstOrNull { it.sortOrder >= bookProgress.nextWordSortOrderCursor }
             ?.sortOrder
-            ?: filteredPool.firstOrNull()?.sortOrder
-            ?: error("当前词书没有任何单词")
+            ?: return VocabularyPracticeSession(
+                sessionMeta = VocabularySessionMeta(
+                    sessionId = sessionId,
+                    moduleId = args.sourceModuleId,
+                    startedAt = System.currentTimeMillis(),
+                    targetWordCount = 0,
+                    difficulty = args.difficulty,
+                    source = args.planId ?: "learning_hub",
+                    resumeSupported = true
+                ),
+                studyWords = emptyList(),
+                reviewWords = emptyList()
+            )
         val studyEntries = filteredPool
             .filter { it.sortOrder >= startSortOrder }
             .take(STAGE_STUDY_TARGET_COUNT)

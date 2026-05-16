@@ -28,6 +28,12 @@ interface VocabularyStudyRoundWordDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrReplace(roundWords: List<VocabularyStudyRoundWordEntity>)
 
+    @Query("DELETE FROM vocabulary_study_round_words WHERE roundId = :roundId AND wordId = :wordId")
+    suspend fun deleteByRoundIdAndWordId(
+        roundId: String,
+        wordId: String
+    )
+
     @Query("DELETE FROM vocabulary_study_round_words WHERE roundId = :roundId")
     suspend fun deleteByRoundId(roundId: String)
 }
