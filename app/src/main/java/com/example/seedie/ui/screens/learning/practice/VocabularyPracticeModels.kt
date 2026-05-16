@@ -6,7 +6,9 @@ data class VocabularyPracticeArgs(
     val planId: String? = null,
     val wordCountTarget: Int = 10,
     val difficulty: String = "easy",
-    val resumeToken: String? = null
+    val resumeToken: String? = null,
+    val entryMode: VocabularyPracticeMode = VocabularyPracticeMode.Study,
+    val targetRoundId: String? = null
 )
 
 enum class VocabularyPracticeStage {
@@ -125,6 +127,17 @@ data class VocabularyPracticeSession(
     val resumeSnapshot: VocabularyPracticeResumeSnapshot? = null
 )
 
+data class PendingReviewEntry(
+    val roundId: String,
+    val bookId: String,
+    val pendingWordCount: Int
+)
+
+data class VocabularyImmediateReviewRequest(
+    val result: StudyResult,
+    val args: VocabularyPracticeArgs
+)
+
 data class VocabularyQuestionRecord(
     val sessionId: String,
     val promptId: String,
@@ -154,6 +167,9 @@ data class VocabularyPracticeUiState(
     val masteredStudyCount: Int = 0,
     val completedReviewCount: Int = 0,
     val sentBackToStudyCount: Int = 0,
+    val completedRoundId: String? = null,
+    val pendingReviewWordCount: Int = 0,
+    val canStartImmediateReview: Boolean = false,
     val selectedOptionId: String? = null,
     val spellingInput: String = "",
     val answerStatus: AnswerStatus = AnswerStatus.Unanswered,

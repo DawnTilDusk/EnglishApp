@@ -128,7 +128,9 @@ fun VocabularyPracticeRoute(
         onNextQuestion = viewModel::onNextQuestion,
         onReplayPronunciation = viewModel::onReplayPronunciation,
         onRetryLoad = viewModel::onRetryLoad,
-        onFinishSession = viewModel::onFinishSession
+        onFinishSession = viewModel::onFinishSession,
+        onStartImmediateReview = viewModel::onStartImmediateReview,
+        onDeferReview = viewModel::onDeferReview
     )
 }
 
@@ -146,7 +148,9 @@ private fun VocabularyPracticeScreen(
     onNextQuestion: () -> Unit,
     onReplayPronunciation: () -> Unit,
     onRetryLoad: () -> Unit,
-    onFinishSession: () -> Unit
+    onFinishSession: () -> Unit,
+    onStartImmediateReview: () -> Unit,
+    onDeferReview: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
         AlertDialog(
@@ -177,7 +181,9 @@ private fun VocabularyPracticeScreen(
         VocabularyPracticeStage.Completed -> CompletedState(
             uiState = uiState,
             onBackClick = onBackClick,
-            onFinishSession = onFinishSession
+            onFinishSession = onFinishSession,
+            onStartImmediateReview = onStartImmediateReview,
+            onDeferReview = onDeferReview
         )
         VocabularyPracticeStage.Ready,
         VocabularyPracticeStage.AnswerEvaluated -> PracticeContent(
@@ -836,10 +842,13 @@ private fun AuxPanelToggle(
 private fun CompletedState(
     uiState: VocabularyPracticeUiState,
     onBackClick: () -> Unit,
-    onFinishSession: () -> Unit
+    onFinishSession: () -> Unit,
+    onStartImmediateReview: () -> Unit,
+    onDeferReview: () -> Unit
 ) {
     val totalAnswered = uiState.correctCount + uiState.wrongCount + uiState.skippedCount
     val accuracy = if (totalAnswered == 0) 0 else (uiState.correctCount * 100 / totalAnswered)
+    val isStudyCompletion = uiState.canStartImmediateReview
 
     Box(
         modifier = Modifier
@@ -876,6 +885,14 @@ private fun CompletedState(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                if (isStudyCompletion) {
+                    Text(
+                        text = "本轮已有 ${uiState.pendingReviewWordCount} 个词进入待复习，可立即开始拼写复习。",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 SummaryRow("已掌握学习词", uiState.masteredStudyCount.toString())
                 SummaryRow("本轮已引入", "${uiState.introducedStudyCount} / ${uiState.studyTargetCount}")
                 SummaryRow("完成题数", totalAnswered.toString())
@@ -889,16 +906,16 @@ private fun CompletedState(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onBackClick,
+                        onClick = if (isStudyCompletion) onDeferReview else onBackClick,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("返回学习中心")
+                        Text(if (isStudyCompletion) "稍后再说" else "返回学习中心")
                     }
                     Button(
-                        onClick = onFinishSession,
+                        onClick = if (isStudyCompletion) onStartImmediateReview else onFinishSession,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("完成并结算")
+                        Text(if (isStudyCompletion) "开始拼写复习" else "完成并结算")
                     }
                 }
             }
