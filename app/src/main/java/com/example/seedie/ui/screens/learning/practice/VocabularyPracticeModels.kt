@@ -48,6 +48,7 @@ data class VocabularyPracticeOption(
 
 data class VocabularyPracticeWord(
     val wordId: String,
+    val bookId: String,
     val english: String,
     val phonetic: String,
     val partOfSpeech: String,
@@ -56,6 +57,7 @@ data class VocabularyPracticeWord(
     val difficultyLevel: String,
     val rewardToken: Int,
     val estimatedDurationSec: Int,
+    val sortOrder: Int,
     val translationOptions: List<VocabularyPracticeOption>,
     val englishOptions: List<VocabularyPracticeOption>,
     val contextOptions: List<VocabularyPracticeOption>,
@@ -97,10 +99,30 @@ data class VocabularySessionMeta(
     val resumeSupported: Boolean
 )
 
+data class VocabularyResumeWordProgress(
+    val wordId: String,
+    val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
+    val hasSeenStudyWord: Boolean = false,
+    val totalWrongCount: Int = 0,
+    val revealCount: Int = 0
+)
+
+data class VocabularyPracticeResumeSnapshot(
+    val roundId: String,
+    val bookId: String,
+    val activeWordIds: List<String>,
+    val introducedStudyCount: Int,
+    val studyTargetCount: Int,
+    val nextWordSortOrderCursor: Int,
+    val masteredStudyCount: Int,
+    val wordProgressList: List<VocabularyResumeWordProgress>
+)
+
 data class VocabularyPracticeSession(
     val sessionMeta: VocabularySessionMeta,
     val studyWords: List<VocabularyPracticeWord>,
-    val reviewWords: List<VocabularyPracticeWord>
+    val reviewWords: List<VocabularyPracticeWord>,
+    val resumeSnapshot: VocabularyPracticeResumeSnapshot? = null
 )
 
 data class VocabularyQuestionRecord(

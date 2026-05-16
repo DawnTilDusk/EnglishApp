@@ -8,7 +8,11 @@ import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.dao.GardenPlotDao
+import com.example.seedie.data.local.dao.VocabularyBookProgressDao
+import com.example.seedie.data.local.dao.VocabularyStudyRoundDao
+import com.example.seedie.data.local.dao.VocabularyStudyRoundWordDao
 import com.example.seedie.data.local.dao.VocabularyWordDao
+import com.example.seedie.data.local.dao.VocabularyWordLearningProgressDao
 import com.example.seedie.data.local.dao.WordBookDao
 import dagger.Module
 import dagger.Provides
@@ -32,6 +36,7 @@ object DatabaseModule {
             "seedie_database"
         )
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_1_2)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_2_3)
             .build()
     }
 
@@ -52,4 +57,24 @@ object DatabaseModule {
 
     @Provides
     fun provideVocabularyWordDao(database: SeedieDatabase): VocabularyWordDao = database.vocabularyWordDao()
+
+    @Provides
+    fun provideVocabularyBookProgressDao(
+        database: SeedieDatabase
+    ): VocabularyBookProgressDao = database.vocabularyBookProgressDao()
+
+    @Provides
+    fun provideVocabularyWordLearningProgressDao(
+        database: SeedieDatabase
+    ): VocabularyWordLearningProgressDao = database.vocabularyWordLearningProgressDao()
+
+    @Provides
+    fun provideVocabularyStudyRoundDao(
+        database: SeedieDatabase
+    ): VocabularyStudyRoundDao = database.vocabularyStudyRoundDao()
+
+    @Provides
+    fun provideVocabularyStudyRoundWordDao(
+        database: SeedieDatabase
+    ): VocabularyStudyRoundWordDao = database.vocabularyStudyRoundWordDao()
 }
