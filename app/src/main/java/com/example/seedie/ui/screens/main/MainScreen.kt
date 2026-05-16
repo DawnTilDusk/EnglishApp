@@ -1,5 +1,4 @@
 package com.example.seedie.ui.screens.main
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,11 +22,12 @@ import androidx.compose.runtime.remember
 import com.example.seedie.ui.screens.learning.LearningHubScreen
 import com.example.seedie.ui.screens.learning.ModuleConfig
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.School
 import com.example.seedie.ui.screens.dashboard.DashboardScreen
 import com.example.seedie.ui.screens.profile.ProfileScreen
@@ -59,6 +59,7 @@ fun MainScreen(
     val learningModules = listOf(
         ModuleConfig("vocabulary", "背单词", "静态词包已升级，支持更多词条", Icons.AutoMirrored.Filled.MenuBook, isAvailable = true, hasNewContent = true),
         ModuleConfig("grammar", "语法", "句型结构突破", Icons.Default.School),
+        ModuleConfig("speaking", "口语跟读", "AI 智能跟读练习", Icons.Default.Mic),
         ModuleConfig("quiz", "词汇测验", "检验学习成果", Icons.Default.Quiz),
         ModuleConfig("textbook", "教材训练", "同步课堂进度", Icons.Default.Book),
         ModuleConfig("listening", "听力训练", "磨耳朵", Icons.Default.Headphones),
