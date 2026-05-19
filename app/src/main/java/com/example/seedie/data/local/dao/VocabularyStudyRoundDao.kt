@@ -13,14 +13,21 @@ interface VocabularyStudyRoundDao {
 
     @Query(
         "SELECT * FROM vocabulary_study_rounds " +
-            "WHERE bookId = :bookId AND status = :status " +
+            "WHERE userId = :userId AND bookId = :bookId AND status = :status " +
             "ORDER BY updatedAt DESC LIMIT 1"
     )
     suspend fun getLatestRoundByStatus(
+        userId: String,
         bookId: String,
         status: String
     ): VocabularyStudyRoundEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrReplace(round: VocabularyStudyRoundEntity)
+
+    @Query("SELECT * FROM vocabulary_study_rounds WHERE userId = :userId AND syncStatus = 'PENDING'")
+    suspend fun getPendingRounds(userId: String): List<VocabularyStudyRoundEntity>
+
+    @Query("UPDATE vocabulary_study_rounds SET syncStatus = :status, syncedAt = :syncedAt WHERE roundId = :roundId")
+    suspend fun updateSyncStatus(roundId: String, status: String, syncedAt: Long?)
 }

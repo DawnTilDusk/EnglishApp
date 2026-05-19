@@ -20,7 +20,7 @@ class GardenViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = List(16) { GardenPlotEntity(it) } // Default empty
+            initialValue = List(16) { index -> GardenPlotEntity(userId = "", plotIndex = index) }
         )
 
     init {

@@ -36,7 +36,7 @@ import com.example.seedie.ui.theme.gardenShadow
 @Composable
 fun GardenPlotSection(
     modifier: Modifier = Modifier,
-    plots: List<GardenPlotEntity> = List(16) { GardenPlotEntity(it) }, // Default empty 4x4
+    plots: List<GardenPlotEntity> = List(16) { index -> GardenPlotEntity(userId = "", plotIndex = index) },
     onPlotClick: (GardenPlotEntity) -> Unit = {}
 ) {
     Surface(

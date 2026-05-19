@@ -1,6 +1,7 @@
 package com.example.seedie.di
 
 import android.content.Context
+import com.example.seedie.data.local.DevicePreferencesRepository
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.createSeedieSupabaseClient
 import dagger.Module
@@ -9,13 +10,25 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import io.github.jan.supabase.SupabaseClient
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Qualifier
 import javax.inject.Singleton
 
-import com.example.seedie.data.local.DevicePreferencesRepository
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ApplicationScope
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    @ApplicationScope
+    fun provideApplicationScope(): CoroutineScope =
+        CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Provides
     @Singleton

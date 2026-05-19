@@ -4,6 +4,138 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 object SeedieDatabaseMigrations {
+    val MIGRATION_3_4 = object : Migration(3, 4) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // check_ins: PK (date) → (userId, date)
+            database.execSQL("ALTER TABLE check_ins RENAME TO check_ins_old")
+            database.execSQL("""
+                CREATE TABLE check_ins (
+                    userId TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    isCheckedIn INTEGER NOT NULL,
+                    studyTimeMinutes INTEGER NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER,
+                    PRIMARY KEY(userId, date)
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO check_ins SELECT '', date, isCheckedIn, studyTimeMinutes, 'PENDING', NULL FROM check_ins_old")
+            database.execSQL("DROP TABLE check_ins_old")
+
+            // economy_transactions: PK Int (autoGenerate) → String UUID
+            database.execSQL("ALTER TABLE economy_transactions RENAME TO economy_transactions_old")
+            database.execSQL("""
+                CREATE TABLE economy_transactions (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    amount INTEGER NOT NULL,
+                    reason TEXT NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO economy_transactions SELECT CAST(id AS TEXT), '', timestamp, amount, reason, 'PENDING', NULL FROM economy_transactions_old")
+            database.execSQL("DROP TABLE economy_transactions_old")
+
+            // garden_plots: PK (plotIndex) → (userId, plotIndex)
+            database.execSQL("ALTER TABLE garden_plots RENAME TO garden_plots_old")
+            database.execSQL("""
+                CREATE TABLE garden_plots (
+                    userId TEXT NOT NULL,
+                    plotIndex INTEGER NOT NULL,
+                    plantType TEXT NOT NULL,
+                    level INTEGER NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER,
+                    PRIMARY KEY(userId, plotIndex)
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO garden_plots SELECT '', plotIndex, plantType, level, 'PENDING', NULL FROM garden_plots_old")
+            database.execSQL("DROP TABLE garden_plots_old")
+
+            // vocabulary_word_learning_progress: PK (bookId, wordId) → (userId, bookId, wordId)
+            database.execSQL("ALTER TABLE vocabulary_word_learning_progress RENAME TO vocabulary_word_learning_progress_old")
+            database.execSQL("""
+                CREATE TABLE vocabulary_word_learning_progress (
+                    userId TEXT NOT NULL,
+                    bookId TEXT NOT NULL,
+                    wordId TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    lastStudiedAt INTEGER NOT NULL,
+                    learnedAt INTEGER,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER,
+                    PRIMARY KEY(userId, bookId, wordId)
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO vocabulary_word_learning_progress SELECT '', bookId, wordId, status, lastStudiedAt, learnedAt, 'PENDING', NULL FROM vocabulary_word_learning_progress_old")
+            database.execSQL("DROP TABLE vocabulary_word_learning_progress_old")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId ON vocabulary_word_learning_progress(userId, bookId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId_status ON vocabulary_word_learning_progress(userId, bookId, status)")
+
+            // vocabulary_book_progress: PK (bookId) → (userId, bookId)
+            database.execSQL("ALTER TABLE vocabulary_book_progress RENAME TO vocabulary_book_progress_old")
+            database.execSQL("""
+                CREATE TABLE vocabulary_book_progress (
+                    userId TEXT NOT NULL,
+                    bookId TEXT NOT NULL,
+                    nextWordSortOrderCursor INTEGER NOT NULL,
+                    activeRoundId TEXT,
+                    learnedWordCount INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER,
+                    PRIMARY KEY(userId, bookId)
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO vocabulary_book_progress SELECT '', bookId, nextWordSortOrderCursor, activeRoundId, learnedWordCount, updatedAt, 'PENDING', NULL FROM vocabulary_book_progress_old")
+            database.execSQL("DROP TABLE vocabulary_book_progress_old")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_book_progress_activeRoundId ON vocabulary_book_progress(activeRoundId)")
+
+            // vocabulary_study_rounds: full recreation to update indices (bookId → userId+bookId)
+            database.execSQL("ALTER TABLE vocabulary_study_rounds RENAME TO vocabulary_study_rounds_old")
+            database.execSQL("""
+                CREATE TABLE vocabulary_study_rounds (
+                    roundId TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    bookId TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    targetWordCount INTEGER NOT NULL,
+                    introducedWordCount INTEGER NOT NULL,
+                    masteredWordCount INTEGER NOT NULL,
+                    activeQueueSize INTEGER NOT NULL,
+                    nextWordSortOrderCursor INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER
+                )
+            """.trimIndent())
+            database.execSQL("INSERT INTO vocabulary_study_rounds SELECT roundId, '', bookId, status, targetWordCount, introducedWordCount, masteredWordCount, activeQueueSize, nextWordSortOrderCursor, createdAt, updatedAt, 'PENDING', NULL FROM vocabulary_study_rounds_old")
+            database.execSQL("DROP TABLE vocabulary_study_rounds_old")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId ON vocabulary_study_rounds(userId, bookId)")
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId_status ON vocabulary_study_rounds(userId, bookId, status)")
+        }
+    }
+
+    val MIGRATION_4_5 = object : Migration(4, 5) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("""
+                CREATE TABLE IF NOT EXISTS sync_operations (
+                    operationId TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    tableName TEXT NOT NULL,
+                    operationType TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    retryCount INTEGER NOT NULL DEFAULT 0,
+                    status TEXT NOT NULL DEFAULT 'PENDING'
+                )
+            """.trimIndent())
+        }
+    }
+
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(

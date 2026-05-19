@@ -14,9 +14,16 @@ interface VocabularyWordLearningProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrReplace(progress: VocabularyWordLearningProgressEntity)
 
-    @Query("SELECT * FROM vocabulary_word_learning_progress WHERE bookId = :bookId AND wordId IN (:wordIds)")
+    @Query("SELECT * FROM vocabulary_word_learning_progress WHERE userId = :userId AND bookId = :bookId AND wordId IN (:wordIds)")
     suspend fun getProgressByWordIds(
+        userId: String,
         bookId: String,
         wordIds: List<String>
     ): List<VocabularyWordLearningProgressEntity>
+
+    @Query("SELECT * FROM vocabulary_word_learning_progress WHERE userId = :userId AND syncStatus = 'PENDING'")
+    suspend fun getPendingProgress(userId: String): List<VocabularyWordLearningProgressEntity>
+
+    @Query("UPDATE vocabulary_word_learning_progress SET syncStatus = :status, syncedAt = :syncedAt WHERE userId = :userId AND bookId = :bookId AND wordId = :wordId")
+    suspend fun updateSyncStatus(userId: String, bookId: String, wordId: String, status: String, syncedAt: Long?)
 }

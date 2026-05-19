@@ -7,13 +7,14 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "vocabulary_study_rounds",
     indices = [
-        Index(value = ["bookId"]),
-        Index(value = ["bookId", "status"])
+        Index(value = ["userId", "bookId"]),
+        Index(value = ["userId", "bookId", "status"])
     ]
 )
 data class VocabularyStudyRoundEntity(
     @PrimaryKey
     val roundId: String,
+    val userId: String,
     val bookId: String,
     val status: String,
     val targetWordCount: Int,
@@ -22,5 +23,7 @@ data class VocabularyStudyRoundEntity(
     val activeQueueSize: Int,
     val nextWordSortOrderCursor: Int,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val syncStatus: String = "PENDING",
+    val syncedAt: Long? = null
 )

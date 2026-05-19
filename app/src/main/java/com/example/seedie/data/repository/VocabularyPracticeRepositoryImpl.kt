@@ -8,6 +8,9 @@ import com.example.seedie.data.local.dao.VocabularyStudyRoundWordDao
 import com.example.seedie.data.local.dao.VocabularyWordDao
 import com.example.seedie.data.local.dao.VocabularyWordLearningProgressDao
 import com.example.seedie.data.local.dao.WordBookDao
+import com.example.seedie.data.remote.AuthService
+import com.example.seedie.data.sync.SyncManager
+import com.example.seedie.data.sync.SyncScope
 import com.example.seedie.data.local.entity.VocabularyBookProgressEntity
 import com.example.seedie.data.local.entity.VocabularyStudyRoundEntity
 import com.example.seedie.data.local.entity.VocabularyStudyRoundWordEntity
@@ -39,8 +42,12 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     private val vocabularyBookProgressDao: VocabularyBookProgressDao,
     private val vocabularyWordLearningProgressDao: VocabularyWordLearningProgressDao,
     private val vocabularyStudyRoundDao: VocabularyStudyRoundDao,
-    private val vocabularyStudyRoundWordDao: VocabularyStudyRoundWordDao
+    private val vocabularyStudyRoundWordDao: VocabularyStudyRoundWordDao,
+    private val authService: AuthService,
+    private val syncManager: SyncManager
 ) : VocabularyPracticeRepository {
+
+    private fun currentUserId() = authService.currentSession.value?.userId ?: ""
     private companion object {
         const val STAGE_STUDY_TARGET_COUNT = 10
         const val STAGE_ACTIVE_QUEUE_SIZE = 4
@@ -87,8 +94,9 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             )
         }
 
-        val bookProgress = vocabularyBookProgressDao.getProgressByBookId(activeBook.bookId)
+        val bookProgress = vocabularyBookProgressDao.getProgressByBookId(currentUserId(), activeBook.bookId)
             ?: VocabularyBookProgressEntity(
+                userId = currentUserId(),
                 bookId = activeBook.bookId,
                 nextWordSortOrderCursor = initialCursor,
                 activeRoundId = null,
@@ -181,6 +189,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
 
             val activeProgressRows = snapshot.activeWordIds.map {
                 VocabularyWordLearningProgressEntity(
+                    userId = currentUserId(),
                     bookId = snapshot.bookId,
                     wordId = it,
                     status = WORD_STATUS_LEARNING,
@@ -190,6 +199,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             }
             val removedProgressRows = removedWordIds.map {
                 VocabularyWordLearningProgressEntity(
+                    userId = currentUserId(),
                     bookId = snapshot.bookId,
                     wordId = it,
                     status = WORD_STATUS_LEARNED,
@@ -199,8 +209,9 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             }
             vocabularyWordLearningProgressDao.insertOrReplace(activeProgressRows + removedProgressRows)
 
-            val currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(snapshot.bookId)
+            val currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(currentUserId(), snapshot.bookId)
                 ?: VocabularyBookProgressEntity(
+                    userId = currentUserId(),
                     bookId = snapshot.bookId,
                     nextWordSortOrderCursor = snapshot.nextWordSortOrderCursor,
                     activeRoundId = snapshot.roundId,
@@ -214,6 +225,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             )
         }
+        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
     }
 
     override suspend fun markStudyRoundReviewPending(roundId: String) {
@@ -247,8 +259,9 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             )
 
-            val currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(round.bookId)
+            val currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(currentUserId(), round.bookId)
                 ?: VocabularyBookProgressEntity(
+                    userId = currentUserId(),
                     bookId = round.bookId,
                     nextWordSortOrderCursor = round.nextWordSortOrderCursor,
                     activeRoundId = null,
@@ -267,6 +280,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 vocabularyWordLearningProgressDao.insertOrReplace(
                     masteredWordIds.map { wordId ->
                         VocabularyWordLearningProgressEntity(
+                            userId = currentUserId(),
                             bookId = round.bookId,
                             wordId = wordId,
                             status = WORD_STATUS_REVIEW_PENDING,
@@ -277,6 +291,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
         }
+        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
     }
 
     override suspend fun markReviewWordMastered(
@@ -290,6 +305,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             vocabularyStudyRoundWordDao.deleteByRoundIdAndWordId(roundId, wordId)
             vocabularyWordLearningProgressDao.insertOrReplace(
                 VocabularyWordLearningProgressEntity(
+                    userId = currentUserId(),
                     bookId = round.bookId,
                     wordId = wordId,
                     status = WORD_STATUS_MASTERED,
@@ -306,6 +322,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
         }
+        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
     }
 
     override suspend fun markReviewCompleted(roundId: String) {
@@ -324,6 +341,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 vocabularyWordLearningProgressDao.insertOrReplace(
                     remainingWordIds.map { wordId ->
                         VocabularyWordLearningProgressEntity(
+                            userId = currentUserId(),
                             bookId = round.bookId,
                             wordId = wordId,
                             status = WORD_STATUS_MASTERED,
@@ -335,11 +353,13 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             }
             vocabularyStudyRoundWordDao.deleteByRoundId(roundId)
         }
+        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
     }
 
     override suspend fun getPendingReviewEntry(): PendingReviewEntry? {
         val activeBook = loadActiveBook()
         val pendingRound = vocabularyStudyRoundDao.getLatestRoundByStatus(
+            userId = currentUserId(),
             bookId = activeBook.bookId,
             status = ROUND_STATUS_REVIEW_PENDING
         ) ?: return null
@@ -515,6 +535,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             vocabularyStudyRoundDao.insertOrReplace(
                 VocabularyStudyRoundEntity(
                     roundId = roundId,
+                    userId = currentUserId(),
                     bookId = activeBook.bookId,
                     status = ROUND_STATUS_ACTIVE,
                     targetWordCount = studyEntries.size,
@@ -551,6 +572,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             vocabularyWordLearningProgressDao.insertOrReplace(
                 introducedEntries.map { entry ->
                     VocabularyWordLearningProgressEntity(
+                        userId = currentUserId(),
                         bookId = activeBook.bookId,
                         wordId = entry.wordId,
                         status = WORD_STATUS_LEARNING,

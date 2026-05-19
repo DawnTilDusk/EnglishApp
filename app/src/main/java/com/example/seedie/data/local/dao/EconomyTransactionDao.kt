@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EconomyTransactionDao {
-    @Query("SELECT SUM(amount) FROM economy_transactions")
-    fun getTotalTokens(): Flow<Int?>
+    @Query("SELECT SUM(amount) FROM economy_transactions WHERE userId = :userId")
+    fun getTotalTokens(userId: String): Flow<Int?>
 
-    @Query("SELECT * FROM economy_transactions ORDER BY timestamp DESC")
-    fun getAllTransactions(): Flow<List<EconomyTransactionEntity>>
+    @Query("SELECT * FROM economy_transactions WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getAllTransactions(userId: String): Flow<List<EconomyTransactionEntity>>
 
     @Insert
     suspend fun insertTransaction(transaction: EconomyTransactionEntity)

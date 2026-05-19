@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GardenPlotDao {
-    @Query("SELECT * FROM garden_plots ORDER BY plotIndex ASC")
-    fun getAllPlots(): Flow<List<GardenPlotEntity>>
+    @Query("SELECT * FROM garden_plots WHERE userId = :userId ORDER BY plotIndex ASC")
+    fun getAllPlots(userId: String): Flow<List<GardenPlotEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlot(plot: GardenPlotEntity)
