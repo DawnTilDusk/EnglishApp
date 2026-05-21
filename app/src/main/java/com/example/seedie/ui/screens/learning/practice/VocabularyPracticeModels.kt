@@ -6,7 +6,7 @@ data class VocabularyPracticeArgs(
     val sourceModuleId: String = "vocabulary",
     val planId: String? = null,
     val wordCountTarget: Int = 10,
-    val difficulty: String = "easy",
+    val difficulty: String = "mixed",
     val resumeToken: String? = null,
     val entryMode: VocabularyPracticeMode = VocabularyPracticeMode.Study,
     val targetRoundId: String? = null

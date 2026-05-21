@@ -73,6 +73,7 @@ import java.util.Locale
 fun VocabularyPracticeRoute(
     args: VocabularyPracticeArgs = VocabularyPracticeArgs(),
     onFinishSession: (StudyResult) -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -117,6 +118,7 @@ fun VocabularyPracticeRoute(
 
     VocabularyPracticeScreen(
         uiState = uiState,
+        onNavigateBack = onNavigateBack,
         onBackClick = viewModel::onBackClick,
         onConfirmExit = viewModel::onConfirmExit,
         onDismissExitDialog = viewModel::onDismissExitDialog,
@@ -137,6 +139,7 @@ fun VocabularyPracticeRoute(
 @Composable
 private fun VocabularyPracticeScreen(
     uiState: VocabularyPracticeUiState,
+    onNavigateBack: () -> Unit,
     onBackClick: () -> Unit,
     onConfirmExit: () -> Unit,
     onDismissExitDialog: () -> Unit,
@@ -172,7 +175,7 @@ private fun VocabularyPracticeScreen(
 
     when (uiState.stage) {
         VocabularyPracticeStage.Loading -> LoadingState()
-        VocabularyPracticeStage.Empty -> EmptyState(onBackClick = onBackClick)
+        VocabularyPracticeStage.Empty -> EmptyState(onBackClick = onNavigateBack)
         VocabularyPracticeStage.Error -> ErrorState(
             message = uiState.errorMessage ?: "词包加载失败",
             onRetryLoad = onRetryLoad,

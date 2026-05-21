@@ -55,6 +55,9 @@ fun SeedieNavHost(
         composable(route = Screen.VocabularyPractice.route) {
             VocabularyPracticeRoute(
                 args = currentVocabularyArgs,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
                 onFinishSession = { result ->
                     pendingStudyResult = result
                     navController.popBackStack()
