@@ -335,9 +335,6 @@ class VocabularyPracticeViewModel @Inject constructor(
         carryoverResult = null
 
         viewModelScope.launch {
-            if (currentEntryMode == VocabularyPracticeMode.Review && isCompleted) {
-                currentRoundId?.let { repository.markReviewCompleted(it) }
-            }
             repository.finishPracticeSession(result)
             _studyResults.emit(result)
         }
@@ -521,22 +518,42 @@ class VocabularyPracticeViewModel @Inject constructor(
                 isReviewCompleted = true
             )
             completedReviewCount += 1
-            currentRoundId?.let { roundId ->
+            val roundId = currentRoundId
+            if (roundId == null) {
+                presentEvaluatedState(
+                    answerStatus = AnswerStatus.Correct,
+                    feedbackMessage = "拼写正确，当前复习单词已完成。",
+                    correctDelta = 1,
+                    wrongDelta = 0,
+                    skippedDelta = 0,
+                    earnedTokensDelta = prompt.word.rewardToken
+                )
+            } else {
+                _uiState.update {
+                    it.copy(
+                        canSubmitAnswer = false,
+                        canGoNext = false
+                    )
+                }
                 viewModelScope.launch {
-                    repository.markReviewWordMastered(
+                    val masteryResult = repository.markReviewWordMastered(
                         roundId = roundId,
                         wordId = wordId
                     )
+                    presentEvaluatedState(
+                        answerStatus = AnswerStatus.Correct,
+                        feedbackMessage = if (masteryResult.isRoundCompleted) {
+                            "拼写正确，本轮复习已全部完成。"
+                        } else {
+                            "拼写正确，当前复习单词已完成。"
+                        },
+                        correctDelta = 1,
+                        wrongDelta = 0,
+                        skippedDelta = 0,
+                        earnedTokensDelta = prompt.word.rewardToken
+                    )
                 }
             }
-            presentEvaluatedState(
-                answerStatus = AnswerStatus.Correct,
-                feedbackMessage = "拼写正确，当前复习单词已完成。",
-                correctDelta = 1,
-                wrongDelta = 0,
-                skippedDelta = 0,
-                earnedTokensDelta = prompt.word.rewardToken
-            )
             return
         }
 
@@ -589,8 +606,6 @@ class VocabularyPracticeViewModel @Inject constructor(
                 viewModelScope.launch {
                     if (currentEntryMode == VocabularyPracticeMode.Study) {
                         repository.markStudyRoundReviewPending(completedRoundId)
-                    } else {
-                        repository.markReviewCompleted(completedRoundId)
                     }
                 }
             }

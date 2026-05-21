@@ -18,6 +18,7 @@ import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.data.local.entity.VocabularyWordLearningProgressEntity
 import com.example.seedie.data.local.entity.WordBookEntity
 import com.example.seedie.domain.model.StudyResult
+import com.example.seedie.domain.repository.ReviewWordMasteryResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.ui.screens.learning.practice.PendingReviewEntry
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
@@ -297,11 +298,20 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     override suspend fun markReviewWordMastered(
         roundId: String,
         wordId: String
-    ) {
+    ): ReviewWordMasteryResult {
         val now = System.currentTimeMillis()
-        database.withTransaction {
-            val round = vocabularyStudyRoundDao.getRoundById(roundId) ?: return@withTransaction
-            if (round.status != ROUND_STATUS_REVIEW_PENDING) return@withTransaction
+        val result = database.withTransaction {
+            val round = vocabularyStudyRoundDao.getRoundById(roundId)
+                ?: return@withTransaction ReviewWordMasteryResult(
+                    remainingPendingCount = 0,
+                    isRoundCompleted = true
+                )
+            if (round.status != ROUND_STATUS_REVIEW_PENDING) {
+                return@withTransaction ReviewWordMasteryResult(
+                    remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size,
+                    isRoundCompleted = round.status == ROUND_STATUS_REVIEW_COMPLETED
+                )
+            }
             vocabularyStudyRoundWordDao.deleteByRoundIdAndWordId(roundId, wordId)
             vocabularyWordLearningProgressDao.insertOrReplace(
                 VocabularyWordLearningProgressEntity(
@@ -313,7 +323,9 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                     learnedAt = now
                 )
             )
-            if (vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).isEmpty()) {
+            val remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size
+            val isRoundCompleted = remainingPendingCount == 0
+            if (isRoundCompleted) {
                 vocabularyStudyRoundDao.insertOrReplace(
                     round.copy(
                         status = ROUND_STATUS_REVIEW_COMPLETED,
@@ -321,8 +333,13 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                     )
                 )
             }
+            ReviewWordMasteryResult(
+                remainingPendingCount = remainingPendingCount,
+                isRoundCompleted = isRoundCompleted
+            )
         }
         syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        return result
     }
 
     override suspend fun markReviewCompleted(roundId: String) {
