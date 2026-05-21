@@ -7,7 +7,7 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeResumeS
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeSession
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionRecord
 
-data class ReviewWordMasteryResult(
+data class ReviewWordUpdateResult(
     val remainingPendingCount: Int,
     val isRoundCompleted: Boolean
 )
@@ -22,7 +22,12 @@ interface VocabularyPracticeRepository {
     suspend fun markReviewWordMastered(
         roundId: String,
         wordId: String
-    ): ReviewWordMasteryResult
+    ): ReviewWordUpdateResult
+
+    suspend fun markReviewWordSentBackToLearning(
+        roundId: String,
+        wordId: String
+    ): ReviewWordUpdateResult
 
     suspend fun markReviewCompleted(roundId: String)
 

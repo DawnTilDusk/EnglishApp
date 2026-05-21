@@ -223,7 +223,6 @@ class VocabularyPracticeViewModel @Inject constructor(
             targetRoundId = completedRoundId
         )
         viewModelScope.launch {
-            repository.markStudyRoundReviewPending(completedRoundId)
             initializedArgs = args
             loadSession(args)
         }
@@ -536,13 +535,13 @@ class VocabularyPracticeViewModel @Inject constructor(
                     )
                 }
                 viewModelScope.launch {
-                    val masteryResult = repository.markReviewWordMastered(
+                    val reviewUpdateResult = repository.markReviewWordMastered(
                         roundId = roundId,
                         wordId = wordId
                     )
                     presentEvaluatedState(
                         answerStatus = AnswerStatus.Correct,
-                        feedbackMessage = if (masteryResult.isRoundCompleted) {
+                        feedbackMessage = if (reviewUpdateResult.isRoundCompleted) {
                             "拼写正确，本轮复习已全部完成。"
                         } else {
                             "拼写正确，当前复习单词已完成。"
@@ -572,18 +571,43 @@ class VocabularyPracticeViewModel @Inject constructor(
                 isMasteredToday = false,
                 isReviewCompleted = false
             )
-            if (studyQueue.none { it == wordId }) {
-                studyQueue.addLast(wordId)
-            }
             sentBackToStudyCount += 1
-            presentEvaluatedState(
-                answerStatus = AnswerStatus.Wrong,
-                feedbackMessage = "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回学习第 1 关。",
-                correctDelta = 0,
-                wrongDelta = 1,
-                skippedDelta = 0,
-                earnedTokensDelta = 0
-            )
+            val roundId = currentRoundId
+            if (roundId == null) {
+                presentEvaluatedState(
+                    answerStatus = AnswerStatus.Wrong,
+                    feedbackMessage = "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回后续学习，将从第 1 关重新开始。",
+                    correctDelta = 0,
+                    wrongDelta = 1,
+                    skippedDelta = 0,
+                    earnedTokensDelta = 0
+                )
+            } else {
+                _uiState.update {
+                    it.copy(
+                        canSubmitAnswer = false,
+                        canGoNext = false
+                    )
+                }
+                viewModelScope.launch {
+                    val reviewUpdateResult = repository.markReviewWordSentBackToLearning(
+                        roundId = roundId,
+                        wordId = wordId
+                    )
+                    presentEvaluatedState(
+                        answerStatus = AnswerStatus.Wrong,
+                        feedbackMessage = if (reviewUpdateResult.isRoundCompleted) {
+                            "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回后续学习，本轮立即复习已结束。"
+                        } else {
+                            "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已移出本轮复习，将在后续学习中从第 1 关重新开始。"
+                        },
+                        correctDelta = 0,
+                        wrongDelta = 1,
+                        skippedDelta = 0,
+                        earnedTokensDelta = 0
+                    )
+                }
+            }
         } else {
             progressMap[wordId] = updatedProgress
             reviewQueue.addLast(wordId)
@@ -602,42 +626,20 @@ class VocabularyPracticeViewModel @Inject constructor(
         stopReviewHintTimer()
         val nextEntry = determineNextWord() ?: run {
             val completedRoundId = currentRoundId
-            if (completedRoundId != null) {
-                viewModelScope.launch {
-                    if (currentEntryMode == VocabularyPracticeMode.Study) {
-                        repository.markStudyRoundReviewPending(completedRoundId)
-                    }
+            if (currentEntryMode == VocabularyPracticeMode.Study && completedRoundId != null) {
+                _uiState.update {
+                    it.copy(
+                        canGoNext = false,
+                        canSubmitAnswer = false
+                    )
                 }
+                viewModelScope.launch {
+                    repository.markStudyRoundReviewPending(completedRoundId)
+                    showCompletedState(completedRoundId)
+                }
+                return
             }
-            stopTimer()
-            _uiState.update {
-                it.copy(
-                    stage = VocabularyPracticeStage.Completed,
-                    currentPrompt = null,
-                    currentWordProgress = null,
-                    selectedOptionId = null,
-                    spellingInput = "",
-                    feedbackMessage = "",
-                    canSubmitAnswer = false,
-                    canGoNext = false,
-                    showFinishDialog = currentEntryMode != VocabularyPracticeMode.Study,
-                    studyQueueSize = studyQueue.size,
-                    reviewQueueSize = reviewQueue.size,
-                    introducedStudyCount = introducedStudyCount,
-                    studyTargetCount = studyTargetCount,
-                    masteredStudyCount = masteredStudyCount,
-                    completedReviewCount = completedReviewCount,
-                    sentBackToStudyCount = sentBackToStudyCount,
-                    completedRoundId = completedRoundId,
-                    pendingReviewWordCount = if (currentEntryMode == VocabularyPracticeMode.Study) {
-                        masteredStudyCount
-                    } else {
-                        0
-                    },
-                    canStartImmediateReview = currentEntryMode == VocabularyPracticeMode.Study &&
-                        masteredStudyCount > 0
-                )
-            }
+            showCompletedState(completedRoundId)
             return
         }
 
@@ -703,6 +705,38 @@ class VocabularyPracticeViewModel @Inject constructor(
         persistStudySnapshot()
         maybePronounce(prompt)
         restartReviewHintTimer()
+    }
+
+    private fun showCompletedState(completedRoundId: String?) {
+        stopTimer()
+        _uiState.update {
+            it.copy(
+                stage = VocabularyPracticeStage.Completed,
+                currentPrompt = null,
+                currentWordProgress = null,
+                selectedOptionId = null,
+                spellingInput = "",
+                feedbackMessage = "",
+                canSubmitAnswer = false,
+                canGoNext = false,
+                showFinishDialog = currentEntryMode != VocabularyPracticeMode.Study,
+                studyQueueSize = studyQueue.size,
+                reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
+                masteredStudyCount = masteredStudyCount,
+                completedReviewCount = completedReviewCount,
+                sentBackToStudyCount = sentBackToStudyCount,
+                completedRoundId = completedRoundId,
+                pendingReviewWordCount = if (currentEntryMode == VocabularyPracticeMode.Study) {
+                    masteredStudyCount
+                } else {
+                    0
+                },
+                canStartImmediateReview = currentEntryMode == VocabularyPracticeMode.Study &&
+                    masteredStudyCount > 0
+            )
+        }
     }
 
     private fun determineNextWord(): Pair<VocabularyPracticeMode, String>? {

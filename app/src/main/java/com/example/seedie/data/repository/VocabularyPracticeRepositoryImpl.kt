@@ -18,7 +18,7 @@ import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.data.local.entity.VocabularyWordLearningProgressEntity
 import com.example.seedie.data.local.entity.WordBookEntity
 import com.example.seedie.domain.model.StudyResult
-import com.example.seedie.domain.repository.ReviewWordMasteryResult
+import com.example.seedie.domain.repository.ReviewWordUpdateResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.ui.screens.learning.practice.PendingReviewEntry
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
@@ -105,29 +105,37 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 updatedAt = now
             ).also { vocabularyBookProgressDao.insertOrReplace(it) }
 
-        val activeRoundId = bookProgress.activeRoundId
+        var currentBookProgress = bookProgress
+        val activeRoundId = currentBookProgress.activeRoundId
         if (activeRoundId != null) {
             val activeRound = vocabularyStudyRoundDao.getRoundById(activeRoundId)
             if (activeRound != null && activeRound.status == ROUND_STATUS_ACTIVE) {
                 val roundWords = vocabularyStudyRoundWordDao.getActiveRoundWords(activeRoundId)
-                return buildResumedSession(
-                    sessionId = sessionId,
-                    args = args,
-                    activeBook = activeBook,
-                    wordBank = wordBank,
-                    filteredPool = filteredPool,
-                    random = random,
-                    activeRound = activeRound,
-                    roundWords = roundWords
-                )
-            }
-
-            vocabularyBookProgressDao.insertOrReplace(
-                bookProgress.copy(
+                if (roundWords.isNotEmpty()) {
+                    return buildResumedSession(
+                        sessionId = sessionId,
+                        args = args,
+                        activeBook = activeBook,
+                        wordBank = wordBank,
+                        filteredPool = filteredPool,
+                        random = random,
+                        activeRound = activeRound,
+                        roundWords = roundWords
+                    )
+                }
+                markStudyRoundReviewPending(activeRoundId)
+                currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(currentUserId(), activeBook.bookId)
+                    ?: currentBookProgress.copy(
+                        activeRoundId = null,
+                        updatedAt = now
+                    )
+            } else {
+                currentBookProgress = currentBookProgress.copy(
                     activeRoundId = null,
                     updatedAt = now
                 )
-            )
+                vocabularyBookProgressDao.insertOrReplace(currentBookProgress)
+            }
         }
 
         return createNewStudySession(
@@ -137,7 +145,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             wordBank = wordBank,
             filteredPool = filteredPool,
             random = random,
-            bookProgress = bookProgress
+            bookProgress = currentBookProgress
         )
     }
 
@@ -298,22 +306,14 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     override suspend fun markReviewWordMastered(
         roundId: String,
         wordId: String
-    ): ReviewWordMasteryResult {
+    ): ReviewWordUpdateResult {
         val now = System.currentTimeMillis()
         val result = database.withTransaction {
-            val round = vocabularyStudyRoundDao.getRoundById(roundId)
-                ?: return@withTransaction ReviewWordMasteryResult(
-                    remainingPendingCount = 0,
-                    isRoundCompleted = true
-                )
-            if (round.status != ROUND_STATUS_REVIEW_PENDING) {
-                return@withTransaction ReviewWordMasteryResult(
-                    remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size,
-                    isRoundCompleted = round.status == ROUND_STATUS_REVIEW_COMPLETED
-                )
-            }
-            vocabularyStudyRoundWordDao.deleteByRoundIdAndWordId(roundId, wordId)
-            vocabularyWordLearningProgressDao.insertOrReplace(
+            updateReviewRoundWord(
+                roundId = roundId,
+                wordId = wordId,
+                now = now
+            ) { round ->
                 VocabularyWordLearningProgressEntity(
                     userId = currentUserId(),
                     bookId = round.bookId,
@@ -322,21 +322,32 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                     lastStudiedAt = now,
                     learnedAt = now
                 )
-            )
-            val remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size
-            val isRoundCompleted = remainingPendingCount == 0
-            if (isRoundCompleted) {
-                vocabularyStudyRoundDao.insertOrReplace(
-                    round.copy(
-                        status = ROUND_STATUS_REVIEW_COMPLETED,
-                        updatedAt = now
-                    )
+            }
+        }
+        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        return result
+    }
+
+    override suspend fun markReviewWordSentBackToLearning(
+        roundId: String,
+        wordId: String
+    ): ReviewWordUpdateResult {
+        val now = System.currentTimeMillis()
+        val result = database.withTransaction {
+            updateReviewRoundWord(
+                roundId = roundId,
+                wordId = wordId,
+                now = now
+            ) { round ->
+                VocabularyWordLearningProgressEntity(
+                    userId = currentUserId(),
+                    bookId = round.bookId,
+                    wordId = wordId,
+                    status = WORD_STATUS_LEARNING,
+                    lastStudiedAt = now,
+                    learnedAt = null
                 )
             }
-            ReviewWordMasteryResult(
-                remainingPendingCount = remainingPendingCount,
-                isRoundCompleted = isRoundCompleted
-            )
         }
         syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
         return result
@@ -626,6 +637,41 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                     VocabularyResumeWordProgress(wordId = entry.wordId)
                 }
             )
+        )
+    }
+
+    private suspend fun updateReviewRoundWord(
+        roundId: String,
+        wordId: String,
+        now: Long,
+        progressBuilder: (VocabularyStudyRoundEntity) -> VocabularyWordLearningProgressEntity
+    ): ReviewWordUpdateResult {
+        val round = vocabularyStudyRoundDao.getRoundById(roundId)
+            ?: return ReviewWordUpdateResult(
+                remainingPendingCount = 0,
+                isRoundCompleted = true
+            )
+        if (round.status != ROUND_STATUS_REVIEW_PENDING) {
+            return ReviewWordUpdateResult(
+                remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size,
+                isRoundCompleted = round.status == ROUND_STATUS_REVIEW_COMPLETED
+            )
+        }
+        vocabularyStudyRoundWordDao.deleteByRoundIdAndWordId(roundId, wordId)
+        vocabularyWordLearningProgressDao.insertOrReplace(progressBuilder(round))
+        val remainingPendingCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).size
+        val isRoundCompleted = remainingPendingCount == 0
+        if (isRoundCompleted) {
+            vocabularyStudyRoundDao.insertOrReplace(
+                round.copy(
+                    status = ROUND_STATUS_REVIEW_COMPLETED,
+                    updatedAt = now
+                )
+            )
+        }
+        return ReviewWordUpdateResult(
+            remainingPendingCount = remainingPendingCount,
+            isRoundCompleted = isRoundCompleted
         )
     }
 
