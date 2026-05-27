@@ -136,6 +136,40 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // word_books: add coverUrl column
+            database.execSQL("ALTER TABLE word_books ADD COLUMN coverUrl TEXT")
+
+            // vocabulary_words: add moduleId and audioUrl columns
+            database.execSQL("ALTER TABLE vocabulary_words ADD COLUMN moduleId TEXT")
+            database.execSQL("ALTER TABLE vocabulary_words ADD COLUMN audioUrl TEXT")
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_vocabulary_words_moduleId ON vocabulary_words(moduleId)"
+            )
+
+            // new table: word_book_modules
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS word_book_modules (
+                    moduleId TEXT NOT NULL PRIMARY KEY,
+                    bookId TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL,
+                    wordCount INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY(bookId) REFERENCES word_books(bookId) ON DELETE CASCADE ON UPDATE CASCADE
+                )
+                """.trimIndent()
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_word_book_modules_bookId ON word_book_modules(bookId)"
+            )
+            database.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_word_book_modules_bookId_sortOrder ON word_book_modules(bookId, sortOrder)"
+            )
+        }
+    }
+
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(

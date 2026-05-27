@@ -16,5 +16,6 @@ data class WordBookEntity(
     val downloadStatus: String,
     val isActive: Boolean,
     val wordCount: Int,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val coverUrl: String? = null
 )

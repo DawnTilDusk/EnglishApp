@@ -33,4 +33,10 @@ interface VocabularyWordDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWords(words: List<VocabularyWordEntity>)
+
+    @Query("DELETE FROM vocabulary_words WHERE bookId = :bookId")
+    suspend fun deleteWordsByBook(bookId: String)
+
+    @Query("SELECT COUNT(*) FROM vocabulary_words WHERE bookId = :bookId")
+    suspend fun getWordCountByBook(bookId: String): Int
 }

@@ -15,6 +15,7 @@ import com.example.seedie.data.local.dao.VocabularyStudyRoundWordDao
 import com.example.seedie.data.local.dao.VocabularyWordDao
 import com.example.seedie.data.local.dao.VocabularyWordLearningProgressDao
 import com.example.seedie.data.local.dao.WordBookDao
+import com.example.seedie.data.local.dao.WordBookModuleDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -40,6 +41,7 @@ object DatabaseModule {
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_2_3)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_3_4)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_4_5)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_5_6)
             .build()
     }
 
@@ -57,6 +59,9 @@ object DatabaseModule {
 
     @Provides
     fun provideWordBookDao(database: SeedieDatabase): WordBookDao = database.wordBookDao()
+
+    @Provides
+    fun provideWordBookModuleDao(database: SeedieDatabase): WordBookModuleDao = database.wordBookModuleDao()
 
     @Provides
     fun provideVocabularyWordDao(database: SeedieDatabase): VocabularyWordDao = database.vocabularyWordDao()

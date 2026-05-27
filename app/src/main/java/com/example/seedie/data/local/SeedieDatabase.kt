@@ -13,6 +13,7 @@ import com.example.seedie.data.local.dao.VocabularyStudyRoundWordDao
 import com.example.seedie.data.local.dao.VocabularyWordDao
 import com.example.seedie.data.local.dao.VocabularyWordLearningProgressDao
 import com.example.seedie.data.local.dao.WordBookDao
+import com.example.seedie.data.local.dao.WordBookModuleDao
 import com.example.seedie.data.local.entity.CheckInEntity
 import com.example.seedie.data.local.entity.DailyTaskEntity
 import com.example.seedie.data.local.entity.EconomyTransactionEntity
@@ -24,6 +25,7 @@ import com.example.seedie.data.local.entity.VocabularyStudyRoundWordEntity
 import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.data.local.entity.VocabularyWordLearningProgressEntity
 import com.example.seedie.data.local.entity.WordBookEntity
+import com.example.seedie.data.local.entity.WordBookModuleEntity
 
 @Database(
     entities = [
@@ -32,6 +34,7 @@ import com.example.seedie.data.local.entity.WordBookEntity
         GardenPlotEntity::class,
         EconomyTransactionEntity::class,
         WordBookEntity::class,
+        WordBookModuleEntity::class,
         VocabularyWordEntity::class,
         VocabularyBookProgressEntity::class,
         VocabularyWordLearningProgressEntity::class,
@@ -39,7 +42,7 @@ import com.example.seedie.data.local.entity.WordBookEntity
         VocabularyStudyRoundWordEntity::class,
         SyncOperationEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class SeedieDatabase : RoomDatabase() {
@@ -48,6 +51,7 @@ abstract class SeedieDatabase : RoomDatabase() {
     abstract fun gardenPlotDao(): GardenPlotDao
     abstract fun economyTransactionDao(): EconomyTransactionDao
     abstract fun wordBookDao(): WordBookDao
+    abstract fun wordBookModuleDao(): WordBookModuleDao
     abstract fun vocabularyWordDao(): VocabularyWordDao
     abstract fun vocabularyBookProgressDao(): VocabularyBookProgressDao
     abstract fun vocabularyWordLearningProgressDao(): VocabularyWordLearningProgressDao

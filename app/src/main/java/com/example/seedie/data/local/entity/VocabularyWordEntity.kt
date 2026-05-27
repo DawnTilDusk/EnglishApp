@@ -8,7 +8,8 @@ import androidx.room.PrimaryKey
     tableName = "vocabulary_words",
     indices = [
         Index(value = ["bookId"]),
-        Index(value = ["bookId", "difficultyLevel"])
+        Index(value = ["bookId", "difficultyLevel"]),
+        Index(value = ["moduleId"])
     ]
 )
 data class VocabularyWordEntity(
@@ -23,5 +24,7 @@ data class VocabularyWordEntity(
     val difficultyLevel: String,
     val rewardToken: Int,
     val estimatedDurationSec: Int,
-    val sortOrder: Int
+    val sortOrder: Int,
+    val moduleId: String? = null,
+    val audioUrl: String? = null
 )

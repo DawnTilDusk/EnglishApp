@@ -1,0 +1,70 @@
+# Seedie App TODO List (2026-05-27)
+
+> Phase 3 剩余开发步骤。Step 1-3 已完成，Step 4 起等待词书数据导入 Supabase 后继续推进（数据导入不阻塞代码编写，可并行）。
+
+## Phase 3 剩余步骤
+
+### Step 4：Remote Models + 网络层 ⬜
+
+- [ ] 在 `data/remote/Models.kt` 新增 `SupabaseWordBook`、`SupabaseWordBookModule`、`SupabaseVocabularyWord` 三个 `@Serializable` 数据类（字段用 `@SerialName` 对应 Supabase snake_case）
+- [ ] 新建 `data/remote/WordBookRemoteDataSource.kt`：
+  - `fetchAllBooks(): List<SupabaseWordBook>`
+  - `fetchModulesByBook(bookId): List<SupabaseWordBookModule>`
+  - `fetchWordsByBook(bookId, page, pageSize): List<SupabaseVocabularyWord>`（分页，每页 100 条）
+
+### Step 5：WordBookSyncer（下载器）⬜
+
+- [ ] 新建 `data/sync/syncer/WordBookSyncer.kt`：
+  - 拉取 Supabase word_books 列表 → 与本地 version 对比 → Upsert 本地 word_books 元数据
+  - 下载单本词书：先拉 modules → 再分页拉 vocabulary_words → batch insert
+  - 下载过程中更新 `downloadStatus`：`PENDING → DOWNLOADING → COMPLETED`
+  - 暴露 `downloadProgress: Flow<DownloadProgress>`（已下载词数 / 总词数）
+  - 下载失败时 `downloadStatus` 改为 `FAILED`，支持重试
+- [ ] 在 `SyncScope` 中新增 `WORD_BOOK_LIST`（仅刷新书单，不下载词）
+- [ ] 在 `SyncManagerImpl` 中注册新 Scope
+
+### Step 6：词书选择页 ⬜
+
+- [ ] 新建 `ui/screens/profile/wordbookselection/WordBookSelectionScreen.kt`：
+  - 从 Profile 页入口进入
+  - 展示所有可用词书（来自本地 word_books 表，含未下载的）
+  - 每本书卡片显示：书名、描述、词数、难度、模块数、下载状态
+  - 下载状态对应操作按钮：`NOT_DOWNLOADED` → 下载按钮；`DOWNLOADING` → 进度条；`COMPLETED + 非激活` → "切换使用"；`COMPLETED + 激活` → "使用中"角标
+- [ ] 新建 `ui/screens/profile/wordbookselection/WordBookSelectionViewModel.kt`：
+  - 观察本地词书列表（`WordBookDao.getAllBooks()`）
+  - 触发 Supabase 书单刷新
+  - 处理下载动作（调 `WordBookSyncer`）
+  - 处理切换激活词书（`deactivateAllBooks + setActiveBook`）
+- [ ] 在 ProfileScreen 增加"词书管理"入口按钮
+- [ ] 注册新路由
+
+### Step 7：移除静态词包，接入动态词书 ⬜
+
+- [ ] 修改 `VocabularyPracticeRepositoryImpl.ensureSeededWordBook()`：
+  - 有已下载词书时不再插入静态词包
+  - 没有任何词书时 fallback 到现有静态词包（兜底，避免无词可学崩溃）
+- [ ] 确认 `startOrResumeStudySession(bookId)` 使用的是激活词书的 bookId
+
+### Step 8：学习页显示 Module 标题 + 音频播放 ⬜
+
+- [ ] 在 `VocabularyPracticeViewModel` 中新增当前词的 `moduleTitle: String?`（根据 wordId 查 moduleId 再查 module title）
+- [ ] 在 `VocabularyPracticeScreen` 顶部展示 Module 标题（仅当 moduleTitle 非空时显示）
+- [ ] 在单词卡片上增加音频播放按钮（仅当 `audioUrl` 非空时显示）
+- [ ] 集成 ExoPlayer（已是 Compose 生态标准库）：
+  - 点击播放按钮 → 用 ExoPlayer 流式播放 `audioUrl`
+  - 自动本地缓存（`SimpleCache + CacheDataSource`）
+  - ViewModel 中管理播放状态（`isPlaying: Boolean`）
+
+### Step 9：学习中心进度展示（阶段 5 对齐）⬜
+
+- [ ] 在 `MainViewModel` 中新增：
+  - `activeBookInfo: StateFlow<ActiveBookInfo?>` （书名、词数）
+  - `vocabProgressStats: StateFlow<VocabProgressStats>` （已学数、已掌握数、待复习数）
+- [ ] 修改 `LearningHubScreen` 背单词入口卡片：展示当前词书名 + 已掌握/已学数字
+- [ ] 新增数据类 `ActiveBookInfo(bookId, title, wordCount)`
+- [ ] 新增数据类 `VocabProgressStats(learnedCount, masteredCount, pendingReviewCount)`
+
+## 当前阻塞项
+
+- **词书数据导入**：需管理员按 `docs/templates/` 三份 CSV 模板整理词书数据，并在 Supabase SQL Editor 导入
+- 数据导入不阻塞 Step 4-9 代码编写，可先写代码，等数据就绪后联调
