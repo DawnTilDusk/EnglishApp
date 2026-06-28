@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     onOpenVocabularyStudy: (VocabularyPracticeArgs) -> Unit,
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
+    onOpenListeningPractice: () -> Unit,
     pendingStudyResult: StudyResult?,
     onStudyResultConsumed: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -64,10 +65,10 @@ fun MainScreen(
         pendingStudyResult?.let { result ->
             viewModel.handleStudyResult(result)
             snackbarHostState.showSnackbar(
-                if (result.moduleId == "vocabulary_review") {
-                    "单词复习完成：+${result.earnedTokens} 代币"
-                } else {
-                    "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词"
+                when (result.moduleId) {
+                    "vocabulary_review" -> "单词复习完成：+${result.earnedTokens} 代币"
+                    "listening" -> "听力训练完成：+${result.earnedTokens} 代币"
+                    else -> "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词"
                 }
             )
             onStudyResultConsumed()
@@ -95,7 +96,7 @@ fun MainScreen(
         ModuleConfig("speaking", "口语跟读", "AI 智能跟读练习", Icons.Default.Mic),
         ModuleConfig("quiz", "词汇测验", "检验学习成果", Icons.Default.Quiz),
         ModuleConfig("textbook", "教材训练", "同步课堂进度", Icons.Default.Book),
-        ModuleConfig("listening", "听力训练", "磨耳朵", Icons.Default.Headphones),
+        ModuleConfig("listening", "听力训练", "磨耳朵", Icons.Default.Headphones, isAvailable = true),
         ModuleConfig("writing", "写作/专项", "句型实战", Icons.Default.Create)
     )
 
@@ -196,6 +197,8 @@ fun MainScreen(
                                     }
                                 }
                             }
+
+                            "listening" -> onOpenListeningPractice()
                         }
                     },
                     snackbarHostState = snackbarHostState

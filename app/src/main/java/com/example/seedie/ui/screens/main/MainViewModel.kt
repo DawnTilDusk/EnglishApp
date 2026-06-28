@@ -55,14 +55,32 @@ class MainViewModel @Inject constructor(
             }
             if (result.earnedTokens > 0) {
                 userSessionRepository.addTokens(result.earnedTokens)
-                economyManager.addTokens(result.earnedTokens, "Vocabulary Practice")
+                val reason = when (result.moduleId) {
+                    "listening" -> "Listening Practice"
+                    "vocabulary_review" -> "Vocabulary Review"
+                    else -> "Vocabulary Practice"
+                }
+                economyManager.addTokens(result.earnedTokens, reason)
                 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
             }
             if (result.isCompleted) {
-                completeTodayVocabularyTask()
+                when (result.moduleId) {
+                    "listening" -> completeTodayListeningTask()
+                    else -> completeTodayVocabularyTask()
+                }
             }
             refreshVocabularyEntryState()
         }
+    }
+
+    private suspend fun completeTodayListeningTask() {
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val task = taskDao.getTasksByDate(today)
+            .first()
+            .firstOrNull { !it.isCompleted && it.title.contains("听力") }
+            ?: return
+
+        taskDao.updateTask(task.copy(isCompleted = true))
     }
 
     private suspend fun completeTodayVocabularyTask() {

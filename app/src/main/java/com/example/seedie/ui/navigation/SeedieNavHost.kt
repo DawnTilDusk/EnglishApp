@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
+import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.splash.SplashScreen
 
@@ -46,6 +47,9 @@ fun SeedieNavHost(
                     currentVocabularyArgs = args
                     navController.navigate(Screen.VocabularyPractice.route)
                 },
+                onOpenListeningPractice = {
+                    navController.navigate(Screen.ListeningPractice.route)
+                },
                 pendingStudyResult = pendingStudyResult,
                 onStudyResultConsumed = {
                     pendingStudyResult = null
@@ -55,6 +59,17 @@ fun SeedieNavHost(
         composable(route = Screen.VocabularyPractice.route) {
             VocabularyPracticeRoute(
                 args = currentVocabularyArgs,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onFinishSession = { result ->
+                    pendingStudyResult = result
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(route = Screen.ListeningPractice.route) {
+            ListeningPracticeRoute(
                 onNavigateBack = {
                     navController.popBackStack()
                 },

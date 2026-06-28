@@ -22,10 +22,8 @@ import com.example.seedie.domain.repository.ReviewWordUpdateResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.ui.screens.learning.practice.PendingReviewEntry
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
-import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeOption
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeResumeSnapshot
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeSession
-import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeWord
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionRecord
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionType
 import com.example.seedie.ui.screens.learning.practice.VocabularyResumeWordProgress
@@ -45,7 +43,9 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     private val vocabularyStudyRoundDao: VocabularyStudyRoundDao,
     private val vocabularyStudyRoundWordDao: VocabularyStudyRoundWordDao,
     private val authService: AuthService,
-    private val syncManager: SyncManager
+    private val syncManager: SyncManager,
+    private val wordBookSeeder: WordBookSeeder,
+    private val vocabularyOptionBuilder: VocabularyOptionBuilder
 ) : VocabularyPracticeRepository {
 
     private fun currentUserId() = authService.currentSession.value?.userId ?: ""
@@ -71,7 +71,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         val activeBook = loadActiveBook()
         val wordBank = vocabularyWordDao.getWordsByBook(activeBook.bookId)
             .ifEmpty { error("当前词书没有任何单词") }
-        val filteredPool = filterByDifficulty(
+        val filteredPool = wordBookSeeder.filterByDifficulty(
             wordBank = wordBank,
             requestedDifficulty = args.difficulty
         )
@@ -428,7 +428,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             ),
             studyWords = emptyList(),
             reviewWords = reviewEntries.map { entry ->
-                entry.toPracticeWord(allEntries = wordBank, random = random)
+                vocabularyOptionBuilder.toPracticeWord(entity = entry, allEntries = wordBank, random = random)
             }
         )
     }
@@ -487,7 +487,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 resumeSupported = true
             ),
             studyWords = (activeEntries + upcomingEntries).map { entry ->
-                entry.toPracticeWord(allEntries = wordBank, random = random)
+                vocabularyOptionBuilder.toPracticeWord(entity = entry, allEntries = wordBank, random = random)
             },
             reviewWords = emptyList(),
             resumeSnapshot = VocabularyPracticeResumeSnapshot(
@@ -622,7 +622,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 resumeSupported = true
             ),
             studyWords = studyEntries.map { entry ->
-                entry.toPracticeWord(allEntries = wordBank, random = random)
+                vocabularyOptionBuilder.toPracticeWord(entity = entry, allEntries = wordBank, random = random)
             },
             reviewWords = emptyList(),
             resumeSnapshot = VocabularyPracticeResumeSnapshot(
@@ -675,27 +675,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         )
     }
 
-    private fun filterByDifficulty(
-        wordBank: List<VocabularyWordEntity>,
-        requestedDifficulty: String
-    ): List<VocabularyWordEntity> {
-        return when (requestedDifficulty.trim().lowercase()) {
-            "", "mixed", "all" -> wordBank
-            else -> wordBank.filter { it.difficultyLevel == requestedDifficulty.trim().lowercase() }
-        }.ifEmpty { wordBank }
-    }
-
-    private suspend fun loadActiveBook(): WordBookEntity {
-        ensureSeededWordBook()
-        return wordBookDao.getActiveBook() ?: wordBookDao.getLatestBook()
-        ?: error("未找到可用词书")
-    }
-
-    private suspend fun ensureSeededWordBook() {
-        if (wordBookDao.getBookCount() > 0) return
-        wordBookDao.insertBook(VocabularyStaticWordPack.defaultBookEntity())
-        vocabularyWordDao.insertWords(VocabularyStaticWordPack.defaultWordEntities())
-    }
+    private suspend fun loadActiveBook(): WordBookEntity = wordBookSeeder.loadActiveBook()
 
     private fun serializePassedStages(questionTypes: Set<VocabularyQuestionType>): String {
         return questionTypes.joinToString(",") { it.name }
@@ -710,108 +690,4 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             .toSet()
     }
 
-    private fun VocabularyWordEntity.toPracticeWord(
-        allEntries: List<VocabularyWordEntity>,
-        random: Random
-    ): VocabularyPracticeWord {
-        val distractorPool = buildDistractorPool(allEntries = allEntries, random = random)
-        val translationOptions = buildTranslationOptions(distractorPool = distractorPool, random = random)
-        val englishOptions = buildEnglishOptions(distractorPool = distractorPool, random = random)
-        val contextOptions = buildContextOptions(distractorPool = distractorPool, random = random)
-
-        return VocabularyPracticeWord(
-            wordId = wordId,
-            bookId = bookId,
-            english = english,
-            phonetic = phonetic,
-            partOfSpeech = partOfSpeech,
-            translation = translation,
-            exampleSentence = exampleSentence,
-            difficultyLevel = difficultyLevel,
-            rewardToken = rewardToken,
-            estimatedDurationSec = estimatedDurationSec,
-            sortOrder = sortOrder,
-            translationOptions = translationOptions,
-            englishOptions = englishOptions,
-            contextOptions = contextOptions,
-            contextSentence = buildContextSentence(exampleSentence = exampleSentence, answer = english)
-        )
-    }
-
-    private fun VocabularyWordEntity.buildDistractorPool(
-        allEntries: List<VocabularyWordEntity>,
-        random: Random
-    ): List<VocabularyWordEntity> {
-        return allEntries
-            .asSequence()
-            .filter { it.wordId != wordId && it.translation != translation }
-            .sortedByDescending { candidate -> candidate.partOfSpeech == partOfSpeech }
-            .distinctBy { candidate -> candidate.translation }
-            .toList()
-            .shuffled(random)
-            .take(3)
-    }
-
-    private fun VocabularyWordEntity.buildTranslationOptions(
-        distractorPool: List<VocabularyWordEntity>,
-        random: Random
-    ): List<VocabularyPracticeOption> {
-        return (distractorPool + this)
-            .distinctBy { entry -> entry.translation }
-            .shuffled(random)
-            .mapIndexed { optionIndex, entry ->
-                VocabularyPracticeOption(
-                    optionId = "translation_${wordId}_${optionIndex + 1}",
-                    label = entry.translation,
-                    isCorrect = entry.wordId == wordId,
-                    englishHint = entry.english
-                )
-            }
-    }
-
-    private fun VocabularyWordEntity.buildEnglishOptions(
-        distractorPool: List<VocabularyWordEntity>,
-        random: Random
-    ): List<VocabularyPracticeOption> {
-        return (distractorPool + this)
-            .distinctBy { entry -> entry.english }
-            .shuffled(random)
-            .mapIndexed { optionIndex, entry ->
-                VocabularyPracticeOption(
-                    optionId = "english_${wordId}_${optionIndex + 1}",
-                    label = entry.english,
-                    isCorrect = entry.wordId == wordId,
-                    englishHint = entry.translation
-                )
-            }
-    }
-
-    private fun VocabularyWordEntity.buildContextOptions(
-        distractorPool: List<VocabularyWordEntity>,
-        random: Random
-    ): List<VocabularyPracticeOption> {
-        return (distractorPool + this)
-            .distinctBy { entry -> entry.english }
-            .shuffled(random)
-            .mapIndexed { optionIndex, entry ->
-                VocabularyPracticeOption(
-                    optionId = "context_${wordId}_${optionIndex + 1}",
-                    label = entry.english,
-                    isCorrect = entry.wordId == wordId,
-                    englishHint = entry.translation
-                )
-            }
-    }
-
-    private fun buildContextSentence(exampleSentence: String, answer: String): String {
-        val answerPattern = Regex(
-            pattern = "\\b${Regex.escape(answer)}(s|es|ed|ing)?\\b",
-            option = RegexOption.IGNORE_CASE
-        )
-        return if (answerPattern.containsMatchIn(exampleSentence)) {
-            exampleSentence.replaceFirst(answerPattern, "_____")
-        } else {
-            "_____  ${exampleSentence}"
-        }
-    }
 }
