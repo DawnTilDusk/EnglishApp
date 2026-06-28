@@ -1,12 +1,15 @@
 package com.example.seedie.ui.screens.learning.practice
+import com.example.seedie.domain.model.StudyResult
 
 data class VocabularyPracticeArgs(
     val sessionId: String? = null,
     val sourceModuleId: String = "vocabulary",
     val planId: String? = null,
-    val wordCountTarget: Int = 5,
-    val difficulty: String = "easy",
-    val resumeToken: String? = null
+    val wordCountTarget: Int = 10,
+    val difficulty: String = "mixed",
+    val resumeToken: String? = null,
+    val entryMode: VocabularyPracticeMode = VocabularyPracticeMode.Study,
+    val targetRoundId: String? = null
 )
 
 enum class VocabularyPracticeStage {
@@ -48,6 +51,7 @@ data class VocabularyPracticeOption(
 
 data class VocabularyPracticeWord(
     val wordId: String,
+    val bookId: String,
     val english: String,
     val phonetic: String,
     val partOfSpeech: String,
@@ -56,6 +60,7 @@ data class VocabularyPracticeWord(
     val difficultyLevel: String,
     val rewardToken: Int,
     val estimatedDurationSec: Int,
+    val sortOrder: Int,
     val translationOptions: List<VocabularyPracticeOption>,
     val englishOptions: List<VocabularyPracticeOption>,
     val contextOptions: List<VocabularyPracticeOption>,
@@ -97,10 +102,41 @@ data class VocabularySessionMeta(
     val resumeSupported: Boolean
 )
 
+data class VocabularyResumeWordProgress(
+    val wordId: String,
+    val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
+    val hasSeenStudyWord: Boolean = false,
+    val totalWrongCount: Int = 0,
+    val revealCount: Int = 0
+)
+
+data class VocabularyPracticeResumeSnapshot(
+    val roundId: String,
+    val bookId: String,
+    val activeWordIds: List<String>,
+    val introducedStudyCount: Int,
+    val studyTargetCount: Int,
+    val nextWordSortOrderCursor: Int,
+    val masteredStudyCount: Int,
+    val wordProgressList: List<VocabularyResumeWordProgress>
+)
+
 data class VocabularyPracticeSession(
     val sessionMeta: VocabularySessionMeta,
     val studyWords: List<VocabularyPracticeWord>,
-    val reviewWords: List<VocabularyPracticeWord>
+    val reviewWords: List<VocabularyPracticeWord>,
+    val resumeSnapshot: VocabularyPracticeResumeSnapshot? = null
+)
+
+data class PendingReviewEntry(
+    val roundId: String,
+    val bookId: String,
+    val pendingWordCount: Int
+)
+
+data class VocabularyImmediateReviewRequest(
+    val result: StudyResult,
+    val args: VocabularyPracticeArgs
 )
 
 data class VocabularyQuestionRecord(
@@ -127,9 +163,14 @@ data class VocabularyPracticeUiState(
     val currentWordProgress: VocabularyWordProgress? = null,
     val studyQueueSize: Int = 0,
     val reviewQueueSize: Int = 0,
+    val introducedStudyCount: Int = 0,
+    val studyTargetCount: Int = 0,
     val masteredStudyCount: Int = 0,
     val completedReviewCount: Int = 0,
     val sentBackToStudyCount: Int = 0,
+    val completedRoundId: String? = null,
+    val pendingReviewWordCount: Int = 0,
+    val canStartImmediateReview: Boolean = false,
     val selectedOptionId: String? = null,
     val spellingInput: String = "",
     val answerStatus: AnswerStatus = AnswerStatus.Unanswered,

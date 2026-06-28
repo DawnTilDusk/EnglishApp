@@ -21,6 +21,10 @@ import kotlin.random.Random
 class VocabularyPracticeViewModel @Inject constructor(
     private val repository: VocabularyPracticeRepository
 ) : ViewModel() {
+    private companion object {
+        const val STAGE_ONE_ACTIVE_QUEUE_SIZE = 4
+        const val CURSOR_END_SENTINEL = Int.MAX_VALUE
+    }
 
     private val _uiState = MutableStateFlow(VocabularyPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -39,8 +43,17 @@ class VocabularyPracticeViewModel @Inject constructor(
     private val reviewQueue = ArrayDeque<String>()
     private val wordMap = linkedMapOf<String, VocabularyPracticeWord>()
     private val progressMap = linkedMapOf<String, VocabularyWordProgress>()
+    private val studyWordOrder = mutableListOf<String>()
     private val pronouncedWordKeys = linkedSetOf<String>()
     private var currentSession: VocabularyPracticeSession? = null
+    private var currentBookId: String? = null
+    private var currentRoundId: String? = null
+    private var currentEntryMode: VocabularyPracticeMode = VocabularyPracticeMode.Study
+    private var carryoverResult: StudyResult? = null
+    private var nextStudyWordIndex = 0
+    private var nextStudyWordSortOrderCursor = CURSOR_END_SENTINEL
+    private var introducedStudyCount = 0
+    private var studyTargetCount = 0
     private var masteredStudyCount = 0
     private var completedReviewCount = 0
     private var sentBackToStudyCount = 0
@@ -59,7 +72,11 @@ class VocabularyPracticeViewModel @Inject constructor(
 
     fun onBackClick() {
         if (_uiState.value.stage == VocabularyPracticeStage.Completed) {
-            onFinishSession()
+            if (_uiState.value.canStartImmediateReview) {
+                onDeferReview()
+            } else {
+                onFinishSession()
+            }
             return
         }
         _uiState.update { it.copy(showExitConfirmDialog = true) }
@@ -157,6 +174,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             skippedDelta = 1,
             earnedTokensDelta = 0
         )
+        persistStudySnapshot()
     }
 
     fun onReplayPronunciation() {
@@ -194,8 +212,29 @@ class VocabularyPracticeViewModel @Inject constructor(
         finishSession(isCompleted = true)
     }
 
+    fun onStartImmediateReview() {
+        val completedRoundId = _uiState.value.completedRoundId ?: return
+        carryoverResult = buildStudyResult(_uiState.value, isCompleted = true)
+        val args = VocabularyPracticeArgs(
+            sourceModuleId = "vocabulary_review",
+            planId = initializedArgs?.planId,
+            difficulty = initializedArgs?.difficulty ?: "easy",
+            entryMode = VocabularyPracticeMode.Review,
+            targetRoundId = completedRoundId
+        )
+        viewModelScope.launch {
+            initializedArgs = args
+            loadSession(args)
+        }
+    }
+
+    fun onDeferReview() {
+        finishSession(isCompleted = true)
+    }
+
     private fun loadSession(args: VocabularyPracticeArgs) {
         resetSessionState()
+        currentEntryMode = args.entryMode
         stopTimer()
         _uiState.value = VocabularyPracticeUiState(stage = VocabularyPracticeStage.Loading)
         viewModelScope.launch {
@@ -206,14 +245,31 @@ class VocabularyPracticeViewModel @Inject constructor(
                     _uiState.value = VocabularyPracticeUiState(stage = VocabularyPracticeStage.Empty)
                 } else {
                     currentSession = session
+                    currentBookId = session.resumeSnapshot?.bookId
+                        ?: session.studyWords.firstOrNull()?.bookId
+                        ?: session.reviewWords.firstOrNull()?.bookId
+                    currentRoundId = session.resumeSnapshot?.roundId ?: args.targetRoundId
+                    studyTargetCount = session.resumeSnapshot?.studyTargetCount ?: session.studyWords.size
+                    introducedStudyCount = session.resumeSnapshot?.introducedStudyCount ?: 0
+                    masteredStudyCount = session.resumeSnapshot?.masteredStudyCount ?: 0
+                    nextStudyWordSortOrderCursor =
+                        session.resumeSnapshot?.nextWordSortOrderCursor ?: CURSOR_END_SENTINEL
                     session.studyWords.forEach { word ->
                         wordMap[word.wordId] = word
-                        progressMap[word.wordId] = VocabularyWordProgress(wordId = word.wordId)
-                        studyQueue.addLast(word.wordId)
+                        studyWordOrder += word.wordId
+                    }
+                    if (currentEntryMode == VocabularyPracticeMode.Study && session.resumeSnapshot != null) {
+                        restoreStudyState(session)
+                    } else if (currentEntryMode == VocabularyPracticeMode.Study) {
+                        session.studyWords.forEach { word ->
+                            progressMap[word.wordId] = VocabularyWordProgress(wordId = word.wordId)
+                        }
+                        fillStudyQueueIfNeeded()
                     }
                     session.reviewWords.forEach { word ->
                         wordMap[word.wordId] = word
-                        progressMap[word.wordId] = progressMap[word.wordId] ?: VocabularyWordProgress(wordId = word.wordId)
+                        progressMap[word.wordId] = progressMap[word.wordId]
+                            ?: VocabularyWordProgress(wordId = word.wordId)
                         reviewQueue.addLast(word.wordId)
                     }
                     _uiState.value = VocabularyPracticeUiState(
@@ -221,9 +277,15 @@ class VocabularyPracticeViewModel @Inject constructor(
                         sessionMeta = session.sessionMeta,
                         session = session,
                         studyQueueSize = studyQueue.size,
-                        reviewQueueSize = reviewQueue.size
+                        reviewQueueSize = reviewQueue.size,
+                        introducedStudyCount = introducedStudyCount,
+                        studyTargetCount = studyTargetCount,
+                        masteredStudyCount = masteredStudyCount
                     )
                     startTimer()
+                    if (currentEntryMode == VocabularyPracticeMode.Study) {
+                        persistStudySnapshot()
+                    }
                     advanceToNextPrompt()
                 }
             }.onFailure { throwable ->
@@ -235,6 +297,29 @@ class VocabularyPracticeViewModel @Inject constructor(
         }
     }
 
+    private fun restoreStudyState(session: VocabularyPracticeSession) {
+        val snapshot = session.resumeSnapshot ?: return
+        val progressByWordId = snapshot.wordProgressList.associateBy { it.wordId }
+        studyQueue.clear()
+        snapshot.activeWordIds.forEach { wordId ->
+            studyQueue.addLast(wordId)
+            val progress = progressByWordId[wordId]
+            progressMap[wordId] = VocabularyWordProgress(
+                wordId = wordId,
+                passedStudyQuestionTypes = progress?.passedStudyQuestionTypes.orEmpty(),
+                hasSeenStudyWord = progress?.hasSeenStudyWord ?: false,
+                totalWrongCount = progress?.totalWrongCount ?: 0,
+                revealCount = progress?.revealCount ?: 0
+            )
+        }
+        studyWordOrder.forEach { wordId ->
+            if (wordId !in progressMap) {
+                progressMap[wordId] = VocabularyWordProgress(wordId = wordId)
+            }
+        }
+        nextStudyWordIndex = snapshot.activeWordIds.size.coerceAtMost(studyWordOrder.size)
+    }
+
     private fun finishSession(isCompleted: Boolean) {
         if (sessionFinished) return
         val state = _uiState.value
@@ -243,26 +328,46 @@ class VocabularyPracticeViewModel @Inject constructor(
         stopReviewHintTimer()
         sessionFinished = true
 
-        val completedQuestionCount = state.correctCount + state.wrongCount + state.skippedCount
-        val accuracy = if (completedQuestionCount == 0) 0f else state.correctCount.toFloat() / completedQuestionCount
-        val result = StudyResult(
-            sessionId = sessionMeta.sessionId,
-            moduleId = sessionMeta.moduleId,
-            isCompleted = isCompleted,
-            completedQuestionCount = completedQuestionCount,
-            correctCount = state.correctCount,
-            wrongCount = state.wrongCount,
-            skippedCount = state.skippedCount,
-            accuracy = accuracy,
-            earnedTokens = state.earnedTokens,
-            studyDurationSec = state.elapsedSeconds,
-            vocabularyDelta = state.masteredStudyCount,
-            wrongWordIds = wrongWordIds.toList()
-        )
+        val result = carryoverResult
+            ?.let { baseResult -> mergeStudyResults(baseResult, buildStudyResult(state, isCompleted)) }
+            ?: buildStudyResult(state, isCompleted)
+        carryoverResult = null
 
         viewModelScope.launch {
             repository.finishPracticeSession(result)
             _studyResults.emit(result)
+        }
+    }
+
+    private fun buildCurrentStudySnapshot(): VocabularyPracticeResumeSnapshot? {
+        if (currentEntryMode != VocabularyPracticeMode.Study) return null
+        val roundId = currentRoundId ?: return null
+        val bookId = currentBookId ?: return null
+        return VocabularyPracticeResumeSnapshot(
+            roundId = roundId,
+            bookId = bookId,
+            activeWordIds = studyQueue.toList(),
+            introducedStudyCount = introducedStudyCount,
+            studyTargetCount = studyTargetCount,
+            nextWordSortOrderCursor = nextStudyWordSortOrderCursor,
+            masteredStudyCount = masteredStudyCount,
+            wordProgressList = studyQueue.mapNotNull { wordId ->
+                val progress = progressMap[wordId] ?: return@mapNotNull null
+                VocabularyResumeWordProgress(
+                    wordId = wordId,
+                    passedStudyQuestionTypes = progress.passedStudyQuestionTypes,
+                    hasSeenStudyWord = progress.hasSeenStudyWord,
+                    totalWrongCount = progress.totalWrongCount,
+                    revealCount = progress.revealCount
+                )
+            }
+        )
+    }
+
+    private fun persistStudySnapshot() {
+        val snapshot = buildCurrentStudySnapshot() ?: return
+        viewModelScope.launch {
+            repository.saveStudyRoundSnapshot(snapshot)
         }
     }
 
@@ -320,6 +425,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         val feedbackMessage = if (allPassed) {
             removeWordFromStudyQueue(wordId)
             masteredStudyCount += 1
+            fillStudyQueueIfNeeded()
             "当前单词 3 个关卡均通过，已标记掌握。"
         } else {
             moveCurrentStudyWordToTail(wordId)
@@ -344,6 +450,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             skippedDelta = 0,
             earnedTokensDelta = prompt.word.rewardToken
         )
+        persistStudySnapshot()
     }
 
     private fun handleStudyWrong(
@@ -377,6 +484,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             skippedDelta = 0,
             earnedTokensDelta = 0
         )
+        persistStudySnapshot()
     }
 
     private fun handleReviewSubmit(
@@ -409,14 +517,42 @@ class VocabularyPracticeViewModel @Inject constructor(
                 isReviewCompleted = true
             )
             completedReviewCount += 1
-            presentEvaluatedState(
-                answerStatus = AnswerStatus.Correct,
-                feedbackMessage = "拼写正确，当前复习单词已完成。",
-                correctDelta = 1,
-                wrongDelta = 0,
-                skippedDelta = 0,
-                earnedTokensDelta = prompt.word.rewardToken
-            )
+            val roundId = currentRoundId
+            if (roundId == null) {
+                presentEvaluatedState(
+                    answerStatus = AnswerStatus.Correct,
+                    feedbackMessage = "拼写正确，当前复习单词已完成。",
+                    correctDelta = 1,
+                    wrongDelta = 0,
+                    skippedDelta = 0,
+                    earnedTokensDelta = prompt.word.rewardToken
+                )
+            } else {
+                _uiState.update {
+                    it.copy(
+                        canSubmitAnswer = false,
+                        canGoNext = false
+                    )
+                }
+                viewModelScope.launch {
+                    val reviewUpdateResult = repository.markReviewWordMastered(
+                        roundId = roundId,
+                        wordId = wordId
+                    )
+                    presentEvaluatedState(
+                        answerStatus = AnswerStatus.Correct,
+                        feedbackMessage = if (reviewUpdateResult.isRoundCompleted) {
+                            "拼写正确，本轮复习已全部完成。"
+                        } else {
+                            "拼写正确，当前复习单词已完成。"
+                        },
+                        correctDelta = 1,
+                        wrongDelta = 0,
+                        skippedDelta = 0,
+                        earnedTokensDelta = prompt.word.rewardToken
+                    )
+                }
+            }
             return
         }
 
@@ -435,18 +571,43 @@ class VocabularyPracticeViewModel @Inject constructor(
                 isMasteredToday = false,
                 isReviewCompleted = false
             )
-            if (studyQueue.none { it == wordId }) {
-                studyQueue.addLast(wordId)
-            }
             sentBackToStudyCount += 1
-            presentEvaluatedState(
-                answerStatus = AnswerStatus.Wrong,
-                feedbackMessage = "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回学习第 1 关。",
-                correctDelta = 0,
-                wrongDelta = 1,
-                skippedDelta = 0,
-                earnedTokensDelta = 0
-            )
+            val roundId = currentRoundId
+            if (roundId == null) {
+                presentEvaluatedState(
+                    answerStatus = AnswerStatus.Wrong,
+                    feedbackMessage = "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回后续学习，将从第 1 关重新开始。",
+                    correctDelta = 0,
+                    wrongDelta = 1,
+                    skippedDelta = 0,
+                    earnedTokensDelta = 0
+                )
+            } else {
+                _uiState.update {
+                    it.copy(
+                        canSubmitAnswer = false,
+                        canGoNext = false
+                    )
+                }
+                viewModelScope.launch {
+                    val reviewUpdateResult = repository.markReviewWordSentBackToLearning(
+                        roundId = roundId,
+                        wordId = wordId
+                    )
+                    presentEvaluatedState(
+                        answerStatus = AnswerStatus.Wrong,
+                        feedbackMessage = if (reviewUpdateResult.isRoundCompleted) {
+                            "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已打回后续学习，本轮立即复习已结束。"
+                        } else {
+                            "连续拼错 4 次，正确答案是 ${prompt.word.english}。该单词已移出本轮复习，将在后续学习中从第 1 关重新开始。"
+                        },
+                        correctDelta = 0,
+                        wrongDelta = 1,
+                        skippedDelta = 0,
+                        earnedTokensDelta = 0
+                    )
+                }
+            }
         } else {
             progressMap[wordId] = updatedProgress
             reviewQueue.addLast(wordId)
@@ -464,25 +625,21 @@ class VocabularyPracticeViewModel @Inject constructor(
     private fun advanceToNextPrompt() {
         stopReviewHintTimer()
         val nextEntry = determineNextWord() ?: run {
-            stopTimer()
-            _uiState.update {
-                it.copy(
-                    stage = VocabularyPracticeStage.Completed,
-                    currentPrompt = null,
-                    currentWordProgress = null,
-                    selectedOptionId = null,
-                    spellingInput = "",
-                    feedbackMessage = "",
-                    canSubmitAnswer = false,
-                    canGoNext = false,
-                    showFinishDialog = true,
-                    studyQueueSize = studyQueue.size,
-                    reviewQueueSize = reviewQueue.size,
-                    masteredStudyCount = masteredStudyCount,
-                    completedReviewCount = completedReviewCount,
-                    sentBackToStudyCount = sentBackToStudyCount
-                )
+            val completedRoundId = currentRoundId
+            if (currentEntryMode == VocabularyPracticeMode.Study && completedRoundId != null) {
+                _uiState.update {
+                    it.copy(
+                        canGoNext = false,
+                        canSubmitAnswer = false
+                    )
+                }
+                viewModelScope.launch {
+                    repository.markStudyRoundReviewPending(completedRoundId)
+                    showCompletedState(completedRoundId)
+                }
+                return
             }
+            showCompletedState(completedRoundId)
             return
         }
 
@@ -534,6 +691,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                 firstLetterHint = prompt.firstLetterHint,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
                 masteredStudyCount = masteredStudyCount,
                 completedReviewCount = completedReviewCount,
                 sentBackToStudyCount = sentBackToStudyCount,
@@ -543,8 +702,41 @@ class VocabularyPracticeViewModel @Inject constructor(
             )
         }
 
+        persistStudySnapshot()
         maybePronounce(prompt)
         restartReviewHintTimer()
+    }
+
+    private fun showCompletedState(completedRoundId: String?) {
+        stopTimer()
+        _uiState.update {
+            it.copy(
+                stage = VocabularyPracticeStage.Completed,
+                currentPrompt = null,
+                currentWordProgress = null,
+                selectedOptionId = null,
+                spellingInput = "",
+                feedbackMessage = "",
+                canSubmitAnswer = false,
+                canGoNext = false,
+                showFinishDialog = currentEntryMode != VocabularyPracticeMode.Study,
+                studyQueueSize = studyQueue.size,
+                reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
+                masteredStudyCount = masteredStudyCount,
+                completedReviewCount = completedReviewCount,
+                sentBackToStudyCount = sentBackToStudyCount,
+                completedRoundId = completedRoundId,
+                pendingReviewWordCount = if (currentEntryMode == VocabularyPracticeMode.Study) {
+                    masteredStudyCount
+                } else {
+                    0
+                },
+                canStartImmediateReview = currentEntryMode == VocabularyPracticeMode.Study &&
+                    masteredStudyCount > 0
+            )
+        }
     }
 
     private fun determineNextWord(): Pair<VocabularyPracticeMode, String>? {
@@ -647,6 +839,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                 earnedTokens = it.earnedTokens + earnedTokensDelta,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,
+                introducedStudyCount = introducedStudyCount,
+                studyTargetCount = studyTargetCount,
                 masteredStudyCount = masteredStudyCount,
                 completedReviewCount = completedReviewCount,
                 sentBackToStudyCount = sentBackToStudyCount,
@@ -751,6 +945,27 @@ class VocabularyPracticeViewModel @Inject constructor(
         studyQueue.remove(wordId)
     }
 
+    private fun fillStudyQueueIfNeeded() {
+        while (studyQueue.size < STAGE_ONE_ACTIVE_QUEUE_SIZE) {
+            val appended = enqueueNextStudyWordIfAvailable()
+            if (!appended) break
+        }
+    }
+
+    private fun enqueueNextStudyWordIfAvailable(): Boolean {
+        if (nextStudyWordIndex >= studyWordOrder.size) return false
+        val wordId = studyWordOrder[nextStudyWordIndex]
+        nextStudyWordIndex += 1
+        introducedStudyCount += 1
+        if (studyQueue.none { it == wordId }) {
+            studyQueue.addLast(wordId)
+        }
+        nextStudyWordSortOrderCursor = studyWordOrder.getOrNull(nextStudyWordIndex)
+            ?.let { nextWordId -> wordMap[nextWordId]?.sortOrder }
+            ?: CURSOR_END_SENTINEL
+        return true
+    }
+
     private fun pickRandomUnpassedStudyQuestionType(progress: VocabularyWordProgress): VocabularyQuestionType? {
         val pendingTypes = studyQuestionTypes.filterNot { it in progress.passedStudyQuestionTypes }
         if (pendingTypes.isEmpty()) return null
@@ -802,12 +1017,68 @@ class VocabularyPracticeViewModel @Inject constructor(
         reviewQueue.clear()
         wordMap.clear()
         progressMap.clear()
+        studyWordOrder.clear()
         pronouncedWordKeys.clear()
         currentSession = null
+        currentBookId = null
+        currentRoundId = null
+        currentEntryMode = VocabularyPracticeMode.Study
+        nextStudyWordIndex = 0
+        nextStudyWordSortOrderCursor = CURSOR_END_SENTINEL
+        introducedStudyCount = 0
+        studyTargetCount = 0
         masteredStudyCount = 0
         completedReviewCount = 0
         sentBackToStudyCount = 0
         sessionFinished = false
+    }
+
+    private fun buildStudyResult(
+        state: VocabularyPracticeUiState,
+        isCompleted: Boolean
+    ): StudyResult {
+        val sessionMeta = state.sessionMeta ?: error("sessionMeta should not be null when building result")
+        val completedQuestionCount = state.correctCount + state.wrongCount + state.skippedCount
+        val accuracy = if (completedQuestionCount == 0) 0f else state.correctCount.toFloat() / completedQuestionCount
+        return StudyResult(
+            sessionId = sessionMeta.sessionId,
+            moduleId = sessionMeta.moduleId,
+            isCompleted = isCompleted,
+            completedQuestionCount = completedQuestionCount,
+            correctCount = state.correctCount,
+            wrongCount = state.wrongCount,
+            skippedCount = state.skippedCount,
+            accuracy = accuracy,
+            earnedTokens = state.earnedTokens,
+            studyDurationSec = state.elapsedSeconds,
+            vocabularyDelta = state.masteredStudyCount,
+            wrongWordIds = wrongWordIds.toList()
+        )
+    }
+
+    private fun mergeStudyResults(
+        baseResult: StudyResult,
+        currentResult: StudyResult
+    ): StudyResult {
+        val completedQuestionCount = baseResult.completedQuestionCount + currentResult.completedQuestionCount
+        val correctCount = baseResult.correctCount + currentResult.correctCount
+        val wrongCount = baseResult.wrongCount + currentResult.wrongCount
+        val skippedCount = baseResult.skippedCount + currentResult.skippedCount
+        val accuracy = if (completedQuestionCount == 0) 0f else correctCount.toFloat() / completedQuestionCount
+        return StudyResult(
+            sessionId = baseResult.sessionId,
+            moduleId = baseResult.moduleId,
+            isCompleted = baseResult.isCompleted && currentResult.isCompleted,
+            completedQuestionCount = completedQuestionCount,
+            correctCount = correctCount,
+            wrongCount = wrongCount,
+            skippedCount = skippedCount,
+            accuracy = accuracy,
+            earnedTokens = baseResult.earnedTokens + currentResult.earnedTokens,
+            studyDurationSec = baseResult.studyDurationSec + currentResult.studyDurationSec,
+            vocabularyDelta = baseResult.vocabularyDelta,
+            wrongWordIds = (baseResult.wrongWordIds + currentResult.wrongWordIds).distinct()
+        )
     }
 
     override fun onCleared() {

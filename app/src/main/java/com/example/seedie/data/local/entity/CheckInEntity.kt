@@ -1,12 +1,16 @@
 package com.example.seedie.data.local.entity
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "check_ins")
+@Entity(
+    tableName = "check_ins",
+    primaryKeys = ["userId", "date"]
+)
 data class CheckInEntity(
-    @PrimaryKey
-    val date: String, // Format: "yyyy-MM-dd"
+    val userId: String,
+    val date: String,
     val isCheckedIn: Boolean = false,
-    val studyTimeMinutes: Int = 0
+    val studyTimeMinutes: Int = 0,
+    val syncStatus: String = "PENDING",
+    val syncedAt: Long? = null
 )

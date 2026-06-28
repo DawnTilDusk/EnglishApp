@@ -5,9 +5,12 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "economy_transactions")
 data class EconomyTransactionEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    @PrimaryKey
+    val id: String,
+    val userId: String,
     val timestamp: Long,
-    val amount: Int, // Positive for earning, negative for spending
-    val reason: String // e.g., "Completed Daily Task", "Bought Seed"
+    val amount: Int,
+    val reason: String,
+    val syncStatus: String = "PENDING",
+    val syncedAt: Long? = null
 )

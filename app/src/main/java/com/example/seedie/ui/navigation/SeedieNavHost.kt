@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
+import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.splash.SplashScreen
 
@@ -21,6 +22,7 @@ fun SeedieNavHost(
     startDestination: String = Screen.Splash.route
 ) {
     var pendingStudyResult by remember { mutableStateOf<StudyResult?>(null) }
+    var currentVocabularyArgs by remember { mutableStateOf(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
 
     NavHost(
         navController = navController,
@@ -37,8 +39,16 @@ fun SeedieNavHost(
         }
         composable(route = Screen.Main.route) {
             MainScreen(
-                onOpenVocabulary = {
+                onOpenVocabularyStudy = { args ->
+                    currentVocabularyArgs = args
                     navController.navigate(Screen.VocabularyPractice.route)
+                },
+                onOpenVocabularyReview = { args ->
+                    currentVocabularyArgs = args
+                    navController.navigate(Screen.VocabularyPractice.route)
+                },
+                onOpenListeningPractice = {
+                    navController.navigate(Screen.ListeningPractice.route)
                 },
                 pendingStudyResult = pendingStudyResult,
                 onStudyResultConsumed = {
@@ -48,7 +58,21 @@ fun SeedieNavHost(
         }
         composable(route = Screen.VocabularyPractice.route) {
             VocabularyPracticeRoute(
-                args = VocabularyPracticeArgs(sourceModuleId = "vocabulary"),
+                args = currentVocabularyArgs,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onFinishSession = { result ->
+                    pendingStudyResult = result
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(route = Screen.ListeningPractice.route) {
+            ListeningPracticeRoute(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
                 onFinishSession = { result ->
                     pendingStudyResult = result
                     navController.popBackStack()

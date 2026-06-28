@@ -66,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
+import com.example.seedie.ui.components.PracticeOptionCard
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
@@ -73,6 +74,7 @@ import java.util.Locale
 fun VocabularyPracticeRoute(
     args: VocabularyPracticeArgs = VocabularyPracticeArgs(),
     onFinishSession: (StudyResult) -> Unit,
+    onNavigateBack: () -> Unit,
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -117,6 +119,7 @@ fun VocabularyPracticeRoute(
 
     VocabularyPracticeScreen(
         uiState = uiState,
+        onNavigateBack = onNavigateBack,
         onBackClick = viewModel::onBackClick,
         onConfirmExit = viewModel::onConfirmExit,
         onDismissExitDialog = viewModel::onDismissExitDialog,
@@ -128,13 +131,16 @@ fun VocabularyPracticeRoute(
         onNextQuestion = viewModel::onNextQuestion,
         onReplayPronunciation = viewModel::onReplayPronunciation,
         onRetryLoad = viewModel::onRetryLoad,
-        onFinishSession = viewModel::onFinishSession
+        onFinishSession = viewModel::onFinishSession,
+        onStartImmediateReview = viewModel::onStartImmediateReview,
+        onDeferReview = viewModel::onDeferReview
     )
 }
 
 @Composable
 private fun VocabularyPracticeScreen(
     uiState: VocabularyPracticeUiState,
+    onNavigateBack: () -> Unit,
     onBackClick: () -> Unit,
     onConfirmExit: () -> Unit,
     onDismissExitDialog: () -> Unit,
@@ -146,7 +152,9 @@ private fun VocabularyPracticeScreen(
     onNextQuestion: () -> Unit,
     onReplayPronunciation: () -> Unit,
     onRetryLoad: () -> Unit,
-    onFinishSession: () -> Unit
+    onFinishSession: () -> Unit,
+    onStartImmediateReview: () -> Unit,
+    onDeferReview: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
         AlertDialog(
@@ -168,7 +176,7 @@ private fun VocabularyPracticeScreen(
 
     when (uiState.stage) {
         VocabularyPracticeStage.Loading -> LoadingState()
-        VocabularyPracticeStage.Empty -> EmptyState(onBackClick = onBackClick)
+        VocabularyPracticeStage.Empty -> EmptyState(onBackClick = onNavigateBack)
         VocabularyPracticeStage.Error -> ErrorState(
             message = uiState.errorMessage ?: "词包加载失败",
             onRetryLoad = onRetryLoad,
@@ -177,7 +185,9 @@ private fun VocabularyPracticeScreen(
         VocabularyPracticeStage.Completed -> CompletedState(
             uiState = uiState,
             onBackClick = onBackClick,
-            onFinishSession = onFinishSession
+            onFinishSession = onFinishSession,
+            onStartImmediateReview = onStartImmediateReview,
+            onDeferReview = onDeferReview
         )
         VocabularyPracticeStage.Ready,
         VocabularyPracticeStage.AnswerEvaluated -> PracticeContent(
@@ -408,11 +418,12 @@ private fun PracticeContent(
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 currentPrompt.optionList.forEach { option ->
-                                    OptionCard(
+                                    PracticeOptionCard(
                                         option = option,
                                         selectedOptionId = uiState.selectedOptionId,
                                         answerStatus = uiState.answerStatus,
-                                        stage = uiState.stage,
+                                        interactionEnabled = uiState.stage == VocabularyPracticeStage.Ready,
+                                        feedbackVisible = uiState.stage == VocabularyPracticeStage.AnswerEvaluated,
                                         onOptionSelected = onOptionSelected
                                     )
                                 }
@@ -491,15 +502,14 @@ private fun PracticeContent(
                                         color = MaterialTheme.colorScheme.primary
                                     )
                                     Text(
-                                        text = "双流程会根据作答结果动态重排队列。",
+                                        text = "阶段一使用滚动学习队列：学会一个，顺序补入一个新词。",
                                         style = MaterialTheme.typography.bodyLarge,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    SummaryRow("学习队列", "${uiState.studyQueueSize} 个")
-                                    SummaryRow("复习队列", "${uiState.reviewQueueSize} 个")
+                                    SummaryRow("活跃队列", "${uiState.studyQueueSize} 个")
+                                    SummaryRow("已引入", "${uiState.introducedStudyCount} / ${uiState.studyTargetCount}")
                                     SummaryRow("已掌握", "${uiState.masteredStudyCount} 个")
-                                    SummaryRow("已复习", "${uiState.completedReviewCount} 个")
-                                    SummaryRow("打回学习", "${uiState.sentBackToStudyCount} 次")
+                                    SummaryRow("复习队列", "${uiState.reviewQueueSize} 个")
                                 }
                             }
                         }
@@ -734,82 +744,6 @@ private fun ReviewInputCard(
 }
 
 @Composable
-private fun OptionCard(
-    option: VocabularyPracticeOption,
-    selectedOptionId: String?,
-    answerStatus: AnswerStatus,
-    stage: VocabularyPracticeStage,
-    onOptionSelected: (String) -> Unit
-) {
-    val isSelected = selectedOptionId == option.optionId
-    val containerColor = when {
-        stage == VocabularyPracticeStage.AnswerEvaluated && option.isCorrect ->
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-        stage == VocabularyPracticeStage.AnswerEvaluated && isSelected && !option.isCorrect ->
-            MaterialTheme.colorScheme.error.copy(alpha = 0.14f)
-        isSelected ->
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-        else -> MaterialTheme.colorScheme.surface
-    }
-    val borderColor = when {
-        stage == VocabularyPracticeStage.AnswerEvaluated && option.isCorrect -> MaterialTheme.colorScheme.primary
-        stage == VocabularyPracticeStage.AnswerEvaluated && isSelected && !option.isCorrect -> MaterialTheme.colorScheme.error
-        isSelected -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-    }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = stage == VocabularyPracticeStage.Ready) {
-                onOptionSelected(option.optionId)
-            },
-        shape = MaterialTheme.shapes.medium,
-        color = containerColor,
-        tonalElevation = if (isSelected) 2.dp else 0.dp,
-        shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, borderColor)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                modifier = Modifier.weight(1f),
-                text = buildString {
-                    append(option.label)
-                    if (stage == VocabularyPracticeStage.AnswerEvaluated && !option.englishHint.isNullOrBlank()) {
-                        append("  ")
-                        append(option.englishHint)
-                    }
-                },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            if (stage == VocabularyPracticeStage.AnswerEvaluated) {
-                when {
-                    option.isCorrect -> Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Correct",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    isSelected && answerStatus == AnswerStatus.Wrong -> Icon(
-                        imageVector = Icons.Default.ErrorOutline,
-                        contentDescription = "Wrong",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun AuxPanelToggle(
     expanded: Boolean,
     onClick: () -> Unit
@@ -837,10 +771,13 @@ private fun AuxPanelToggle(
 private fun CompletedState(
     uiState: VocabularyPracticeUiState,
     onBackClick: () -> Unit,
-    onFinishSession: () -> Unit
+    onFinishSession: () -> Unit,
+    onStartImmediateReview: () -> Unit,
+    onDeferReview: () -> Unit
 ) {
     val totalAnswered = uiState.correctCount + uiState.wrongCount + uiState.skippedCount
     val accuracy = if (totalAnswered == 0) 0 else (uiState.correctCount * 100 / totalAnswered)
+    val isStudyCompletion = uiState.canStartImmediateReview
 
     Box(
         modifier = Modifier
@@ -877,13 +814,20 @@ private fun CompletedState(
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )
+                if (isStudyCompletion) {
+                    Text(
+                        text = "本轮已有 ${uiState.pendingReviewWordCount} 个词进入待复习，可立即开始拼写复习。",
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 SummaryRow("已掌握学习词", uiState.masteredStudyCount.toString())
-                SummaryRow("已完成复习词", uiState.completedReviewCount.toString())
+                SummaryRow("本轮已引入", "${uiState.introducedStudyCount} / ${uiState.studyTargetCount}")
                 SummaryRow("完成题数", totalAnswered.toString())
                 SummaryRow("正确题数", uiState.correctCount.toString())
                 SummaryRow("错误题数", uiState.wrongCount.toString())
                 SummaryRow("跳过题数", uiState.skippedCount.toString())
-                SummaryRow("打回学习", uiState.sentBackToStudyCount.toString())
                 SummaryRow("学习时长", "${uiState.elapsedSeconds}s")
                 SummaryRow("词汇增量", "+${uiState.masteredStudyCount}")
                 Row(
@@ -891,16 +835,16 @@ private fun CompletedState(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = onBackClick,
+                        onClick = if (isStudyCompletion) onDeferReview else onBackClick,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("返回学习中心")
+                        Text(if (isStudyCompletion) "稍后再说" else "返回学习中心")
                     }
                     Button(
-                        onClick = onFinishSession,
+                        onClick = if (isStudyCompletion) onStartImmediateReview else onFinishSession,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("完成并结算")
+                        Text(if (isStudyCompletion) "开始拼写复习" else "完成并结算")
                     }
                 }
             }
@@ -1060,7 +1004,7 @@ private fun progressText(
 
 private fun queueStatusText(uiState: VocabularyPracticeUiState): String {
     return if (uiState.currentSection == VocabularyPracticeMode.Study) {
-        "学习队列 ${uiState.studyQueueSize} 个"
+        "活跃队列 ${uiState.studyQueueSize} 个 · 已引入 ${uiState.introducedStudyCount}/${uiState.studyTargetCount}"
     } else {
         "复习队列 ${uiState.reviewQueueSize} 个"
     }
@@ -1077,8 +1021,8 @@ private fun nextButtonLabel(uiState: VocabularyPracticeUiState): String {
 private fun stageChipText(prompt: VocabularyPracticePrompt): String? {
     return when (prompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese,
-        VocabularyQuestionType.StudyChineseToEnglish -> prompt.stageTitle
-        VocabularyQuestionType.StudyContextChoice,
+        VocabularyQuestionType.StudyChineseToEnglish,
+        VocabularyQuestionType.StudyContextChoice -> prompt.stageTitle
         VocabularyQuestionType.ReviewSpelling -> null
     }
 }

@@ -39,20 +39,21 @@ class AuthService @Inject constructor(
                 return Result.success(null)
             }
 
-            // Check if current_device_id matches our local deviceId
+            // 获取用户profile，但不进行强制的设备ID检查
+            // 这样即使用户在其他设备登录过，也能在当前设备重新登录
             val profile = client.postgrest["profiles"]
                 .select {
                     filter { eq("id", user.id) }
                 }
                 .decodeSingle<Profile>()
 
-            val localDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
-            if (profile.current_device_id != null && profile.current_device_id != localDeviceId) {
-                // Device mismatch: logged in on another device
-                client.auth.signOut()
-                _currentSession.value = null
-                return Result.failure(Exception("您的账号已在其他设备登录"))
-            }
+             val localDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
+//                  if (profile.current_device_id != null && profile.current_device_id != localDeviceId) {
+//                      // Device mismatch: logged in on another device
+//                      client.auth.signOut()
+//                      _currentSession.value = null
+//                      return Result.failure(Exception("您的账号已在其他设备登录"))
+//                  }
 
             val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profile)
             _currentSession.value = session

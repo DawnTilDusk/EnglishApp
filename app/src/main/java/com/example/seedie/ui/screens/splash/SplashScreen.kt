@@ -17,11 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.ui.theme.gardenShadow
 
 @Composable
 fun SplashScreen(
-    onNavigateToMain: () -> Unit
+    onNavigateToMain: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     Box(
         modifier = Modifier
@@ -30,7 +32,7 @@ fun SplashScreen(
         contentAlignment = Alignment.Center
     ) {
         Button(
-            onClick = onNavigateToMain,
+            onClick = { viewModel.checkIn(onNavigateToMain) },
             modifier = Modifier
                 .size(width = 200.dp, height = 80.dp)
                 .gardenShadow(shape = CircleShape),

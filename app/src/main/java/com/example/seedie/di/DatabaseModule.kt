@@ -8,8 +8,14 @@ import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.dao.GardenPlotDao
+import com.example.seedie.data.local.dao.SyncOperationDao
+import com.example.seedie.data.local.dao.VocabularyBookProgressDao
+import com.example.seedie.data.local.dao.VocabularyStudyRoundDao
+import com.example.seedie.data.local.dao.VocabularyStudyRoundWordDao
 import com.example.seedie.data.local.dao.VocabularyWordDao
+import com.example.seedie.data.local.dao.VocabularyWordLearningProgressDao
 import com.example.seedie.data.local.dao.WordBookDao
+import com.example.seedie.data.local.dao.WordBookModuleDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -32,6 +38,10 @@ object DatabaseModule {
             "seedie_database"
         )
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_1_2)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_2_3)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_3_4)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_4_5)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_5_6)
             .build()
     }
 
@@ -51,5 +61,31 @@ object DatabaseModule {
     fun provideWordBookDao(database: SeedieDatabase): WordBookDao = database.wordBookDao()
 
     @Provides
+    fun provideWordBookModuleDao(database: SeedieDatabase): WordBookModuleDao = database.wordBookModuleDao()
+
+    @Provides
     fun provideVocabularyWordDao(database: SeedieDatabase): VocabularyWordDao = database.vocabularyWordDao()
+
+    @Provides
+    fun provideVocabularyBookProgressDao(
+        database: SeedieDatabase
+    ): VocabularyBookProgressDao = database.vocabularyBookProgressDao()
+
+    @Provides
+    fun provideVocabularyWordLearningProgressDao(
+        database: SeedieDatabase
+    ): VocabularyWordLearningProgressDao = database.vocabularyWordLearningProgressDao()
+
+    @Provides
+    fun provideVocabularyStudyRoundDao(
+        database: SeedieDatabase
+    ): VocabularyStudyRoundDao = database.vocabularyStudyRoundDao()
+
+    @Provides
+    fun provideVocabularyStudyRoundWordDao(
+        database: SeedieDatabase
+    ): VocabularyStudyRoundWordDao = database.vocabularyStudyRoundWordDao()
+
+    @Provides
+    fun provideSyncOperationDao(database: SeedieDatabase): SyncOperationDao = database.syncOperationDao()
 }

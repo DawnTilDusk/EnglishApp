@@ -4,4 +4,5 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Main : Screen("main")
     object VocabularyPractice : Screen("vocabulary_practice")
+    object ListeningPractice : Screen("listening_practice")
 }

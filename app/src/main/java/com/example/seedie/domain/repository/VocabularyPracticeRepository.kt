@@ -2,11 +2,36 @@ package com.example.seedie.domain.repository
 
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
+import com.example.seedie.ui.screens.learning.practice.PendingReviewEntry
+import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeResumeSnapshot
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeSession
 import com.example.seedie.ui.screens.learning.practice.VocabularyQuestionRecord
 
+data class ReviewWordUpdateResult(
+    val remainingPendingCount: Int,
+    val isRoundCompleted: Boolean
+)
+
 interface VocabularyPracticeRepository {
     suspend fun getPracticeSession(args: VocabularyPracticeArgs): VocabularyPracticeSession
+
+    suspend fun saveStudyRoundSnapshot(snapshot: VocabularyPracticeResumeSnapshot)
+
+    suspend fun markStudyRoundReviewPending(roundId: String)
+
+    suspend fun markReviewWordMastered(
+        roundId: String,
+        wordId: String
+    ): ReviewWordUpdateResult
+
+    suspend fun markReviewWordSentBackToLearning(
+        roundId: String,
+        wordId: String
+    ): ReviewWordUpdateResult
+
+    suspend fun markReviewCompleted(roundId: String)
+
+    suspend fun getPendingReviewEntry(): PendingReviewEntry?
 
     suspend fun submitQuestionRecord(record: VocabularyQuestionRecord)
 
