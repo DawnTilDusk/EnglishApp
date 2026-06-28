@@ -51,6 +51,7 @@ fun MainScreen(
     onOpenVocabularyStudy: (VocabularyPracticeArgs) -> Unit,
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
     onOpenListeningPractice: () -> Unit,
+    onOpenVocabularyQuiz: () -> Unit,
     pendingStudyResult: StudyResult?,
     onStudyResultConsumed: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -68,6 +69,10 @@ fun MainScreen(
                 when (result.moduleId) {
                     "vocabulary_review" -> "单词复习完成：+${result.earnedTokens} 代币"
                     "listening" -> "听力训练完成：+${result.earnedTokens} 代币"
+                    "quiz" -> {
+                        val estimateText = result.estimatedVocabulary?.let { "估算词汇量约 $it，" } ?: ""
+                        "词汇测验完成：${estimateText}+${result.earnedTokens} 代币"
+                    }
                     else -> "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词"
                 }
             )
@@ -94,7 +99,13 @@ fun MainScreen(
         ),
         ModuleConfig("grammar", "语法", "句型结构突破", Icons.Default.School),
         ModuleConfig("speaking", "口语跟读", "AI 智能跟读练习", Icons.Default.Mic),
-        ModuleConfig("quiz", "词汇测验", "检验学习成果", Icons.Default.Quiz),
+        ModuleConfig(
+            "quiz",
+            "词汇测验",
+            "检验学习成果",
+            Icons.Default.Quiz,
+            isAvailable = true
+        ),
         ModuleConfig("textbook", "教材训练", "同步课堂进度", Icons.Default.Book),
         ModuleConfig("listening", "听力训练", "磨耳朵", Icons.Default.Headphones, isAvailable = true),
         ModuleConfig("writing", "写作/专项", "句型实战", Icons.Default.Create)
@@ -199,6 +210,8 @@ fun MainScreen(
                             }
 
                             "listening" -> onOpenListeningPractice()
+
+                            "quiz" -> onOpenVocabularyQuiz()
                         }
                     },
                     snackbarHostState = snackbarHostState

@@ -12,7 +12,8 @@ data class StudyResult(
     val earnedTokens: Int,
     val studyDurationSec: Int,
     val vocabularyDelta: Int,
-    val wrongWordIds: List<String>
+    val wrongWordIds: List<String>,
+    val estimatedVocabulary: Int? = null
 ) {
     val studyTimeMinutes: Int
         get() = if (studyDurationSec <= 0) 0 else (studyDurationSec + 59) / 60

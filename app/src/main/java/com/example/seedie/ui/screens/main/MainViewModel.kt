@@ -58,6 +58,7 @@ class MainViewModel @Inject constructor(
                 val reason = when (result.moduleId) {
                     "listening" -> "Listening Practice"
                     "vocabulary_review" -> "Vocabulary Review"
+                    "quiz" -> "Vocabulary Quiz"
                     else -> "Vocabulary Practice"
                 }
                 economyManager.addTokens(result.earnedTokens, reason)
@@ -66,6 +67,7 @@ class MainViewModel @Inject constructor(
             if (result.isCompleted) {
                 when (result.moduleId) {
                     "listening" -> completeTodayListeningTask()
+                    "quiz" -> Unit
                     else -> completeTodayVocabularyTask()
                 }
             }

@@ -16,7 +16,7 @@ class VocabularyOptionBuilder @Inject constructor() {
         random: Random
     ): VocabularyPracticeWord {
         val distractorPool = buildDistractorPool(entity, allEntries, random)
-        val translationOptions = buildTranslationOptions(entity, distractorPool, random)
+        val translationOptions = buildTranslationOptionsFromPool(entity, distractorPool, random)
         val englishOptions = buildEnglishOptionsFromPool(entity, distractorPool, random)
         val contextOptions = buildContextOptions(entity, distractorPool, random)
 
@@ -51,6 +51,15 @@ class VocabularyOptionBuilder @Inject constructor() {
         return buildEnglishOptionsFromPool(entity, distractorPool, random)
     }
 
+    fun buildTranslationOptions(
+        entity: VocabularyWordEntity,
+        allEntries: List<VocabularyWordEntity>,
+        random: Random
+    ): List<VocabularyPracticeOption> {
+        val distractorPool = buildDistractorPool(entity, allEntries, random)
+        return buildTranslationOptionsFromPool(entity, distractorPool, random)
+    }
+
     private fun buildDistractorPool(
         entity: VocabularyWordEntity,
         allEntries: List<VocabularyWordEntity>,
@@ -66,12 +75,12 @@ class VocabularyOptionBuilder @Inject constructor() {
             .take(3)
     }
 
-    private fun buildTranslationOptions(
+    private fun buildTranslationOptionsFromPool(
         entity: VocabularyWordEntity,
         distractorPool: List<VocabularyWordEntity>,
         random: Random
     ): List<VocabularyPracticeOption> {
-        return (distractorPool + entity)
+        val options = (distractorPool + entity)
             .distinctBy { entry -> entry.translation }
             .shuffled(random)
             .mapIndexed { optionIndex, entry ->
@@ -82,6 +91,10 @@ class VocabularyOptionBuilder @Inject constructor() {
                     englishHint = entry.english
                 )
             }
+        require(options.size == 4) {
+            "Translation options must contain exactly 4 items for ${entity.wordId}, got ${options.size}"
+        }
+        return options
     }
 
     private fun buildEnglishOptionsFromPool(

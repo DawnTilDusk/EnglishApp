@@ -38,6 +38,27 @@ class VocabularyOptionBuilderTest {
         assertEquals(first.map { it.optionId }, second.map { it.optionId })
     }
 
+    @Test
+    fun buildTranslationOptions_returnsFourOptionsWithOneCorrect() {
+        val options = builder.buildTranslationOptions(
+            entity = wordBank.first(),
+            allEntries = wordBank,
+            random = Random(42)
+        )
+
+        assertEquals(4, options.size)
+        assertEquals(1, options.count { it.isCorrect })
+        assertTrue(options.any { it.label == "苹果" && it.isCorrect })
+    }
+
+    @Test
+    fun buildTranslationOptions_isDeterministicForSameRandomSeed() {
+        val first = builder.buildTranslationOptions(wordBank[0], wordBank, Random(7))
+        val second = builder.buildTranslationOptions(wordBank[0], wordBank, Random(7))
+
+        assertEquals(first.map { it.optionId }, second.map { it.optionId })
+    }
+
     private fun word(
         wordId: String,
         english: String,

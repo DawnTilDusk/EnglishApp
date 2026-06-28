@@ -4,10 +4,12 @@ import com.example.seedie.data.repository.EconomyManagerImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
 import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
+import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
 import com.example.seedie.domain.repository.UserSessionRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
+import com.example.seedie.domain.repository.VocabularyQuizRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindListeningPracticeRepository(
         listeningPracticeRepositoryImpl: ListeningPracticeRepositoryImpl
     ): ListeningPracticeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindVocabularyQuizRepository(
+        vocabularyQuizRepositoryImpl: VocabularyQuizRepositoryImpl
+    ): VocabularyQuizRepository
 }
