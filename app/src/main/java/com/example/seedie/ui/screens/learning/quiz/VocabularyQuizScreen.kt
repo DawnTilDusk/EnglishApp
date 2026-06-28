@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -313,15 +314,24 @@ private fun VocabularyQuizScreen(
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
-                            if (uiState.stage == VocabularyQuizStage.AnswerEvaluated) {
-                                Text(
-                                    text = uiState.feedbackMessage,
-                                    color = if (uiState.answerStatus == AnswerStatus.Correct) {
-                                        MaterialTheme.colorScheme.primary
-                                    } else {
-                                        MaterialTheme.colorScheme.error
-                                    }
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 28.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.stage == VocabularyQuizStage.AnswerEvaluated) {
+                                    Text(
+                                        text = uiState.feedbackMessage,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        textAlign = TextAlign.Center,
+                                        color = if (uiState.answerStatus == AnswerStatus.Correct) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.error
+                                        }
+                                    )
+                                }
                             }
                         }
 
