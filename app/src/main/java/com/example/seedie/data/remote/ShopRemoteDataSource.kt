@@ -7,6 +7,8 @@ import com.example.seedie.domain.model.StudentSummary
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -99,8 +101,7 @@ class ShopRemoteDataSource @Inject constructor(
             "submit_shop_order",
             buildJsonObject { put("p_product_id", productId) }
         )
-        return result.data?.jsonPrimitive?.content
-            ?: throw IllegalStateException("Empty order id from RPC")
+        return result.decodeAs<JsonElement>().jsonPrimitive.content
     }
 
     suspend fun approveOrder(orderId: String) {
@@ -166,8 +167,7 @@ class TeacherRemoteDataSource @Inject constructor(
             buildJsonObject { put("p_student_id", studentId) }
         )
 
-        val json = result.data?.jsonObject
-            ?: throw IllegalStateException("Empty stats response")
+        val json = result.decodeAs<JsonObject>()
 
         return StudentStats(
             studentId = json["student_id"]?.jsonPrimitive?.content ?: studentId,
