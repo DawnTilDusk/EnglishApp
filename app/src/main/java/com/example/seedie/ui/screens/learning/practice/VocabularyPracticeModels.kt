@@ -46,7 +46,8 @@ data class VocabularyPracticeOption(
     val optionId: String,
     val label: String,
     val isCorrect: Boolean,
-    val englishHint: String? = null
+    val englishHint: String? = null,
+    val showFeedbackHint: Boolean = true
 )
 
 data class VocabularyPracticeWord(

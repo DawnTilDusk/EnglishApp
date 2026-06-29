@@ -17,6 +17,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
 
+private const val NONE_OF_ABOVE_LABEL = "全都不对"
+
 @HiltViewModel
 class VocabularyPracticeViewModel @Inject constructor(
     private val repository: VocabularyPracticeRepository
@@ -783,7 +785,10 @@ class VocabularyPracticeViewModel @Inject constructor(
                     promptTitle = word.translation,
                     promptBody = "根据中文选择正确英文单词",
                     helperText = "${word.partOfSpeech}  ${word.phonetic}",
-                    optionList = word.englishOptions,
+                    optionList = maybeInjectNoneOfAboveOption(
+                        questionType = VocabularyQuestionType.StudyChineseToEnglish,
+                        baseOptions = word.englishOptions
+                    ),
                     correctAnswerText = word.english,
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
@@ -797,7 +802,10 @@ class VocabularyPracticeViewModel @Inject constructor(
                     promptTitle = word.contextSentence,
                     promptBody = "中文释义：${word.translation}",
                     helperText = "",
-                    optionList = word.contextOptions,
+                    optionList = maybeInjectNoneOfAboveOption(
+                        questionType = VocabularyQuestionType.StudyContextChoice,
+                        baseOptions = word.contextOptions
+                    ),
                     correctAnswerText = word.english,
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
@@ -1085,5 +1093,32 @@ class VocabularyPracticeViewModel @Inject constructor(
         stopTimer()
         stopReviewHintTimer()
         super.onCleared()
+    }
+}
+
+internal fun maybeInjectNoneOfAboveOption(
+    questionType: VocabularyQuestionType,
+    baseOptions: List<VocabularyPracticeOption>,
+    random: Random = Random.Default
+): List<VocabularyPracticeOption> {
+    if (questionType != VocabularyQuestionType.StudyChineseToEnglish &&
+        questionType != VocabularyQuestionType.StudyContextChoice
+    ) {
+        return baseOptions
+    }
+    if (baseOptions.isEmpty() || !random.nextBoolean()) {
+        return baseOptions
+    }
+
+    val replaceIndex = random.nextInt(baseOptions.size)
+    return baseOptions.mapIndexed { index, option ->
+        if (index != replaceIndex) {
+            option
+        } else {
+            option.copy(
+                label = NONE_OF_ABOVE_LABEL,
+                showFeedbackHint = false
+            )
+        }
     }
 }

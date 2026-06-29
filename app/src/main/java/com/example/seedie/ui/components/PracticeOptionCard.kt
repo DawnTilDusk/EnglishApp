@@ -71,7 +71,7 @@ fun PracticeOptionCard(
                 modifier = Modifier.weight(1f),
                 text = buildString {
                     append(option.label)
-                    if (feedbackVisible && !option.englishHint.isNullOrBlank()) {
+                    if (feedbackVisible && option.showFeedbackHint && !option.englishHint.isNullOrBlank()) {
                         append("  ")
                         append(option.englishHint)
                     }
