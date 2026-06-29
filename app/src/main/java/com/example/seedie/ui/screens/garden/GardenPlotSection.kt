@@ -1,8 +1,14 @@
 package com.example.seedie.ui.screens.garden
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +33,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Grass
 import androidx.compose.material.icons.filled.LocalFlorist
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -46,6 +54,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.seedie.data.local.entity.GardenPlotEntity
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
@@ -58,127 +67,148 @@ fun GardenPlotSection(
     plots: List<GardenPlotEntity> = List(16) { index -> GardenPlotEntity(userId = "", plotIndex = index) },
     onPlotClick: (GardenPlotEntity) -> Unit = {}
 ) {
+    val cardShape = RoundedCornerShape(28.dp)
+    var detailsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedPlotIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val selectedPlot = plots.firstOrNull { it.plotIndex == selectedPlotIndex }
     val occupiedPlots = plots.count { it.plantType != "empty" }
+    val gridTopInset by animateDpAsState(
+        targetValue = if (selectedPlot != null) 92.dp else 0.dp,
+        label = "gardenGridTopInset"
+    )
 
     Surface(
         modifier = modifier
             .fillMaxSize()
-            .gardenShadow(),
-        shape = MaterialTheme.shapes.large,
+            .gardenShadow(shape = cardShape),
+        shape = cardShape,
         color = MaterialTheme.colorScheme.surface
     ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f),
+                            PrimaryGreen.copy(alpha = 0.06f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = PrimaryGreen.copy(alpha = 0.10f),
+                    shape = cardShape
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
                     Text(
                         text = "我的花园",
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { detailsExpanded = !detailsExpanded }
+                            .padding(vertical = 4.dp),
                         style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Text(
-                        text = "点击地块即可延续原有播种/浇灌逻辑，并在右侧获得即时状态反馈。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+
+                    Surface(
+                        shape = CircleShape,
+                        color = PrimaryGreen.copy(alpha = 0.12f)
+                    ) {
+                        Text(
+                            text = "已激活 $occupiedPlots/${plots.size}",
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                            color = PrimaryGreen
+                        )
+                    }
                 }
 
-                Surface(
-                    shape = CircleShape,
-                    color = PrimaryGreen.copy(alpha = 0.12f)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 18.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "已激活 $occupiedPlots/${plots.size}",
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = PrimaryGreen
-                    )
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = selectedPlot != null,
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .fillMaxWidth()
+                            .zIndex(1f),
+                        enter = fadeIn(animationSpec = tween(220)) +
+                            slideInVertically(
+                                animationSpec = tween(240),
+                                initialOffsetY = { -it / 2 }
+                            ),
+                        exit = fadeOut(animationSpec = tween(180)) +
+                            slideOutVertically(
+                                animationSpec = tween(220),
+                                targetOffsetY = { -it / 3 }
+                            )
+                    ) {
+                        selectedPlot?.let { plot ->
+                            GardenPlotActionBar(
+                                plot = plot,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                                onActionClick = { onPlotClick(plot) }
+                            )
+                        }
+                    }
+
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(4),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxSize(0.92f)
+                            .padding(top = gridTopInset)
+                    ) {
+                        items(
+                            items = plots,
+                            key = { it.plotIndex }
+                        ) { plot ->
+                            PlantSlot(
+                                plot = plot,
+                                isSelected = plot.plotIndex == selectedPlotIndex,
+                                onClick = { selectedPlotIndex = plot.plotIndex }
+                            )
+                        }
+                    }
                 }
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 18.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            androidx.compose.animation.AnimatedVisibility(
+                visible = detailsExpanded,
+                modifier = Modifier.fillMaxSize(),
+                enter = fadeIn(animationSpec = tween(220)) +
+                    slideInVertically(
+                        animationSpec = tween(260),
+                        initialOffsetY = { -it / 2 }
+                    ),
+                exit = fadeOut(animationSpec = tween(180)) +
+                    slideOutVertically(
+                        animationSpec = tween(220),
+                        targetOffsetY = { -it / 3 }
+                    )
             ) {
-                GardenLegendChip(
-                    label = "空地",
-                    color = SecondaryBrown,
-                    icon = {
-                        Box(
-                            modifier = Modifier
-                                .size(10.dp)
-                                .clip(CircleShape)
-                                .background(SecondaryBrown.copy(alpha = 0.45f))
-                        )
-                    }
+                GardenPlotDetailsOverlay(
+                    cardShape = cardShape,
+                    occupiedPlots = occupiedPlots,
+                    totalPlots = plots.size,
+                    onDismiss = { detailsExpanded = false }
                 )
-                GardenLegendChip(
-                    label = "生长中",
-                    color = PrimaryGreen,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.Grass,
-                            contentDescription = null,
-                            tint = PrimaryGreen,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
-                GardenLegendChip(
-                    label = "开花期",
-                    color = AccentOrange,
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Default.LocalFlorist,
-                            contentDescription = null,
-                            tint = AccentOrange,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
-            }
-
-            SelectedPlotSummaryCard(
-                modifier = Modifier.padding(top = 18.dp),
-                plot = selectedPlot
-            )
-
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = 20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(4),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize(0.9f)
-                ) {
-                    items(
-                        items = plots,
-                        key = { it.plotIndex }
-                    ) { plot ->
-                        PlantSlot(
-                            plot = plot,
-                            isSelected = plot.plotIndex == selectedPlotIndex,
-                            onClick = {
-                                selectedPlotIndex = plot.plotIndex
-                                onPlotClick(plot)
-                            }
-                        )
-                    }
-                }
             }
         }
     }
@@ -302,7 +332,6 @@ fun PlantSlot(
                 "flower" -> {
                     val icon = when (plot.level) {
                         0 -> Icons.Default.Eco
-                        1 -> Icons.Default.LocalFlorist
                         else -> Icons.Default.LocalFlorist
                     }
 
@@ -315,12 +344,210 @@ fun PlantSlot(
                 }
             }
 
+            PlotHudChip(
+                text = presentation.hudLabel,
+                color = presentation.accent
+            )
+        }
+    }
+}
+
+@Composable
+private fun GardenPlotActionBar(
+    plot: GardenPlotEntity,
+    modifier: Modifier = Modifier,
+    onActionClick: () -> Unit
+) {
+    val presentation = remember(plot.plantType, plot.level) { plot.toPresentation() }
+    val actionLabel = when {
+        plot.plantType == "empty" -> "播种 -20"
+        plot.level < 2 -> "升级 -10"
+        else -> "已满级"
+    }
+    val actionHint = when {
+        plot.plantType == "empty" -> "将沿用原有播种逻辑，为这块空地种下新的成长记录。"
+        plot.level < 2 -> "点击按钮后才会执行原有浇灌升级，不再因点中地块误触。"
+        else -> "这块地已经达到当前最高阶段，先保留状态展示。"
+    }
+    val actionEnabled = plot.plantType == "empty" || plot.level < 2
+
+    Surface(
+        modifier = modifier.gardenShadow(shape = RoundedCornerShape(24.dp)),
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+        tonalElevation = 3.dp,
+        shadowElevation = 4.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            presentation.container.copy(alpha = 0.20f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = presentation.accent.copy(alpha = 0.14f)
+            ) {
+                Text(
+                    text = "${plot.plotIndex + 1}号",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = presentation.accent
+                )
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = presentation.label,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = actionHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Button(
+                onClick = onActionClick,
+                enabled = actionEnabled,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = presentation.accent,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(text = actionLabel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun GardenPlotDetailsOverlay(
+    cardShape: RoundedCornerShape,
+    occupiedPlots: Int,
+    totalPlots: Int,
+    onDismiss: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+            .clip(cardShape),
+        shape = cardShape,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+        tonalElevation = 3.dp,
+        shadowElevation = 4.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = "我的花园",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { onDismiss() }
+                        .padding(vertical = 4.dp),
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Surface(
+                    shape = CircleShape,
+                    color = PrimaryGreen.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = "已激活 $occupiedPlots/$totalPlots",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = PrimaryGreen
+                    )
+                }
+            }
+
             Text(
-                text = presentation.shortLabel,
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                text = "这里集中收纳花园玩法说明、状态提示和操作代价。默认收起时只保留植物栏主体，避免说明区长期占用视线。",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                GardenLegendChip(
+                    label = "空地",
+                    color = SecondaryBrown,
+                    icon = {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(SecondaryBrown.copy(alpha = 0.45f))
+                        )
+                    }
+                )
+                GardenLegendChip(
+                    label = "生长中",
+                    color = PrimaryGreen,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Grass,
+                            contentDescription = null,
+                            tint = PrimaryGreen,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+                GardenLegendChip(
+                    label = "开花期",
+                    color = AccentOrange,
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.LocalFlorist,
+                            contentDescription = null,
+                            tint = AccentOrange,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                )
+            }
+
+            GardenInfoCard(
+                title = "操作引导",
+                body = "点击地块只负责选中并唤起悬浮操作条，真正的播种或升级要在按钮里确认，避免直接点中地块就触发操作。"
+            )
+
+            GardenInfoCard(
+                title = "代价说明",
+                body = "空地播种会沿用原有 20 代币消耗，已种植地块继续升级会沿用原有 10 代币消耗；满级地块仅保留状态展示。"
+            )
+
+            GardenInfoCard(
+                title = "HUD 说明",
+                body = "每个地块内部仍保留小型状态 HUD，只负责提示当前阶段；更完整的说明和操作集中在点击后的悬浮条中。"
             )
         }
     }
@@ -352,41 +579,48 @@ private fun GardenLegendChip(
 }
 
 @Composable
-private fun SelectedPlotSummaryCard(
-    modifier: Modifier = Modifier,
-    plot: GardenPlotEntity?
+private fun PlotHudChip(
+    text: String,
+    color: Color
 ) {
-    val presentation = remember(plot?.plantType, plot?.level) { plot?.toPresentation() }
-
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(999.dp),
+        color = color.copy(alpha = 0.14f)
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+            color = color,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun GardenInfoCard(
+    title: String,
+    body: String
+) {
+    Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.50f)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(
-                            (presentation?.container ?: SecondaryBrown).copy(alpha = 0.18f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+                .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = plot?.let { "当前选中 ${it.plotIndex + 1} 号地块" } ?: "选择一块地开始查看状态",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = plot?.let {
-                    "${presentation?.label} · ${presentation?.description}"
-                } ?: "点击任意地块即可查看成长阶段，同时保留原有播种或浇灌点击行为。",
-                style = MaterialTheme.typography.bodyMedium,
+                text = body,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -394,7 +628,7 @@ private fun SelectedPlotSummaryCard(
 }
 
 private data class PlotPresentation(
-    val shortLabel: String,
+    val hudLabel: String,
     val label: String,
     val description: String,
     val container: Color,
@@ -404,7 +638,7 @@ private data class PlotPresentation(
 private fun GardenPlotEntity.toPresentation(): PlotPresentation {
     return when (plantType) {
         "grass" -> PlotPresentation(
-            shortLabel = if (level >= 2) "茂盛" else "幼苗",
+            hudLabel = if (level >= 2) "茂盛" else "幼苗",
             label = if (level >= 2) "草木繁盛" else "生长中",
             description = if (level >= 2) {
                 "这块地已经积累了不错的成长值，继续互动会向更成熟状态推进。"
@@ -415,8 +649,8 @@ private fun GardenPlotEntity.toPresentation(): PlotPresentation {
             accent = PrimaryGreen
         )
         "flower" -> PlotPresentation(
-            shortLabel = when {
-                level <= 0 -> "种子"
+            hudLabel = when {
+                level <= 0 -> "待发芽"
                 level == 1 -> "含苞"
                 else -> "盛放"
             },
@@ -434,9 +668,9 @@ private fun GardenPlotEntity.toPresentation(): PlotPresentation {
             accent = if (level >= 2) AccentOrange else PrimaryGreen
         )
         else -> PlotPresentation(
-            shortLabel = "空地",
-            label = "待播种",
-            description = "这里还是一块空地，点击即可触发原有播种逻辑，种下新的成长记录。",
+            hudLabel = "待播种",
+            label = "空地待播种",
+            description = "这里还是一块空地，点击后可在悬浮操作条中触发原有播种逻辑。",
             container = SecondaryBrown,
             accent = SecondaryBrown
         )
