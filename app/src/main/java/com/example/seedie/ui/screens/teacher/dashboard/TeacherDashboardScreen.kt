@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -38,18 +39,34 @@ fun TeacherDashboardScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
             errorMessage != null -> {
-                Text(
-                    text = errorMessage ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.align(Alignment.Center)
-                )
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Button(onClick = { viewModel.refresh() }) {
+                        Text("重试")
+                    }
+                }
             }
             students.isEmpty() -> {
-                Text(
-                    text = "暂无绑定学生\n请在 Supabase 后台设置 students.teacher_id",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp)
-                )
+                Column(
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "暂无绑定学生\n请在 Supabase 后台设置 students.teacher_id",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Button(onClick = { viewModel.refresh() }) {
+                        Text("刷新")
+                    }
+                }
             }
             else -> {
                 LazyColumn(
@@ -118,7 +135,12 @@ fun StudentDetailScreen(
 
         when {
             isLoading -> CircularProgressIndicator()
-            errorMessage != null -> Text(text = errorMessage ?: "", color = MaterialTheme.colorScheme.error)
+            errorMessage != null -> {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = errorMessage ?: "", color = MaterialTheme.colorScheme.error)
+                    Button(onClick = { viewModel.load(studentId) }) { Text("重试") }
+                }
+            }
             stats != null -> {
                 val s = stats!!
                 Text(text = s.name, style = MaterialTheme.typography.headlineMedium)

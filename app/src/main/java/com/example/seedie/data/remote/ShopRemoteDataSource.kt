@@ -7,10 +7,9 @@ import com.example.seedie.domain.model.StudentSummary
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
-import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -97,11 +96,10 @@ class ShopRemoteDataSource @Inject constructor(
     }
 
     suspend fun submitOrder(productId: String): String {
-        val result = client.postgrest.rpc(
+        return client.postgrest.rpc(
             "submit_shop_order",
             buildJsonObject { put("p_product_id", productId) }
-        )
-        return result.decodeAs<JsonElement>().jsonPrimitive.content
+        ).decodeAs<String>().trim('"')
     }
 
     suspend fun approveOrder(orderId: String) {
@@ -162,22 +160,32 @@ class TeacherRemoteDataSource @Inject constructor(
     }
 
     suspend fun getStudentStats(studentId: String): StudentStats {
-        val result = client.postgrest.rpc(
+        val json = client.postgrest.rpc(
             "get_teacher_student_stats",
             buildJsonObject { put("p_student_id", studentId) }
-        )
-
-        val json = result.decodeAs<JsonObject>()
+        ).decodeAs<JsonObject>()
 
         return StudentStats(
-            studentId = json["student_id"]?.jsonPrimitive?.content ?: studentId,
-            name = json["name"]?.jsonPrimitive?.content ?: "",
-            studentNo = json["student_no"]?.jsonPrimitive?.content,
-            classId = json["class_id"]?.jsonPrimitive?.content,
-            totalCheckIns = json["total_check_ins"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
-            totalStudyMinutes = json["total_study_minutes"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
-            learnedWordCount = json["learned_word_count"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0,
-            tokenBalance = json["token_balance"]?.jsonPrimitive?.content?.toIntOrNull() ?: 0
+            studentId = json.stringField("student_id") ?: studentId,
+            name = json.stringField("name").orEmpty(),
+            studentNo = json.stringField("student_no"),
+            classId = json.stringField("class_id"),
+            totalCheckIns = json.intField("total_check_ins"),
+            totalStudyMinutes = json.intField("total_study_minutes"),
+            learnedWordCount = json.intField("learned_word_count"),
+            tokenBalance = json.intField("token_balance")
         )
     }
+}
+
+private fun JsonObject.stringField(key: String): String? {
+    val element = this[key] ?: return null
+    if (element is JsonNull) return null
+    return element.jsonPrimitive.content
+}
+
+private fun JsonObject.intField(key: String): Int {
+    val element = this[key] ?: return 0
+    if (element is JsonNull) return 0
+    return element.jsonPrimitive.content.toIntOrNull() ?: 0
 }

@@ -46,6 +46,14 @@ class LoginViewModel @Inject constructor(
     fun onPasswordChange(newPassword: String) { _password.value = newPassword }
     fun onPhoneChange(newPhone: String) { _phone.value = newPhone }
 
+    fun showError(message: String) {
+        _errorMessage.value = message
+    }
+
+    fun consumePendingLoginError() {
+        authService.consumePendingLoginError()?.let { showError(it) }
+    }
+
     fun isEmailFormatValid(value: String = _email.value): Boolean = emailPattern.matches(value)
 
     private fun normalizePhone(input: String): String {
@@ -86,18 +94,25 @@ class LoginViewModel @Inject constructor(
             _errorMessage.value = null
 
             val normalizedPhone = normalizePhone(_phone.value).ifBlank { null }
-            val result = authService.login(
-                email = _email.value,
-                password = _password.value,
-                loginMode = _loginMode.value,
-                phone = normalizedPhone
-            )
-            if (result.isSuccess) {
-                onLoginSuccess()
-            } else {
-                _errorMessage.value = result.exceptionOrNull()?.message ?: "登录失败，请检查账号或密码"
+            try {
+                val result = authService.login(
+                    email = _email.value,
+                    password = _password.value,
+                    loginMode = _loginMode.value,
+                    phone = normalizedPhone
+                )
+                if (result.isSuccess) {
+                    onLoginSuccess()
+                } else {
+                    val message = result.exceptionOrNull()?.message ?: "登录失败，请检查账号或密码"
+                    _errorMessage.value = message
+                    authService.setPendingLoginError(message)
+                    authService.cleanupFailedLogin()
+                    authService.clearLoginInProgress()
+                }
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 }

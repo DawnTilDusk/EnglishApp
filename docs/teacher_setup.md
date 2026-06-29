@@ -10,6 +10,8 @@
 1. [`supabase/migrations/001_add_teacher_role.sql`](../supabase/migrations/001_add_teacher_role.sql)
 2. [`supabase/migrations/002_shop_and_economy.sql`](../supabase/migrations/002_shop_and_economy.sql)
 3. [`supabase/migrations/003_teacher_shop_rpc.sql`](../supabase/migrations/003_teacher_shop_rpc.sql)
+4. [`supabase/migrations/004_verify_teacher_setup.sql`](../supabase/migrations/004_verify_teacher_setup.sql)（验证用，可选）
+5. [`supabase/migrations/005_fix_teacher_account.sql`](../supabase/migrations/005_fix_teacher_account.sql)（修复教师账号 role 一致性）
 
 若从未部署基础 schema，需先运行 `supabase/migrations/` 下原有 7 个文件。
 
@@ -67,6 +69,17 @@ VALUES ('<teacher_uuid>', '文具套装', '测试商品', 50, 10, true);
 | 换绑学生 | `UPDATE students SET teacher_id = ...` |
 | 查订单 | Table Editor → `shop_orders` |
 | 查代币 | `SELECT SUM(amount) FROM user_economy_transactions WHERE user_id = '...'` |
+
+教师账号 role 快速核验：
+
+```sql
+SELECT p.id, p.email, p.role, t.id AS teacher_id
+FROM public.profiles p
+LEFT JOIN public.teachers t ON t.id = p.id
+WHERE p.email = '<teacher_email>';
+```
+
+期望结果：`p.role = 'teacher'` 且 `teacher_id` 非空。
 
 ## 7. 注意事项
 

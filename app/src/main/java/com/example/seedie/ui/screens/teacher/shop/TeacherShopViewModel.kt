@@ -36,11 +36,12 @@ class TeacherShopViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             _isLoading.value = true
+            _message.value = null
             try {
                 _products.value = shopRepository.fetchMyProducts()
                 _pendingOrders.value = shopRepository.fetchPendingOrdersAsTeacher()
             } catch (e: Exception) {
-                _message.value = e.message
+                _message.value = e.message ?: "加载商城数据失败"
             } finally {
                 _isLoading.value = false
             }

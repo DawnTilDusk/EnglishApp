@@ -6,21 +6,44 @@ import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.AuthSession
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.auth.status.SessionStatus
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+sealed interface AuthUiState {
+    data object Loading : AuthUiState
+    data object LoggedOut : AuthUiState
+    data class LoggedIn(val session: AuthSession) : AuthUiState
+}
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authService: AuthService
 ) : ViewModel() {
 
-    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
-    val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
-
-    val currentSession: StateFlow<AuthSession?> = authService.currentSession
+    val authUiState: StateFlow<AuthUiState> = combine(
+        authService.sessionStatus,
+        authService.currentSession,
+        authService.isLoginInProgress
+    ) { status, session, loginInProgress ->
+        when (status) {
+            is SessionStatus.Initializing -> AuthUiState.Loading
+            is SessionStatus.Authenticated -> when {
+                session != null -> AuthUiState.LoggedIn(session)
+                loginInProgress -> AuthUiState.LoggedOut
+                else -> AuthUiState.Loading
+            }
+            is SessionStatus.NotAuthenticated,
+            is SessionStatus.RefreshFailure -> AuthUiState.LoggedOut
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Eagerly,
+        initialValue = AuthUiState.Loading
+    )
 
     private var businessSessionRestored = false
 
@@ -33,23 +56,30 @@ class MainViewModel @Inject constructor(
             authService.sessionStatus.collect { status ->
                 when (status) {
                     is SessionStatus.Initializing -> {
-                        _isLoggedIn.value = null
+                        Unit
                     }
                     is SessionStatus.Authenticated -> {
-                        _isLoggedIn.value = true
-                        if (!businessSessionRestored) {
+                        if (
+                            !businessSessionRestored &&
+                            authService.currentSession.value == null &&
+                            !authService.isLoginInProgress.value
+                        ) {
                             businessSessionRestored = true
                             viewModelScope.launch {
-                                authService.restoreSessionFromAuth()
+                                val result = authService.restoreSessionFromAuth()
+                                if (result.isFailure && authService.currentSession.value == null) {
+                                    authService.setPendingLoginError(
+                                        result.exceptionOrNull()?.message ?: "会话恢复失败，请重新登录"
+                                    )
+                                    authService.cleanupFailedLogin()
+                                }
                             }
                         }
                     }
                     is SessionStatus.NotAuthenticated -> {
-                        _isLoggedIn.value = false
                         businessSessionRestored = false
                     }
                     is SessionStatus.RefreshFailure -> {
-                        _isLoggedIn.value = false
                         businessSessionRestored = false
                     }
                 }

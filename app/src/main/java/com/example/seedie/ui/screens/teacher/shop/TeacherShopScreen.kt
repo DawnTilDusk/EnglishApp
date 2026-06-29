@@ -101,12 +101,19 @@ fun TeacherShopScreen(
                     text = "商品管理",
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
                 )
-                Button(onClick = { showCreateDialog = true }) { Text("上架商品") }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { viewModel.refresh() }) { Text("刷新") }
+                    Button(onClick = { showCreateDialog = true }) { Text("上架商品") }
+                }
             }
         }
 
-        if (isLoading && products.isEmpty()) {
+        if (isLoading && products.isEmpty() && pendingOrders.isEmpty()) {
             item { CircularProgressIndicator() }
+        }
+
+        if (!isLoading && products.isEmpty() && pendingOrders.isEmpty() && message == null) {
+            item { Text("暂无商品，点击「上架商品」添加") }
         }
 
         items(products, key = { it.id }) { product ->

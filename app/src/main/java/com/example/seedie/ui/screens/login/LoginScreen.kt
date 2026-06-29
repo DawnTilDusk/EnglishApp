@@ -20,6 +20,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -45,6 +46,10 @@ fun LoginScreen(
     val isEmailValid = remember(email) { viewModel.isEmailFormatValid(email) }
     val isPhoneValid = remember(phone) { viewModel.isPhoneInputValid(phone) }
     val isStudentMode = loginMode == LoginMode.STUDENT
+
+    LaunchedEffect(Unit) {
+        viewModel.consumePendingLoginError()
+    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(

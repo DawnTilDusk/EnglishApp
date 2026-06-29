@@ -29,26 +29,21 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SeedieTheme {
-                val isLoggedIn by mainViewModel.isLoggedIn.collectAsState()
-                val session by mainViewModel.currentSession.collectAsState()
+                val authUiState by mainViewModel.authUiState.collectAsState()
 
-                when (isLoggedIn) {
-                    null -> {
+                when (val state = authUiState) {
+                    is AuthUiState.Loading -> {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
                         }
                     }
-                    true -> {
-                        if (session == null) {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        } else when (session?.role) {
+                    is AuthUiState.LoggedIn -> {
+                        when (state.session.role) {
                             UserRole.TEACHER -> TeacherNavHost()
                             else -> SeedieNavHost()
                         }
                     }
-                    false -> {
+                    is AuthUiState.LoggedOut -> {
                         SeedieNavGraph(onLoginSuccess = {})
                     }
                 }
