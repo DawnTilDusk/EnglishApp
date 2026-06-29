@@ -17,6 +17,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.example.seedie.ui.components.BottomNavigationBar
@@ -62,6 +63,7 @@ fun MainScreen(
     val coroutineScope = rememberCoroutineScope()
     val vocabularyEntryState by viewModel.vocabularyEntryState.collectAsState()
     var showReviewChoiceDialog by remember { mutableStateOf(false) }
+    var dataGardenEnterKey by remember { mutableStateOf(0) }
 
     LaunchedEffect(pendingStudyResult) {
         pendingStudyResult?.let { result ->
@@ -78,6 +80,14 @@ fun MainScreen(
                 }
             )
             onStudyResultConsumed()
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (page == 2) {
+                dataGardenEnterKey += 1
+            }
         }
     }
 
@@ -217,7 +227,7 @@ fun MainScreen(
                     },
                     snackbarHostState = snackbarHostState
                 ) // Tab 2: Learning Hub
-                2 -> DataGardenScreen() // Tab 3: Data & Garden
+                2 -> DataGardenScreen(trendReplayKey = dataGardenEnterKey) // Tab 3: Data & Garden
                 3 -> ProfileScreen(onOpenShop = onOpenShop)
                 else -> {
                     // Placeholder for other Tabs

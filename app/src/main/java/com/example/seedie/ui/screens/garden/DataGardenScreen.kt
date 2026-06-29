@@ -13,6 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun DataGardenScreen(
+    trendReplayKey: Int = 0,
     viewModel: GardenViewModel = hiltViewModel()
 ) {
     val plots by viewModel.gardenPlots.collectAsState()
@@ -24,7 +25,10 @@ fun DataGardenScreen(
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         // Left side: Stats Panel (Takes 40% of width)
-        StatsPanelSection(modifier = Modifier.weight(0.4f))
+        StatsPanelSection(
+            modifier = Modifier.weight(0.4f),
+            trendReplayKey = trendReplayKey
+        )
 
         // Right side: Garden Plot (Takes 60% of width)
         GardenPlotSection(

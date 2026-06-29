@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -19,19 +20,24 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -61,10 +67,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
 import com.example.seedie.ui.theme.gardenShadow
+import kotlinx.coroutines.delay
 import kotlin.math.atan2
 import kotlin.math.hypot
 import kotlin.math.max
@@ -84,8 +92,38 @@ private data class TrendPointData(
     val value: Int
 )
 
+private data class TrendSeriesData(
+    val points: List<TrendPointData>
+)
+
+private enum class TrendRangeOption(val label: String) {
+    Last7Days("近 7 天"),
+    Last30Days("近 30 天"),
+    LastYear("近 1 年"),
+    ThisMonth("本月"),
+    ThisYear("本年度")
+}
+
+private enum class TrendMetricOption(
+    val label: String,
+    val lineLegend: String,
+    val areaLegend: String,
+    val headlineLabel: String
+) {
+    Cumulative("累计掌握", "累计掌握", "掌握走势", "累计掌握"),
+    Growth("增长区间", "增长区间", "阶段波动", "本期增长")
+}
+
+private enum class TrendFilterMenuType {
+    Range,
+    Metric
+}
+
 @Composable
-fun StatsPanelSection(modifier: Modifier = Modifier) {
+fun StatsPanelSection(
+    modifier: Modifier = Modifier,
+    trendReplayKey: Int = 0
+) {
     val donutData = remember {
         listOf(
             DonutSliceData("记新词", 18, PrimaryGreen, "吸收新内容"),
@@ -93,20 +131,25 @@ fun StatsPanelSection(modifier: Modifier = Modifier) {
             DonutSliceData("错题回看", 12, SecondaryBrown, "查漏补缺")
         )
     }
-    val trendData = remember {
-        listOf(
-            TrendPointData("6/23", "6/23", 126),
-            TrendPointData("6/24", "6/24", 138),
-            TrendPointData("6/25", "6/25", 152),
-            TrendPointData("6/26", "6/26", 149),
-            TrendPointData("6/27", "6/27", 166),
-            TrendPointData("6/28", "6/28", 174),
-            TrendPointData("今天", "今天", 188)
-        )
-    }
+    val trendCatalog = remember { buildTrendSeriesCatalog() }
 
     var selectedDonutIndex by remember { mutableStateOf<Int?>(null) }
-    var selectedTrendIndex by remember { mutableStateOf(trendData.lastIndex) }
+    var selectedRange by remember { mutableStateOf(TrendRangeOption.Last7Days) }
+    var selectedMetric by remember { mutableStateOf(TrendMetricOption.Cumulative) }
+    var expandedMenu by remember { mutableStateOf<TrendFilterMenuType?>(null) }
+    var trendRefreshKey by remember { mutableStateOf(0) }
+    val trendSeries = remember(selectedRange, selectedMetric) {
+        trendCatalog.getValue(selectedRange to selectedMetric)
+    }
+    var selectedTrendIndex by remember(trendSeries.points) {
+        mutableStateOf(trendSeries.points.lastIndex.coerceAtLeast(0))
+    }
+
+    LaunchedEffect(trendReplayKey) {
+        if (trendReplayKey > 0) {
+            trendRefreshKey += 1
+        }
+    }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -123,22 +166,38 @@ fun StatsPanelSection(modifier: Modifier = Modifier) {
             }
         )
 
-        StatsCard(
+        TrendFocusCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            eyebrow = "近 7 天",
-            title = "词汇量趋势",
-            description = "支持点位选中查看阶段增长表现",
-            accentColor = AccentOrange
-        ) {
-            LineChartSection(
-                modifier = Modifier.fillMaxSize(),
-                points = trendData,
-                selectedIndex = selectedTrendIndex,
-                onSelectionChange = { selectedTrendIndex = it }
-            )
-        }
+            selectedRange = selectedRange,
+            selectedMetric = selectedMetric,
+            expandedMenu = expandedMenu,
+            points = trendSeries.points,
+            selectedIndex = selectedTrendIndex,
+            refreshKey = trendRefreshKey,
+            onSelectionChange = { selectedTrendIndex = it },
+            onMenuToggle = { menuType ->
+                expandedMenu = if (expandedMenu == menuType) null else menuType
+            },
+            onMenuDismiss = { expandedMenu = null },
+            onRangeSelect = { nextRange ->
+                expandedMenu = null
+                if (nextRange != selectedRange) {
+                    selectedRange = nextRange
+                    selectedTrendIndex = 0
+                    trendRefreshKey += 1
+                }
+            },
+            onMetricSelect = { nextMetric ->
+                expandedMenu = null
+                if (nextMetric != selectedMetric) {
+                    selectedMetric = nextMetric
+                    selectedTrendIndex = 0
+                    trendRefreshKey += 1
+                }
+            }
+        )
     }
 }
 
@@ -279,6 +338,272 @@ private fun DonutFocusCard(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrendFocusCard(
+    modifier: Modifier = Modifier,
+    selectedRange: TrendRangeOption,
+    selectedMetric: TrendMetricOption,
+    expandedMenu: TrendFilterMenuType?,
+    points: List<TrendPointData>,
+    selectedIndex: Int,
+    refreshKey: Int,
+    onSelectionChange: (Int) -> Unit,
+    onMenuToggle: (TrendFilterMenuType) -> Unit,
+    onMenuDismiss: () -> Unit,
+    onRangeSelect: (TrendRangeOption) -> Unit,
+    onMetricSelect: (TrendMetricOption) -> Unit
+) {
+    val cardShape = RoundedCornerShape(28.dp)
+    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+    val selectedPoint = points[safeSelectedIndex]
+    val changeSummary = buildTrendChangeSummary(
+        points = points,
+        selectedIndex = safeSelectedIndex,
+        metric = selectedMetric
+    )
+
+    Surface(
+        modifier = modifier.gardenShadow(shape = cardShape),
+        shape = cardShape,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
+                            AccentOrange.copy(alpha = 0.08f),
+                            MaterialTheme.colorScheme.surface
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = AccentOrange.copy(alpha = 0.10f),
+                    shape = cardShape
+                )
+                .padding(24.dp)
+        ) {
+            val menuMaxHeight = maxHeight * 0.48f
+
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "词汇量趋势",
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        TrendFilterMenuButton(
+                            label = selectedRange.label,
+                            options = TrendRangeOption.entries,
+                            selectedOption = selectedRange,
+                            expanded = expandedMenu == TrendFilterMenuType.Range,
+                            maxMenuHeight = menuMaxHeight,
+                            optionLabel = { it.label },
+                            onToggle = { onMenuToggle(TrendFilterMenuType.Range) },
+                            onSelect = onRangeSelect,
+                            onDismiss = onMenuDismiss
+                        )
+                        TrendFilterMenuButton(
+                            label = selectedMetric.label,
+                            options = TrendMetricOption.entries,
+                            selectedOption = selectedMetric,
+                            expanded = expandedMenu == TrendFilterMenuType.Metric,
+                            maxMenuHeight = menuMaxHeight,
+                            optionLabel = { it.label },
+                            onToggle = { onMenuToggle(TrendFilterMenuType.Metric) },
+                            onSelect = onMetricSelect,
+                            onDismiss = onMenuDismiss
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MiniLegendChip(
+                            label = selectedMetric.lineLegend,
+                            tint = PrimaryGreen,
+                            filled = false
+                        )
+                        MiniLegendChip(
+                            label = selectedMetric.areaLegend,
+                            tint = PrimaryGreen,
+                            filled = true
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = "${selectedMetric.headlineLabel} ${formatTrendValue(selectedMetric, selectedPoint.value)}",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "${selectedPoint.label} · $changeSummary",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                LineChartSection(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    points = points,
+                    selectedIndex = safeSelectedIndex,
+                    selectedMetric = selectedMetric,
+                    refreshKey = refreshKey,
+                    onSelectionChange = onSelectionChange
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun <T> TrendFilterMenuButton(
+    label: String,
+    options: List<T>,
+    selectedOption: T,
+    expanded: Boolean,
+    maxMenuHeight: androidx.compose.ui.unit.Dp,
+    optionLabel: (T) -> String,
+    onToggle: () -> Unit,
+    onSelect: (T) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val density = LocalDensity.current
+    var buttonHeight by remember { mutableStateOf(0.dp) }
+    var buttonWidth by remember { mutableStateOf(0.dp) }
+    val buttonShape = RoundedCornerShape(16.dp)
+
+    Box(
+        modifier = Modifier.zIndex(if (expanded) 2f else 0f),
+        contentAlignment = Alignment.TopEnd
+    ) {
+        Surface(
+            modifier = Modifier
+                .clip(buttonShape)
+                .clickable(onClick = onToggle)
+                .onSizeChanged {
+                    buttonHeight = with(density) { it.height.toDp() }
+                    buttonWidth = with(density) { it.width.toDp() }
+                },
+            shape = buttonShape,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+        ) {
+            Row(
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = AccentOrange.copy(alpha = if (expanded) 0.24f else 0.14f),
+                        shape = buttonShape
+                    )
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = if (expanded) "^" else "v",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = AccentOrange
+                )
+            }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = expanded,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .offset(y = buttonHeight + 8.dp),
+            enter = fadeIn(animationSpec = tween(180)) +
+                slideInVertically(
+                    animationSpec = tween(220),
+                    initialOffsetY = { -it / 5 }
+                ),
+            exit = fadeOut(animationSpec = tween(140)) +
+                slideOutVertically(
+                    animationSpec = tween(180),
+                    targetOffsetY = { -it / 8 }
+                )
+        ) {
+            Surface(
+                modifier = Modifier
+                    .widthIn(min = buttonWidth, max = 180.dp)
+                    .heightIn(max = maxMenuHeight),
+                shape = RoundedCornerShape(18.dp),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp,
+                shadowElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 8.dp)
+                ) {
+                    options.forEach { option ->
+                        val selected = option == selectedOption
+                        val interactionSource = remember { MutableInteractionSource() }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(14.dp))
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null
+                                ) {
+                                    onSelect(option)
+                                    onDismiss()
+                                }
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = optionLabel(option),
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                                ),
+                                color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
+                            )
+                            if (selected) {
+                                Text(
+                                    text = "当前",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = AccentOrange
+                                )
+                            }
                         }
                     }
                 }
@@ -600,59 +925,39 @@ private fun LineChartSection(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
     selectedIndex: Int,
+    selectedMetric: TrendMetricOption,
+    refreshKey: Int,
     onSelectionChange: (Int) -> Unit
 ) {
     var chartSize by remember { mutableStateOf(IntSize.Zero) }
+    var tooltipVisible by remember { mutableStateOf(false) }
     val density = LocalDensity.current
-    val tooltipHorizontalOffset = with(density) { 40.dp.toPx() }
-    val tooltipVerticalOffset = with(density) { 42.dp.toPx() }
+    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+    val tooltipHorizontalOffset = with(density) { 44.dp.toPx() }
+    val tooltipVerticalOffset = with(density) { 46.dp.toPx() }
     val horizontalPaddingPx = with(density) { 18.dp.toPx() }
-    val topPaddingPx = with(density) { 20.dp.toPx() }
-    val bottomPaddingPx = with(density) { 16.dp.toPx() }
-    val selectedPoint = points[selectedIndex]
+    val topPaddingPx = with(density) { 12.dp.toPx() }
+    val bottomPaddingPx = with(density) { 14.dp.toPx() }
+    val selectedPoint = points[safeSelectedIndex]
     val selectedPointOffset = rememberSelectedTrendOffset(
         chartSize = chartSize,
         points = points,
-        selectedIndex = selectedIndex,
+        selectedIndex = safeSelectedIndex,
         horizontalPadding = horizontalPaddingPx,
         topPadding = topPaddingPx,
         bottomPadding = bottomPaddingPx
     )
 
+    LaunchedEffect(refreshKey) {
+        tooltipVisible = false
+        delay(720)
+        tooltipVisible = true
+    }
+
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiniLegendChip(
-                    label = "累计掌握",
-                    tint = PrimaryGreen,
-                    filled = false
-                )
-                MiniLegendChip(
-                    label = "增长区间",
-                    tint = PrimaryGreen,
-                    filled = true
-                )
-            }
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = AccentOrange.copy(alpha = 0.14f)
-            ) {
-                Text(
-                    text = "${selectedPoint.label} · ${selectedPoint.value} 词",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = AccentOrange
-                )
-            }
-        }
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -663,31 +968,34 @@ private fun LineChartSection(
                     .fillMaxSize()
                     .onSizeChanged { chartSize = it },
                 points = points,
-                selectedIndex = selectedIndex,
+                selectedIndex = safeSelectedIndex,
+                refreshKey = refreshKey,
                 onSelectionChange = onSelectionChange,
                 horizontalPadding = horizontalPaddingPx,
                 topPadding = topPaddingPx,
                 bottomPadding = bottomPaddingPx
             )
 
-            selectedPointOffset?.let { offset ->
-                Surface(
-                    modifier = Modifier.offset {
-                        IntOffset(
-                            x = (offset.x - tooltipHorizontalOffset).roundToInt().coerceAtLeast(0),
-                            y = (offset.y - tooltipVerticalOffset).roundToInt().coerceAtLeast(0)
+            if (tooltipVisible) {
+                selectedPointOffset?.let { offset ->
+                    Surface(
+                        modifier = Modifier.offset {
+                            IntOffset(
+                                x = (offset.x - tooltipHorizontalOffset).roundToInt().coerceAtLeast(0),
+                                y = (offset.y - tooltipVerticalOffset).roundToInt().coerceAtLeast(0)
+                            )
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 2.dp
+                    ) {
+                        Text(
+                            text = formatTrendValue(selectedMetric, selectedPoint.value),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                            color = PrimaryGreen
                         )
-                    },
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    shadowElevation = 2.dp
-                ) {
-                    Text(
-                        text = "+${selectedPoint.value}",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                        color = PrimaryGreen
-                    )
+                    }
                 }
             }
         }
@@ -697,7 +1005,7 @@ private fun LineChartSection(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             points.forEachIndexed { index, point ->
-                val selected = index == selectedIndex
+                val selected = index == safeSelectedIndex
                 val interactionSource = remember { MutableInteractionSource() }
                 Box(
                     modifier = Modifier
@@ -778,27 +1086,25 @@ private fun LineChart(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
     selectedIndex: Int,
+    refreshKey: Int,
     onSelectionChange: (Int) -> Unit,
     horizontalPadding: Float,
     topPadding: Float,
     bottomPadding: Float
 ) {
-    var animationPlayed by remember { mutableStateOf(false) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val colorScheme = MaterialTheme.colorScheme
     val gridLineColor = colorScheme.outline.copy(alpha = 0.12f)
     val pointSurfaceColor = colorScheme.surface
-    val progress by animateFloatAsState(
-        targetValue = if (animationPlayed) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "LineChartProgress"
-    )
+    val revealProgress = remember { Animatable(0f) }
+    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
 
-    LaunchedEffect(Unit) {
-        animationPlayed = true
+    LaunchedEffect(refreshKey, points) {
+        revealProgress.snapTo(0f)
+        revealProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 860)
+        )
     }
 
     Canvas(
@@ -863,57 +1169,49 @@ private fun LineChart(
             )
         }
 
-        val animatedPoints = chartPoints.map { point ->
-            Offset(
-                x = point.x,
-                y = baselineY - ((baselineY - point.y) * progress)
+        val revealValue = revealProgress.value
+        val visiblePoints = buildVisibleTrendPoints(chartPoints, revealValue)
+        val linePath = buildTrendLinePath(visiblePoints)
+        val areaPath = buildTrendAreaPath(visiblePoints, baselineY)
+
+        if (visiblePoints.size > 1) {
+            drawPath(
+                path = areaPath,
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        PrimaryGreen.copy(alpha = 0.28f),
+                        PrimaryGreen.copy(alpha = 0.10f),
+                        Color.Transparent
+                    ),
+                    startY = topPadding,
+                    endY = baselineY
+                )
+            )
+            drawPath(
+                path = linePath,
+                color = PrimaryGreen,
+                style = Stroke(
+                    width = 4.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                )
             )
         }
 
-        val linePath = Path().apply {
-            animatedPoints.forEachIndexed { index, point ->
-                if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
-            }
-        }
-        val areaPath = Path().apply {
-            addPath(linePath)
-            lineTo(animatedPoints.last().x, baselineY)
-            lineTo(animatedPoints.first().x, baselineY)
-            close()
-        }
-
-        drawPath(
-            path = areaPath,
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    PrimaryGreen.copy(alpha = 0.28f),
-                    PrimaryGreen.copy(alpha = 0.10f),
-                    Color.Transparent
-                ),
-                startY = topPadding,
-                endY = baselineY
+        val revealX = visiblePoints.last().x
+        val selectedPoint = chartPoints[safeSelectedIndex]
+        if (selectedPoint.x <= revealX) {
+            drawLine(
+                color = AccentOrange.copy(alpha = 0.28f),
+                start = Offset(selectedPoint.x, topPadding),
+                end = Offset(selectedPoint.x, baselineY),
+                strokeWidth = 1.5.dp.toPx()
             )
-        )
-        drawPath(
-            path = linePath,
-            color = PrimaryGreen,
-            style = Stroke(
-                width = 4.dp.toPx(),
-                cap = StrokeCap.Round,
-                join = StrokeJoin.Round
-            )
-        )
+        }
 
-        val selectedPoint = animatedPoints[selectedIndex]
-        drawLine(
-            color = AccentOrange.copy(alpha = 0.28f),
-            start = Offset(selectedPoint.x, topPadding),
-            end = Offset(selectedPoint.x, baselineY),
-            strokeWidth = 1.5.dp.toPx()
-        )
-
-        animatedPoints.forEachIndexed { index, point ->
-            val isSelected = index == selectedIndex
+        chartPoints.forEachIndexed { index, point ->
+            if (point.x > revealX) return@forEachIndexed
+            val isSelected = index == safeSelectedIndex
             if (isSelected) {
                 drawCircle(
                     color = AccentOrange.copy(alpha = 0.18f),
@@ -1039,4 +1337,175 @@ private fun rememberSelectedTrendOffset(
         bottomPadding = bottomPadding
     )
     return offsets.getOrNull(selectedIndex)
+}
+
+private fun buildTrendSeriesCatalog(): Map<Pair<TrendRangeOption, TrendMetricOption>, TrendSeriesData> {
+    val cumulative = mapOf(
+        TrendRangeOption.Last7Days to listOf(
+            TrendPointData("6/23", "6/23", 126),
+            TrendPointData("6/24", "6/24", 138),
+            TrendPointData("6/25", "6/25", 152),
+            TrendPointData("6/26", "6/26", 160),
+            TrendPointData("6/27", "6/27", 166),
+            TrendPointData("6/28", "6/28", 174),
+            TrendPointData("今天", "今天", 188)
+        ),
+        TrendRangeOption.Last30Days to listOf(
+            TrendPointData("5/31", "05/31", 82),
+            TrendPointData("6/05", "06/05", 96),
+            TrendPointData("6/10", "06/10", 118),
+            TrendPointData("6/15", "06/15", 134),
+            TrendPointData("6/20", "06/20", 158),
+            TrendPointData("6/25", "06/25", 173),
+            TrendPointData("今天", "今天", 188)
+        ),
+        TrendRangeOption.LastYear to listOf(
+            TrendPointData("7 月", "7月", 24),
+            TrendPointData("9 月", "9月", 51),
+            TrendPointData("11 月", "11月", 79),
+            TrendPointData("1 月", "1月", 103),
+            TrendPointData("3 月", "3月", 137),
+            TrendPointData("5 月", "5月", 166),
+            TrendPointData("本月", "本月", 188)
+        ),
+        TrendRangeOption.ThisMonth to listOf(
+            TrendPointData("6/01", "6/01", 92),
+            TrendPointData("6/06", "6/06", 104),
+            TrendPointData("6/11", "6/11", 121),
+            TrendPointData("6/16", "6/16", 139),
+            TrendPointData("6/21", "6/21", 159),
+            TrendPointData("6/26", "6/26", 177),
+            TrendPointData("今天", "今天", 188)
+        ),
+        TrendRangeOption.ThisYear to listOf(
+            TrendPointData("1 月", "1月", 62),
+            TrendPointData("2 月", "2月", 81),
+            TrendPointData("3 月", "3月", 106),
+            TrendPointData("4 月", "4月", 129),
+            TrendPointData("5 月", "5月", 147),
+            TrendPointData("6 月", "6月", 169),
+            TrendPointData("本月", "本月", 188)
+        )
+    )
+
+    val growth = mapOf(
+        TrendRangeOption.Last7Days to listOf(
+            TrendPointData("6/23", "6/23", 8),
+            TrendPointData("6/24", "6/24", 12),
+            TrendPointData("6/25", "6/25", 14),
+            TrendPointData("6/26", "6/26", 9),
+            TrendPointData("6/27", "6/27", 17),
+            TrendPointData("6/28", "6/28", 11),
+            TrendPointData("今天", "今天", 15)
+        ),
+        TrendRangeOption.Last30Days to listOf(
+            TrendPointData("5/31", "05/31", 6),
+            TrendPointData("6/05", "06/05", 10),
+            TrendPointData("6/10", "06/10", 14),
+            TrendPointData("6/15", "06/15", 9),
+            TrendPointData("6/20", "06/20", 18),
+            TrendPointData("6/25", "06/25", 12),
+            TrendPointData("今天", "今天", 15)
+        ),
+        TrendRangeOption.LastYear to listOf(
+            TrendPointData("7 月", "7月", 5),
+            TrendPointData("9 月", "9月", 7),
+            TrendPointData("11 月", "11月", 9),
+            TrendPointData("1 月", "1月", 11),
+            TrendPointData("3 月", "3月", 13),
+            TrendPointData("5 月", "5月", 10),
+            TrendPointData("本月", "本月", 15)
+        ),
+        TrendRangeOption.ThisMonth to listOf(
+            TrendPointData("6/01", "6/01", 7),
+            TrendPointData("6/06", "6/06", 9),
+            TrendPointData("6/11", "6/11", 12),
+            TrendPointData("6/16", "6/16", 10),
+            TrendPointData("6/21", "6/21", 16),
+            TrendPointData("6/26", "6/26", 13),
+            TrendPointData("今天", "今天", 15)
+        ),
+        TrendRangeOption.ThisYear to listOf(
+            TrendPointData("1 月", "1月", 6),
+            TrendPointData("2 月", "2月", 8),
+            TrendPointData("3 月", "3月", 11),
+            TrendPointData("4 月", "4月", 9),
+            TrendPointData("5 月", "5月", 14),
+            TrendPointData("6 月", "6月", 12),
+            TrendPointData("本月", "本月", 15)
+        )
+    )
+
+    return buildMap {
+        TrendRangeOption.entries.forEach { range ->
+            put(range to TrendMetricOption.Cumulative, TrendSeriesData(cumulative.getValue(range)))
+            put(range to TrendMetricOption.Growth, TrendSeriesData(growth.getValue(range)))
+        }
+    }
+}
+
+private fun buildTrendChangeSummary(
+    points: List<TrendPointData>,
+    selectedIndex: Int,
+    metric: TrendMetricOption
+): String {
+    if (points.isEmpty() || selectedIndex !in points.indices) return ""
+    val current = points[selectedIndex].value
+    val previous = points.getOrNull(selectedIndex - 1)?.value
+    if (previous == null) {
+        return if (metric == TrendMetricOption.Cumulative) "当前区间起点" else "当前区间初次增长"
+    }
+    val delta = current - previous
+    val direction = when {
+        delta > 0 -> "较上一点 +$delta"
+        delta < 0 -> "较上一点 $delta"
+        else -> "较上一点持平"
+    }
+    return direction
+}
+
+private fun formatTrendValue(metric: TrendMetricOption, value: Int): String {
+    return when (metric) {
+        TrendMetricOption.Cumulative -> "$value 词"
+        TrendMetricOption.Growth -> "+$value 词"
+    }
+}
+
+private fun buildVisibleTrendPoints(points: List<Offset>, revealProgress: Float): List<Offset> {
+    if (points.isEmpty()) return emptyList()
+    if (points.size == 1) return points
+    if (revealProgress <= 0f) return listOf(points.first())
+    if (revealProgress >= 1f) return points
+
+    val segmentProgress = revealProgress * (points.size - 1)
+    val lastFullIndex = segmentProgress.toInt().coerceIn(0, points.lastIndex)
+    val remainder = segmentProgress - lastFullIndex
+    val visible = points.take(lastFullIndex + 1).toMutableList()
+
+    if (lastFullIndex < points.lastIndex) {
+        val start = points[lastFullIndex]
+        val end = points[lastFullIndex + 1]
+        visible += Offset(
+            x = start.x + (end.x - start.x) * remainder,
+            y = start.y + (end.y - start.y) * remainder
+        )
+    }
+    return visible
+}
+
+private fun buildTrendLinePath(points: List<Offset>): Path {
+    return Path().apply {
+        points.forEachIndexed { index, point ->
+            if (index == 0) moveTo(point.x, point.y) else lineTo(point.x, point.y)
+        }
+    }
+}
+
+private fun buildTrendAreaPath(points: List<Offset>, baselineY: Float): Path {
+    return Path().apply {
+        addPath(buildTrendLinePath(points))
+        lineTo(points.last().x, baselineY)
+        lineTo(points.first().x, baselineY)
+        close()
+    }
 }
