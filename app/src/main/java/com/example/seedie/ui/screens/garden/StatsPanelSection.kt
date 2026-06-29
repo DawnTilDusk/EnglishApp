@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,6 +67,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.seedie.ui.theme.AccentOrange
@@ -363,12 +365,6 @@ private fun TrendFocusCard(
 ) {
     val cardShape = RoundedCornerShape(28.dp)
     val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
-    val selectedPoint = points[safeSelectedIndex]
-    val changeSummary = buildTrendChangeSummary(
-        points = points,
-        selectedIndex = safeSelectedIndex,
-        metric = selectedMetric
-    )
 
     Surface(
         modifier = modifier.gardenShadow(shape = cardShape),
@@ -398,7 +394,7 @@ private fun TrendFocusCard(
 
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -440,37 +436,6 @@ private fun TrendFocusCard(
                     }
                 }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MiniLegendChip(
-                            label = selectedMetric.lineLegend,
-                            tint = PrimaryGreen,
-                            filled = false
-                        )
-                        MiniLegendChip(
-                            label = selectedMetric.areaLegend,
-                            tint = PrimaryGreen,
-                            filled = true
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(
-                            text = "${selectedMetric.headlineLabel} ${formatTrendValue(selectedMetric, selectedPoint.value)}",
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "${selectedPoint.label} · $changeSummary",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
                 LineChartSection(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -499,9 +464,10 @@ private fun <T> TrendFilterMenuButton(
     onDismiss: () -> Unit
 ) {
     val density = LocalDensity.current
-    var buttonHeight by remember { mutableStateOf(0.dp) }
     var buttonWidth by remember { mutableStateOf(0.dp) }
     val buttonShape = RoundedCornerShape(16.dp)
+    val buttonContainerColor = AccentOrange.copy(alpha = if (expanded) 0.18f else 0.10f)
+    val selectedRowColor = AccentOrange.copy(alpha = 0.12f)
 
     Box(
         modifier = Modifier.zIndex(if (expanded) 2f else 0f),
@@ -512,17 +478,16 @@ private fun <T> TrendFilterMenuButton(
                 .clip(buttonShape)
                 .clickable(onClick = onToggle)
                 .onSizeChanged {
-                    buttonHeight = with(density) { it.height.toDp() }
                     buttonWidth = with(density) { it.width.toDp() }
                 },
             shape = buttonShape,
-            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+            color = buttonContainerColor
         ) {
             Row(
                 modifier = Modifier
                     .border(
                         width = 1.dp,
-                        color = AccentOrange.copy(alpha = if (expanded) 0.24f else 0.14f),
+                        color = AccentOrange.copy(alpha = if (expanded) 0.26f else 0.16f),
                         shape = buttonShape
                     )
                     .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -541,75 +506,58 @@ private fun <T> TrendFilterMenuButton(
                 )
             }
         }
+    }
 
-        androidx.compose.animation.AnimatedVisibility(
-            visible = expanded,
+    DropdownMenu(
+        visible = expanded,
+        onDismissRequest = onDismiss,
+        offset = DpOffset(x = 0.dp, y = 8.dp),
+        modifier = Modifier
+            .width(buttonWidth)
+            .heightIn(max = maxMenuHeight)
+    ) {
+        Column(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(y = buttonHeight + 8.dp),
-            enter = fadeIn(animationSpec = tween(180)) +
-                slideInVertically(
-                    animationSpec = tween(220),
-                    initialOffsetY = { -it / 5 }
-                ),
-            exit = fadeOut(animationSpec = tween(140)) +
-                slideOutVertically(
-                    animationSpec = tween(180),
-                    targetOffsetY = { -it / 8 }
-                )
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 8.dp)
         ) {
-            Surface(
-                modifier = Modifier
-                    .widthIn(min = buttonWidth, max = 180.dp)
-                    .heightIn(max = maxMenuHeight),
-                shape = RoundedCornerShape(18.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp,
-                shadowElevation = 6.dp
-            ) {
-                Column(
+            options.forEach { option ->
+                val selected = option == selectedOption
+                val interactionSource = remember { MutableInteractionSource() }
+                Row(
                     modifier = Modifier
-                        .verticalScroll(rememberScrollState())
-                        .padding(vertical = 8.dp)
-                ) {
-                    options.forEach { option ->
-                        val selected = option == selectedOption
-                        val interactionSource = remember { MutableInteractionSource() }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null
-                                ) {
-                                    onSelect(option)
-                                    onDismiss()
-                                }
-                                .padding(horizontal = 12.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (selected) selectedRowColor else Color.Transparent)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
                         ) {
-                            Text(
-                                text = optionLabel(option),
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-                                ),
-                                color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
-                            )
-                            if (selected) {
-                                Text(
-                                    text = "当前",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                                    color = AccentOrange
-                                )
-                            }
+                            onSelect(option)
+                            onDismiss()
                         }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = optionLabel(option),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                        ),
+                        color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
+                    )
+                    if (selected) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(AccentOrange)
+                        )
                     }
                 }
             }
-        }
-    }
+        }    }
 }
 
 @Composable
@@ -936,8 +884,8 @@ private fun LineChartSection(
     val tooltipHorizontalOffset = with(density) { 44.dp.toPx() }
     val tooltipVerticalOffset = with(density) { 46.dp.toPx() }
     val horizontalPaddingPx = with(density) { 18.dp.toPx() }
-    val topPaddingPx = with(density) { 12.dp.toPx() }
-    val bottomPaddingPx = with(density) { 14.dp.toPx() }
+    val topPaddingPx = with(density) { 8.dp.toPx() }
+    val bottomPaddingPx = with(density) { 12.dp.toPx() }
     val selectedPoint = points[safeSelectedIndex]
     val selectedPointOffset = rememberSelectedTrendOffset(
         chartSize = chartSize,
@@ -956,7 +904,7 @@ private fun LineChartSection(
 
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Box(
             modifier = Modifier
