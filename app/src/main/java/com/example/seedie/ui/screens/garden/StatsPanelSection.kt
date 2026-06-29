@@ -36,8 +36,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -506,58 +504,56 @@ private fun <T> TrendFilterMenuButton(
                 )
             }
         }
-    }
-
-    DropdownMenu(
-        visible = expanded,
-        onDismissRequest = onDismiss,
-        offset = DpOffset(x = 0.dp, y = 8.dp),
-        modifier = Modifier
-            .width(buttonWidth)
-            .heightIn(max = maxMenuHeight)
-    ) {
-        Column(
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismiss,
+            offset = DpOffset(x = 0.dp, y = 8.dp),
             modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 8.dp)
+                .width(buttonWidth)
+                .heightIn(max = maxMenuHeight)
         ) {
-            options.forEach { option ->
-                val selected = option == selectedOption
-                val interactionSource = remember { MutableInteractionSource() }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (selected) selectedRowColor else Color.Transparent)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null
-                        ) {
-                            onSelect(option)
-                            onDismiss()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = optionLabel(option),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-                        ),
-                        color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
-                    )
-                    if (selected) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(AccentOrange)
+            Column(
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                options.forEach { option ->
+                    val selected = option == selectedOption
+                    val interactionSource = remember { MutableInteractionSource() }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (selected) selectedRowColor else Color.Transparent)
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                onSelect(option)
+                                onDismiss()
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = optionLabel(option),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                            ),
+                            color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
                         )
+                        if (selected) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(CircleShape)
+                                    .background(AccentOrange)
+                            )
+                        }
                     }
                 }
             }
-        }    }
+        }
+    }
 }
 
 @Composable
