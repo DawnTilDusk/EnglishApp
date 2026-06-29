@@ -1,12 +1,16 @@
 package com.example.seedie.di
 
 import com.example.seedie.data.repository.EconomyManagerImpl
+import com.example.seedie.data.repository.ShopRepositoryImpl
+import com.example.seedie.data.repository.TeacherRepositoryImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
 import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
+import com.example.seedie.domain.repository.ShopRepository
+import com.example.seedie.domain.repository.TeacherRepository
 import com.example.seedie.domain.repository.UserSessionRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.VocabularyQuizRepository
@@ -49,4 +53,16 @@ abstract class RepositoryModule {
     abstract fun bindVocabularyQuizRepository(
         vocabularyQuizRepositoryImpl: VocabularyQuizRepositoryImpl
     ): VocabularyQuizRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindShopRepository(
+        shopRepositoryImpl: ShopRepositoryImpl
+    ): ShopRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTeacherRepository(
+        teacherRepositoryImpl: TeacherRepositoryImpl
+    ): TeacherRepository
 }

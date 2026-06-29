@@ -1,29 +1,50 @@
 package com.example.seedie.ui.screens.login
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.seedie.domain.model.LoginMode
 
 @Composable
 fun LoginScreen(
-    onNavigateToNext: () -> Unit, // 【重要】：这是传给 Navigation 的跳转接口
+    onNavigateToNext: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
-    // 收集 ViewModel 的状态
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val phone by viewModel.phone.collectAsState()
+    val loginMode by viewModel.loginMode.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isEmailValid = remember(email) { viewModel.isEmailFormatValid(email) }
     val isPhoneValid = remember(phone) { viewModel.isPhoneInputValid(phone) }
+    val isStudentMode = loginMode == LoginMode.STUDENT
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -37,10 +58,33 @@ fun LoginScreen(
                 text = "Welcome to Seedie!",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // 邮箱输入框
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .padding(bottom = 24.dp)
+            ) {
+                LoginMode.entries.forEachIndexed { index, mode ->
+                    SegmentedButton(
+                        selected = loginMode == mode,
+                        onClick = { viewModel.onLoginModeChange(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = LoginMode.entries.size
+                        )
+                    ) {
+                        Text(
+                            when (mode) {
+                                LoginMode.STUDENT -> "学生登录"
+                                LoginMode.TEACHER -> "教师登录"
+                            }
+                        )
+                    }
+                }
+            }
+
             OutlinedTextField(
                 value = email,
                 onValueChange = { viewModel.onEmailChange(it) },
@@ -55,10 +99,9 @@ fun LoginScreen(
                 },
                 modifier = Modifier.fillMaxWidth(0.6f)
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 密码输入框
             OutlinedTextField(
                 value = password,
                 onValueChange = { viewModel.onPasswordChange(it) },
@@ -69,26 +112,27 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(0.6f)
             )
 
+            if (isStudentMode) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { viewModel.onPhoneChange(it) },
+                    label = { Text("手机号（首次必填）") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                    singleLine = true,
+                    isError = phone.isNotBlank() && !isPhoneValid,
+                    supportingText = {
+                        if (phone.isNotBlank() && !isPhoneValid) {
+                            Text("手机号格式不正确")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(0.6f)
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { viewModel.onPhoneChange(it) },
-                label = { Text("手机号（首次必填）") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                singleLine = true,
-                isError = phone.isNotBlank() && !isPhoneValid,
-                supportingText = {
-                    if (phone.isNotBlank() && !isPhoneValid) {
-                        Text("手机号格式不正确")
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(0.6f)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 错误提示文本
             if (errorMessage != null) {
                 Text(
                     text = errorMessage!!,
@@ -97,16 +141,15 @@ fun LoginScreen(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
             } else {
-                Spacer(modifier = Modifier.height(36.dp)) // 占位高度，防止按钮跳动
+                Spacer(modifier = Modifier.height(36.dp))
             }
 
-            // 登录按钮
+            val canLogin = !isLoading && isEmailValid && password.isNotBlank() &&
+                (!isStudentMode || (phone.isNotBlank() && isPhoneValid))
+
             Button(
-                onClick = { 
-                    // 点击登录，如果成功，ViewModel 会调用这个闭包 (onNavigateToNext)
-                    viewModel.login(onLoginSuccess = { onNavigateToNext() }) 
-                },
-                enabled = !isLoading && isEmailValid && phone.isNotBlank() && isPhoneValid && password.isNotBlank(),
+                onClick = { viewModel.login(onLoginSuccess = { onNavigateToNext() }) },
+                enabled = canLogin,
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
                     .height(56.dp)

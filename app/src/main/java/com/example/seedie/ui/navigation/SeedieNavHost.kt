@@ -15,6 +15,8 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
 import com.example.seedie.ui.screens.main.MainScreen
+import com.example.seedie.ui.screens.shop.MyOrdersScreen
+import com.example.seedie.ui.screens.shop.StudentShopScreen
 import com.example.seedie.ui.screens.splash.SplashScreen
 
 @Composable
@@ -53,6 +55,9 @@ fun SeedieNavHost(
                 },
                 onOpenVocabularyQuiz = {
                     navController.navigate(Screen.VocabularyQuiz.route)
+                },
+                onOpenShop = {
+                    navController.navigate(ShopScreen.StudentShop.route)
                 },
                 pendingStudyResult = pendingStudyResult,
                 onStudyResultConsumed = {
@@ -93,6 +98,15 @@ fun SeedieNavHost(
                     navController.popBackStack()
                 }
             )
+        }
+        composable(route = ShopScreen.StudentShop.route) {
+            StudentShopScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenOrders = { navController.navigate(ShopScreen.MyOrders.route) }
+            )
+        }
+        composable(route = ShopScreen.MyOrders.route) {
+            MyOrdersScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

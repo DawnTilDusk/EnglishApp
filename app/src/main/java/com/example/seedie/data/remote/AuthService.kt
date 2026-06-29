@@ -1,10 +1,13 @@
 package com.example.seedie.data.remote
 
+import com.example.seedie.domain.model.LoginMode
+import com.example.seedie.domain.model.UserRole
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,9 +19,11 @@ import javax.inject.Inject
 
 data class AuthSession(
     val userId: String,
-    val role: String,
+    val role: UserRole,
     val agencyId: String?,
-    val studentName: String? = null
+    val displayName: String?,
+    val studentName: String? = null,
+    val teacherId: String? = null
 )
 
 class AuthService @Inject constructor(
@@ -39,21 +44,11 @@ class AuthService @Inject constructor(
                 return Result.success(null)
             }
 
-            // 获取用户profile，但不进行强制的设备ID检查
-            // 这样即使用户在其他设备登录过，也能在当前设备重新登录
             val profile = client.postgrest["profiles"]
                 .select {
                     filter { eq("id", user.id) }
                 }
                 .decodeSingle<Profile>()
-
-             val localDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
-//                  if (profile.current_device_id != null && profile.current_device_id != localDeviceId) {
-//                      // Device mismatch: logged in on another device
-//                      client.auth.signOut()
-//                      _currentSession.value = null
-//                      return Result.failure(Exception("您的账号已在其他设备登录"))
-//                  }
 
             val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profile)
             _currentSession.value = session
@@ -64,12 +59,13 @@ class AuthService @Inject constructor(
         }
     }
 
-    /**
-     * 登录并获取用户的身份和角色
-     */
-    suspend fun login(email: String, password: String, phone: String? = null): Result<AuthSession> {
+    suspend fun login(
+        email: String,
+        password: String,
+        loginMode: LoginMode,
+        phone: String? = null
+    ): Result<AuthSession> {
         return try {
-            // 1. 调用 Supabase Auth 进行登录
             client.auth.signInWith(Email) {
                 this.email = email
                 this.password = password
@@ -80,19 +76,40 @@ class AuthService @Inject constructor(
 
             val profileBefore = client.postgrest["profiles"]
                 .select {
-                    filter {
-                        eq("id", user.id)
-                    }
+                    filter { eq("id", user.id) }
                 }
                 .decodeSingle<Profile>()
 
-            if (profileBefore.role == "student" && profileBefore.phone.isNullOrBlank() && phone.isNullOrBlank()) {
+            val role = UserRole.from(profileBefore.role)
+                ?: return Result.failure(Exception("未知账号角色"))
+
+            when (loginMode) {
+                LoginMode.STUDENT -> {
+                    if (role != UserRole.STUDENT) {
+                        client.auth.signOut()
+                        _currentSession.value = null
+                        return Result.failure(Exception("该账号不是学生账号，请选择教师登录"))
+                    }
+                }
+                LoginMode.TEACHER -> {
+                    if (role != UserRole.TEACHER) {
+                        client.auth.signOut()
+                        _currentSession.value = null
+                        return Result.failure(Exception("该账号不是教师账号，请选择学生登录"))
+                    }
+                }
+            }
+
+            if (role == UserRole.STUDENT &&
+                profileBefore.phone.isNullOrBlank() &&
+                phone.isNullOrBlank()
+            ) {
                 client.auth.signOut()
                 _currentSession.value = null
                 return Result.failure(Exception("请填写手机号完成绑定"))
             }
 
-            if (!phone.isNullOrBlank()) {
+            if (!phone.isNullOrBlank() && role == UserRole.STUDENT) {
                 try {
                     syncPhoneForCurrentUser(userId = user.id, phone = phone)
                 } catch (e: Exception) {
@@ -102,35 +119,21 @@ class AuthService @Inject constructor(
                 }
             }
 
-            // Sync current device ID to Supabase (for kick-out mechanism)
-            try {
-                val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
-                
-                // Add log to see if it reaches here
-                android.util.Log.d("AuthService", "Updating device_id to: $currentDeviceId for user: ${user.id}")
-                
-                client.postgrest.rpc(
-                    "set_my_device_id",
-                    buildJsonObject { put("p_device_id", currentDeviceId) }
-                )
-                
-                android.util.Log.d("AuthService", "Update device_id success")
-                
-                // Fetch the fresh profile AFTER updating the device_id
-                val session = fetchBusinessSession(userId = user.id)
-                _currentSession.value = session
-
-                return Result.success(session)
-            } catch (e: Exception) {
-                // Non-fatal, just log it. The login should still succeed.
-                android.util.Log.e("AuthService", "Update device_id failed", e)
-                
-                // Fallback to the old profile if update failed
-                val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
-                _currentSession.value = session
-
-                return Result.success(session)
+            if (role == UserRole.STUDENT) {
+                try {
+                    val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
+                    client.postgrest.rpc(
+                        "set_my_device_id",
+                        buildJsonObject { put("p_device_id", currentDeviceId) }
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthService", "Update device_id failed", e)
+                }
             }
+
+            val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
+            _currentSession.value = session
+            Result.success(session)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -139,30 +142,37 @@ class AuthService @Inject constructor(
     private suspend fun fetchBusinessSession(userId: String, preFetchedProfile: Profile? = null): AuthSession {
         val profile = preFetchedProfile ?: client.postgrest["profiles"]
             .select {
-                filter {
-                    eq("id", userId)
-                }
+                filter { eq("id", userId) }
             }
             .decodeSingle<Profile>()
 
+        val role = UserRole.from(profile.role) ?: UserRole.STUDENT
         var studentName: String? = null
+        var teacherId: String? = null
 
-        if (profile.role == "student") {
-            val student = client.postgrest["students"]
-                .select {
-                    filter {
-                        eq("id", userId)
+        when (role) {
+            UserRole.STUDENT -> {
+                val student = client.postgrest["students"]
+                    .select {
+                        filter { eq("id", userId) }
                     }
-                }
-                .decodeSingle<Student>()
-            studentName = student.name
+                    .decodeSingle<Student>()
+                studentName = student.name
+                teacherId = student.teacher_id
+            }
+            UserRole.TEACHER -> {
+                teacherId = userId
+            }
+            else -> Unit
         }
 
         return AuthSession(
             userId = userId,
-            role = profile.role,
+            role = role,
             agencyId = profile.agency_id,
-            studentName = studentName
+            displayName = profile.display_name,
+            studentName = studentName,
+            teacherId = teacherId
         )
     }
 
@@ -178,15 +188,11 @@ class AuthService @Inject constructor(
     private suspend fun syncPhoneForCurrentUser(userId: String, phone: String) {
         client.postgrest.rpc(
             "set_my_phone",
-            buildJsonObject {
-                put("p_phone", phone)
-            }
+            buildJsonObject { put("p_phone", phone) }
         )
 
         client.auth.updateUser {
-            data = buildJsonObject {
-                put("phone", phone)
-            }
+            data = buildJsonObject { put("phone", phone) }
         }
     }
 }

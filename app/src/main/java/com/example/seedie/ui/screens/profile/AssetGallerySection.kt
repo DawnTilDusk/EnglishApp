@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,7 +34,8 @@ import com.example.seedie.ui.theme.gardenShadow
 fun AssetGallerySection(
     modifier: Modifier = Modifier,
     totalTokens: Int = 120,
-    badges: List<BadgeConfig> = emptyList()
+    badges: List<BadgeConfig> = emptyList(),
+    onOpenShop: () -> Unit = {}
 ) {
     Surface(
         modifier = modifier
@@ -84,6 +86,13 @@ fun AssetGallerySection(
                         tint = MaterialTheme.colorScheme.tertiary
                     )
                 }
+            }
+
+            Button(
+                onClick = onOpenShop,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "教师商城")
             }
 
             // Bottom: Achievement Gallery

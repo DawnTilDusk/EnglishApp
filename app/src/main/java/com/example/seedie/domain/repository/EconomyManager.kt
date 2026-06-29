@@ -7,4 +7,5 @@ interface EconomyManager {
 
     suspend fun addTokens(amount: Int, reason: String)
     suspend fun spendTokens(amount: Int, item: String): Boolean
+    suspend fun refreshBalanceFromCloud(): Result<Int>
 }

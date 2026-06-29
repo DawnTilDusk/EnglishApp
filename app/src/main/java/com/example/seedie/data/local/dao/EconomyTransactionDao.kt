@@ -16,4 +16,10 @@ interface EconomyTransactionDao {
 
     @Insert
     suspend fun insertTransaction(transaction: EconomyTransactionEntity)
+
+    @Query("SELECT * FROM economy_transactions WHERE userId = :userId AND syncStatus = 'PENDING'")
+    suspend fun getPendingTransactions(userId: String): List<EconomyTransactionEntity>
+
+    @Query("UPDATE economy_transactions SET syncStatus = :status, syncedAt = :syncedAt WHERE id = :id")
+    suspend fun updateSyncStatus(id: String, status: String, syncedAt: Long?)
 }

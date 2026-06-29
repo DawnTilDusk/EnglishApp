@@ -2,6 +2,7 @@ package com.example.seedie.data.sync
 
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.sync.syncer.CheckInSyncer
+import com.example.seedie.data.sync.syncer.EconomyTransactionSyncer
 import com.example.seedie.data.sync.syncer.VocabularyProgressSyncer
 import com.example.seedie.di.ApplicationScope
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +15,7 @@ import javax.inject.Singleton
 class SyncManagerImpl @Inject constructor(
     private val checkInSyncer: CheckInSyncer,
     private val vocabularyProgressSyncer: VocabularyProgressSyncer,
+    private val economyTransactionSyncer: EconomyTransactionSyncer,
     private val networkObserver: NetworkConnectivityObserver,
     private val authService: AuthService,
     @ApplicationScope private val appScope: CoroutineScope
@@ -35,9 +37,11 @@ class SyncManagerImpl @Inject constructor(
                 SyncScope.ALL -> {
                     checkInSyncer.sync(userId)
                     vocabularyProgressSyncer.sync(userId)
+                    economyTransactionSyncer.sync(userId)
                 }
                 SyncScope.CHECK_IN -> checkInSyncer.sync(userId)
                 SyncScope.VOCABULARY_PROGRESS -> vocabularyProgressSyncer.sync(userId)
+                SyncScope.ECONOMY -> economyTransactionSyncer.sync(userId)
             }
             SyncResult.Success
         } catch (e: Exception) {

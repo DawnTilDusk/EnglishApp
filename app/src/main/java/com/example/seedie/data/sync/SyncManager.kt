@@ -4,7 +4,7 @@ interface SyncManager {
     suspend fun syncNow(scope: SyncScope = SyncScope.ALL): SyncResult
 }
 
-enum class SyncScope { ALL, CHECK_IN, VOCABULARY_PROGRESS }
+enum class SyncScope { ALL, CHECK_IN, VOCABULARY_PROGRESS, ECONOMY }
 
 sealed class SyncResult {
     object Success : SyncResult()

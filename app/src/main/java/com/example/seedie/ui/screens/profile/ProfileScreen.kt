@@ -13,6 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun ProfileScreen(
+    onOpenShop: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val totalTokens by viewModel.totalTokens.collectAsState()
@@ -24,14 +25,13 @@ fun ProfileScreen(
             .padding(24.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Left side: Identity Card (takes 35% of width)
         IdentitySection(modifier = Modifier.weight(0.35f))
 
-        // Right side: Asset Gallery & Achievements (takes 65% of width)
         AssetGallerySection(
             modifier = Modifier.weight(0.65f),
             totalTokens = totalTokens,
-            badges = badges
+            badges = badges,
+            onOpenShop = onOpenShop
         )
     }
 }

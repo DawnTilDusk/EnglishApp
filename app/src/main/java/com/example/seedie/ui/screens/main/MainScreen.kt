@@ -52,6 +52,7 @@ fun MainScreen(
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
     onOpenListeningPractice: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
+    onOpenShop: () -> Unit,
     pendingStudyResult: StudyResult?,
     onStudyResultConsumed: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -217,7 +218,7 @@ fun MainScreen(
                     snackbarHostState = snackbarHostState
                 ) // Tab 2: Learning Hub
                 2 -> DataGardenScreen() // Tab 3: Data & Garden
-                3 -> ProfileScreen() // Tab 4: Profile & Rewards
+                3 -> ProfileScreen(onOpenShop = onOpenShop)
                 else -> {
                     // Placeholder for other Tabs
                     Box(
