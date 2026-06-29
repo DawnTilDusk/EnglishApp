@@ -159,7 +159,7 @@ private fun DonutFocusCard(
         shape = cardShape,
         color = MaterialTheme.colorScheme.surface
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -176,20 +176,23 @@ private fun DonutFocusCard(
                     color = PrimaryGreen.copy(alpha = 0.10f),
                     shape = cardShape
                 )
-                .padding(24.dp)
         ) {
-            Text(
-                text = "学习时间分布",
+            Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .clickable { detailsExpanded = !detailsExpanded }
-                    .padding(vertical = 4.dp),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
+                Text(
+                    text = "学习时间分布",
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable { detailsExpanded = !detailsExpanded }
+                        .padding(vertical = 4.dp),
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Box(modifier = Modifier.fillMaxSize()) {
                 DonutChart(
                     modifier = Modifier.fillMaxSize(),
                     slices = slices,
@@ -198,95 +201,84 @@ private fun DonutFocusCard(
                     onSliceSelected = onSelectionChange,
                     showSupportingText = false
                 )
+            }
 
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = detailsExpanded,
-                    modifier = Modifier.fillMaxSize(),
-                    enter = fadeIn(animationSpec = tween(220)) +
-                        slideInVertically(
-                            animationSpec = tween(260),
-                            initialOffsetY = { -it / 2 }
-                        ),
-                    exit = fadeOut(animationSpec = tween(180)) +
-                        slideOutVertically(
-                            animationSpec = tween(220),
-                            targetOffsetY = { -it / 3 }
-                        )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = detailsExpanded,
+                modifier = Modifier.fillMaxSize(),
+                enter = fadeIn(animationSpec = tween(220)) +
+                    slideInVertically(
+                        animationSpec = tween(260),
+                        initialOffsetY = { -it / 2 }
+                    ),
+                exit = fadeOut(animationSpec = tween(180)) +
+                    slideOutVertically(
+                        animationSpec = tween(220),
+                        targetOffsetY = { -it / 3 }
+                    )
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(cardShape),
+                    shape = cardShape,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+                    tonalElevation = 3.dp,
+                    shadowElevation = 4.dp
                 ) {
-                    Surface(
+                    Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .clip(RoundedCornerShape(24.dp)),
-                        shape = RoundedCornerShape(24.dp),
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f),
-                        tonalElevation = 3.dp,
-                        shadowElevation = 4.dp
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        Column(
+                        Text(
+                            text = "学习时间分布",
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(18.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "学习时间分布",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = "收起",
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(999.dp))
-                                        .clickable { detailsExpanded = false }
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                                    color = PrimaryGreen
-                                )
-                            }
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable { detailsExpanded = false }
+                                .padding(vertical = 4.dp),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
 
+                        Text(
+                            text = selectedSlice?.let {
+                                "${it.label} ${it.minutes} 分钟，当前占比 ${((it.minutes / totalMinutes.toFloat()) * 100).roundToInt()}%。"
+                            } ?: "总计 $totalMinutes 分钟，当前详细分类与切换入口都收纳在这里。",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            slices.forEachIndexed { index, slice ->
+                                val selected = index == selectedIndex
+                                val percent = ((slice.minutes / totalMinutes.toFloat()) * 100).roundToInt()
+                                LegendRow(
+                                    label = slice.label,
+                                    supporting = "${slice.minutes} 分钟 · $percent%",
+                                    color = slice.color,
+                                    selected = selected
+                                ) { onSelectionChange(index) }
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
+                        ) {
+                            val footerText = selectedSlice?.let {
+                                "${it.supporting}，可继续点击其它图例切换饼图高亮。"
+                            } ?: "这里集中展示说明和图例，默认页面只保留饼图主体。"
                             Text(
-                                text = selectedSlice?.let {
-                                    "${it.label} ${it.minutes} 分钟，当前占比 ${((it.minutes / totalMinutes.toFloat()) * 100).roundToInt()}%。"
-                                } ?: "总计 $totalMinutes 分钟，当前详细分类与切换入口都收纳在这里。",
-                                style = MaterialTheme.typography.bodyMedium,
+                                text = footerText,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
-
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                slices.forEachIndexed { index, slice ->
-                                    val selected = index == selectedIndex
-                                    val percent = ((slice.minutes / totalMinutes.toFloat()) * 100).roundToInt()
-                                    LegendRow(
-                                        label = slice.label,
-                                        supporting = "${slice.minutes} 分钟 · $percent%",
-                                        color = slice.color,
-                                        selected = selected
-                                    ) { onSelectionChange(index) }
-                                }
-                            }
-
-                            Surface(
-                                shape = RoundedCornerShape(18.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                            ) {
-                                val footerText = selectedSlice?.let {
-                                    "${it.supporting}，可继续点击其它图例切换饼图高亮。"
-                                } ?: "这里集中展示说明和图例，默认页面只保留饼图主体。"
-                                Text(
-                                    text = footerText,
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
                         }
                     }
                 }
