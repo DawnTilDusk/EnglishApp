@@ -1,6 +1,5 @@
 package com.example.seedie.ui.screens.garden
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -41,6 +41,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -60,6 +63,7 @@ import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
 import com.example.seedie.ui.theme.gardenShadow
+import kotlinx.coroutines.delay
 
 @Composable
 fun GardenPlotSection(
@@ -68,8 +72,11 @@ fun GardenPlotSection(
     onPlotClick: (GardenPlotEntity) -> Unit = {}
 ) {
     val cardShape = RoundedCornerShape(28.dp)
+    val surfaceColor = MaterialTheme.colorScheme.surface
+    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedPlotIndex by rememberSaveable { mutableStateOf<Int?>(null) }
+    var actionBarInteractionKey by remember { mutableIntStateOf(0) }
     val selectedPlot = plots.firstOrNull { it.plotIndex == selectedPlotIndex }
     val occupiedPlots = plots.count { it.plantType != "empty" }
     val gridTopInset by animateDpAsState(
@@ -77,12 +84,19 @@ fun GardenPlotSection(
         label = "gardenGridTopInset"
     )
 
+    LaunchedEffect(selectedPlotIndex, actionBarInteractionKey) {
+        if (selectedPlotIndex != null) {
+            delay(5000)
+            selectedPlotIndex = null
+        }
+    }
+
     Surface(
         modifier = modifier
             .fillMaxSize()
             .gardenShadow(shape = cardShape),
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface
+        color = surfaceColor
     ) {
         Box(
             modifier = Modifier
@@ -90,9 +104,9 @@ fun GardenPlotSection(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f),
+                            surfaceVariantColor.copy(alpha = 0.30f),
                             PrimaryGreen.copy(alpha = 0.06f),
-                            MaterialTheme.colorScheme.surface
+                            surfaceColor
                         )
                     )
                 )
@@ -127,7 +141,7 @@ fun GardenPlotSection(
                         color = PrimaryGreen.copy(alpha = 0.12f)
                     ) {
                         Text(
-                            text = "已激活 $occupiedPlots/${plots.size}",
+                            text = "已点亮 $occupiedPlots/${plots.size}",
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                             color = PrimaryGreen
@@ -137,8 +151,23 @@ fun GardenPlotSection(
 
                 Box(
                     modifier = Modifier
+                        .fillMaxWidth()
+                        .height(24.dp)
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    surfaceVariantColor.copy(alpha = 0.42f),
+                                    PrimaryGreen.copy(alpha = 0.10f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
+                Box(
+                    modifier = Modifier
                         .weight(1f)
-                        .padding(top = 18.dp),
+                        .padding(top = 4.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.animation.AnimatedVisibility(
@@ -162,7 +191,10 @@ fun GardenPlotSection(
                             GardenPlotActionBar(
                                 plot = plot,
                                 modifier = Modifier.padding(horizontal = 8.dp),
-                                onActionClick = { onPlotClick(plot) }
+                                onActionClick = {
+                                    actionBarInteractionKey += 1
+                                    onPlotClick(plot)
+                                }
                             )
                         }
                     }
@@ -174,6 +206,21 @@ fun GardenPlotSection(
                         modifier = Modifier
                             .fillMaxSize(0.92f)
                             .padding(top = gridTopInset)
+                            .drawWithContent {
+                                drawContent()
+                                val fadeHeight = 56.dp.toPx().coerceAtMost(size.height)
+                                drawRect(
+                                    brush = Brush.verticalGradient(
+                                        colors = listOf(
+                                            surfaceColor.copy(alpha = 0.88f),
+                                            surfaceColor.copy(alpha = 0.35f),
+                                            Color.Transparent
+                                        ),
+                                        startY = 0f,
+                                        endY = fadeHeight
+                                    )
+                                )
+                            }
                     ) {
                         items(
                             items = plots,
@@ -182,7 +229,10 @@ fun GardenPlotSection(
                             PlantSlot(
                                 plot = plot,
                                 isSelected = plot.plotIndex == selectedPlotIndex,
-                                onClick = { selectedPlotIndex = plot.plotIndex }
+                                onClick = {
+                                    selectedPlotIndex = plot.plotIndex
+                                    actionBarInteractionKey += 1
+                                }
                             )
                         }
                     }
@@ -359,79 +409,97 @@ private fun GardenPlotActionBar(
     onActionClick: () -> Unit
 ) {
     val presentation = remember(plot.plantType, plot.level) { plot.toPresentation() }
+    val surfaceColor = MaterialTheme.colorScheme.surface
     val actionLabel = when {
-        plot.plantType == "empty" -> "播种 -20"
-        plot.level < 2 -> "升级 -10"
-        else -> "已满级"
+        plot.plantType == "empty" -> "播下种子 -20"
+        plot.level < 2 -> "继续培育 -10"
+        else -> "已盛放"
     }
     val actionHint = when {
-        plot.plantType == "empty" -> "将沿用原有播种逻辑，为这块空地种下新的成长记录。"
-        plot.level < 2 -> "点击按钮后才会执行原有浇灌升级，不再因点中地块误触。"
-        else -> "这块地已经达到当前最高阶段，先保留状态展示。"
+        plot.plantType == "empty" -> "这块地还安静地空着，等你放下一颗种子，让今天的成长从这里发芽。"
+        plot.level < 2 -> "它已经在慢慢长大，再照料一次，也许很快就会迎来新的颜色。"
+        else -> "它已经开得很好了，今天不必催促，就让这份盛放多停一会儿。"
     }
     val actionEnabled = plot.plantType == "empty" || plot.level < 2
 
     Surface(
         modifier = modifier.gardenShadow(shape = RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+        color = Color.Transparent,
         tonalElevation = 3.dp,
         shadowElevation = 4.dp
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.horizontalGradient(
+                    Brush.verticalGradient(
                         colors = listOf(
-                            presentation.container.copy(alpha = 0.20f),
-                            MaterialTheme.colorScheme.surface
+                            surfaceColor.copy(alpha = 0.98f),
+                            presentation.container.copy(alpha = 0.16f),
+                            surfaceColor.copy(alpha = 0.60f),
+                            Color.Transparent
                         )
                     )
                 )
-                .padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .drawWithContent {
+                    drawContent()
+                    drawRect(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                surfaceColor.copy(alpha = 0.16f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+                }
         ) {
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = presentation.accent.copy(alpha = 0.14f)
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "${plot.plotIndex + 1}号",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                    color = presentation.accent
-                )
-            }
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = presentation.accent.copy(alpha = 0.14f)
+                ) {
+                    Text(
+                        text = "${plot.plotIndex + 1}号",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        color = presentation.accent
+                    )
+                }
 
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = presentation.label,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = actionHint,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = presentation.label,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = actionHint,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-            Button(
-                onClick = onActionClick,
-                enabled = actionEnabled,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = presentation.accent,
-                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(text = actionLabel)
+                Button(
+                    onClick = onActionClick,
+                    enabled = actionEnabled,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = presentation.accent,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(text = actionLabel)
+                }
             }
         }
     }
@@ -479,7 +547,7 @@ private fun GardenPlotDetailsOverlay(
                     color = PrimaryGreen.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        text = "已激活 $occupiedPlots/$totalPlots",
+                        text = "已点亮 $occupiedPlots/$totalPlots",
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
                         color = PrimaryGreen
@@ -488,7 +556,7 @@ private fun GardenPlotDetailsOverlay(
             }
 
             Text(
-                text = "这里集中收纳花园玩法说明、状态提示和操作代价。默认收起时只保留植物栏主体，避免说明区长期占用视线。",
+                text = "这里是你的学习花园。每一块地都会随着点滴积累慢慢发芽、生长、盛放，轻轻点开看看，就能知道它们正在经历怎样的变化。",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -510,7 +578,7 @@ private fun GardenPlotDetailsOverlay(
                     }
                 )
                 GardenLegendChip(
-                    label = "生长中",
+                    label = "抽芽中",
                     color = PrimaryGreen,
                     icon = {
                         Icon(
@@ -522,7 +590,7 @@ private fun GardenPlotDetailsOverlay(
                     }
                 )
                 GardenLegendChip(
-                    label = "开花期",
+                    label = "盛放时",
                     color = AccentOrange,
                     icon = {
                         Icon(
@@ -536,18 +604,18 @@ private fun GardenPlotDetailsOverlay(
             }
 
             GardenInfoCard(
-                title = "操作引导",
-                body = "点击地块只负责选中并唤起悬浮操作条，真正的播种或升级要在按钮里确认，避免直接点中地块就触发操作。"
+                title = "照料方式",
+                body = "轻点一块地，先看看它此刻的模样；如果你想播种，或想继续陪它长大，再按下按钮，让成长慢慢发生。"
             )
 
             GardenInfoCard(
-                title = "代价说明",
-                body = "空地播种会沿用原有 20 代币消耗，已种植地块继续升级会沿用原有 10 代币消耗；满级地块仅保留状态展示。"
+                title = "成长代价",
+                body = "播下一颗新种子需要 20 代币，继续培育正在生长的地块需要 10 代币；已经盛放的花，可以先静静欣赏。"
             )
 
             GardenInfoCard(
-                title = "HUD 说明",
-                body = "每个地块内部仍保留小型状态 HUD，只负责提示当前阶段；更完整的说明和操作集中在点击后的悬浮条中。"
+                title = "地块低语",
+                body = "每块地都会用一小句提示告诉你它正走到哪一步。若想知道更多，只要轻点它，花园会把答案慢慢说给你听。"
             )
         }
     }
@@ -639,11 +707,11 @@ private fun GardenPlotEntity.toPresentation(): PlotPresentation {
     return when (plantType) {
         "grass" -> PlotPresentation(
             hudLabel = if (level >= 2) "茂盛" else "幼苗",
-            label = if (level >= 2) "草木繁盛" else "生长中",
+            label = if (level >= 2) "枝叶渐盛" else "抽芽中",
             description = if (level >= 2) {
-                "这块地已经积累了不错的成长值，继续互动会向更成熟状态推进。"
+                "这一块绿意已经长得很有精神，像你最近一点点攒下来的稳定进步。"
             } else {
-                "幼苗正在扎根，适合继续浇灌，让学习进度稳定增长。"
+                "它才刚冒出嫩芽，再多照看一次，就会比现在更有生气。"
             },
             container = PrimaryGreen,
             accent = PrimaryGreen
@@ -655,22 +723,22 @@ private fun GardenPlotEntity.toPresentation(): PlotPresentation {
                 else -> "盛放"
             },
             label = when {
-                level <= 0 -> "待发芽"
+                level <= 0 -> "静待发芽"
                 level == 1 -> "含苞待放"
-                else -> "开花期"
+                else -> "花开正盛"
             },
             description = when {
-                level <= 0 -> "花种已经埋下，下一次点击会继续推动它发芽成长。"
-                level == 1 -> "花朵正在积累能量，已经接近完整绽放。"
-                else -> "花朵已经进入高亮阶段，代表这块地的学习表现较成熟。"
+                level <= 0 -> "种子已经安稳睡下，再陪它一会儿，很快就会看见新的动静。"
+                level == 1 -> "它正在悄悄攒着力气，再多一点照料，就会把颜色慢慢打开。"
+                else -> "这朵花已经开得很好，像你这段时间静静累积下来的光亮。"
             },
             container = AccentOrange,
             accent = if (level >= 2) AccentOrange else PrimaryGreen
         )
         else -> PlotPresentation(
             hudLabel = "待播种",
-            label = "空地待播种",
-            description = "这里还是一块空地，点击后可在悬浮操作条中触发原有播种逻辑。",
+            label = "静待播种",
+            description = "这块地还空着，等你种下今天的一点成长，让它从安静里慢慢发芽。",
             container = SecondaryBrown,
             accent = SecondaryBrown
         )
