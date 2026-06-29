@@ -20,6 +20,18 @@ interface EconomyTransactionDao {
     @Query("SELECT * FROM economy_transactions WHERE userId = :userId AND syncStatus = 'PENDING'")
     suspend fun getPendingTransactions(userId: String): List<EconomyTransactionEntity>
 
+    @Query("SELECT * FROM economy_transactions WHERE userId = :userId ORDER BY timestamp ASC")
+    suspend fun getAllTransactionsForUser(userId: String): List<EconomyTransactionEntity>
+
+    @Query("UPDATE economy_transactions SET userId = :userId WHERE userId = ''")
+    suspend fun claimOrphanTransactions(userId: String): Int
+
+    @Query("UPDATE economy_transactions SET id = :newId WHERE id = :oldId")
+    suspend fun updateTransactionId(oldId: String, newId: String)
+
     @Query("UPDATE economy_transactions SET syncStatus = :status, syncedAt = :syncedAt WHERE id = :id")
     suspend fun updateSyncStatus(id: String, status: String, syncedAt: Long?)
+
+    @Query("UPDATE economy_transactions SET syncStatus = 'SYNCED', syncedAt = :syncedAt WHERE userId = :userId")
+    suspend fun markAllSyncedForUser(userId: String, syncedAt: Long)
 }

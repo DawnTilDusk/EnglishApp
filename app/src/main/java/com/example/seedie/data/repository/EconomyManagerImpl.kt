@@ -3,12 +3,10 @@ package com.example.seedie.data.repository
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.entity.EconomyTransactionEntity
 import com.example.seedie.data.remote.AuthService
-import com.example.seedie.data.remote.UserEconomyTransactionDto
-import com.example.seedie.data.sync.SyncManager
-import com.example.seedie.data.sync.SyncScope
+import com.example.seedie.data.remote.EconomyRemoteDataSource
+import com.example.seedie.data.sync.syncer.EconomyTransactionSyncer
+import com.example.seedie.domain.model.BalanceRefreshResult
 import com.example.seedie.domain.repository.EconomyManager
-import io.github.jan.supabase.SupabaseClient
-import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -22,8 +20,8 @@ import javax.inject.Singleton
 class EconomyManagerImpl @Inject constructor(
     private val transactionDao: EconomyTransactionDao,
     private val authService: AuthService,
-    private val syncManager: SyncManager,
-    private val client: SupabaseClient
+    private val economyTransactionSyncer: EconomyTransactionSyncer,
+    private val economyRemote: EconomyRemoteDataSource
 ) : EconomyManager {
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,7 +41,13 @@ class EconomyManagerImpl @Inject constructor(
             reason = reason
         )
         transactionDao.insertTransaction(transaction)
-        syncManager.syncNow(SyncScope.ECONOMY)
+        val result = economyTransactionSyncer.syncAllToCloud(userId)
+        if (result.error != null) {
+            android.util.Log.w(
+                "EconomyManagerImpl",
+                "Token sync failed for user $userId: ${result.error}"
+            )
+        }
     }
 
     override suspend fun spendTokens(amount: Int, item: String): Boolean {
@@ -59,25 +63,34 @@ class EconomyManagerImpl @Inject constructor(
                 reason = "Bought: $item"
             )
             transactionDao.insertTransaction(transaction)
-            syncManager.syncNow(SyncScope.ECONOMY)
+            economyTransactionSyncer.syncAllToCloud(userId)
             return true
         }
         return false
     }
 
-    override suspend fun refreshBalanceFromCloud(): Result<Int> {
+    override suspend fun refreshBalanceFromCloud(): BalanceRefreshResult {
         return try {
             val userId = authService.currentSession.value?.userId
-                ?: return Result.failure(IllegalStateException("Not logged in"))
+                ?: return BalanceRefreshResult(
+                    cloudBalance = 0,
+                    localBalance = 0,
+                    success = false,
+                    errorMessage = "Not logged in"
+                )
 
-            syncManager.syncNow(SyncScope.ECONOMY)
+            val syncResult = economyTransactionSyncer.syncAllToCloud(userId)
+            if (syncResult.error != null) {
+                return BalanceRefreshResult(
+                    cloudBalance = syncResult.cloudBalance,
+                    localBalance = syncResult.localSum,
+                    success = false,
+                    errorMessage = syncResult.error
+                )
+            }
 
-            val cloudRows = client.postgrest["user_economy_transactions"].select {
-                filter { eq("user_id", userId) }
-            }.decodeList<UserEconomyTransactionDto>()
-
-            val cloudBalance = cloudRows.sumOf { it.amount }
-            val localBalance = transactionDao.getTotalTokens(userId).first() ?: 0
+            var cloudBalance = syncResult.cloudBalance
+            var localBalance = transactionDao.getTotalTokens(userId).first() ?: syncResult.localSum
 
             if (cloudBalance > localBalance) {
                 val diff = cloudBalance - localBalance
@@ -92,11 +105,35 @@ class EconomyManagerImpl @Inject constructor(
                         syncedAt = System.currentTimeMillis()
                     )
                 )
+                localBalance = transactionDao.getTotalTokens(userId).first() ?: localBalance
             }
 
-            Result.success(cloudBalance)
+            if (cloudBalance < localBalance) {
+                cloudBalance = economyRemote.reconcileMyTokenBalance(localBalance)
+            }
+
+            if (cloudBalance < localBalance) {
+                return BalanceRefreshResult(
+                    cloudBalance = cloudBalance,
+                    localBalance = localBalance,
+                    success = false,
+                    errorMessage = "代币同步未完成：本地 $localBalance，云端 $cloudBalance。请确认已在 Supabase 执行 008 migration 后重试。"
+                )
+            }
+
+            economyTransactionSyncer.markAllSyncedForUser(userId)
+            BalanceRefreshResult(
+                cloudBalance = cloudBalance,
+                localBalance = localBalance,
+                success = true
+            )
         } catch (e: Exception) {
-            Result.failure(e)
+            BalanceRefreshResult(
+                cloudBalance = 0,
+                localBalance = 0,
+                success = false,
+                errorMessage = e.message ?: e.toString()
+            )
         }
     }
 }

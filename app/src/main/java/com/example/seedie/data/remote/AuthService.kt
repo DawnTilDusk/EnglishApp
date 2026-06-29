@@ -197,6 +197,20 @@ class AuthService @Inject constructor(
         )
     }
 
+    suspend fun refreshBusinessSession(): Result<AuthSession?> {
+        return try {
+            val user = client.auth.currentUserOrNull()
+                ?: return Result.success(null)
+
+            val session = fetchBusinessSession(userId = user.id)
+            _currentSession.value = session
+            Result.success(session)
+        } catch (e: Exception) {
+            android.util.Log.e("AuthService", "refreshBusinessSession failed", e)
+            Result.failure(e)
+        }
+    }
+
     suspend fun logout() {
         try {
             client.auth.signOut()

@@ -30,29 +30,55 @@ class StudentShopViewModel @Inject constructor(
     private val _teacherId = MutableStateFlow<String?>(null)
     val teacherId: StateFlow<String?> = _teacherId.asStateFlow()
 
+    private val _availableTokens = MutableStateFlow(0)
+    val availableTokens: StateFlow<Int> = _availableTokens.asStateFlow()
+
+    private val _localTokens = MutableStateFlow(0)
+    val localTokens: StateFlow<Int> = _localTokens.asStateFlow()
+
+    private val _syncWarning = MutableStateFlow<String?>(null)
+    val syncWarning: StateFlow<String?> = _syncWarning.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
-    val totalTokens = economyManager.totalTokens
-
     init {
-        _teacherId.value = authService.currentSession.value?.teacherId
         refresh()
     }
 
     fun refresh() {
         viewModelScope.launch {
             _isLoading.value = true
-            _teacherId.value = authService.currentSession.value?.teacherId
+            _syncWarning.value = null
+
+            authService.refreshBusinessSession()
+                .onSuccess { session -> _teacherId.value = session?.teacherId }
+                .onFailure { e -> _message.value = e.message }
+
             val teacherId = _teacherId.value
             if (teacherId == null) {
                 _products.value = emptyList()
+                _availableTokens.value = 0
+                _localTokens.value = 0
             } else {
                 try {
-                    economyManager.refreshBalanceFromCloud()
+                    val balanceResult = economyManager.refreshBalanceFromCloud()
+                    _availableTokens.value = balanceResult.cloudBalance
+                    _localTokens.value = balanceResult.localBalance
+
+                    if (balanceResult.success) {
+                        _syncWarning.value = null
+                    } else {
+                        _message.value = balanceResult.errorMessage ?: "代币同步失败"
+                        if (balanceResult.localBalance > balanceResult.cloudBalance) {
+                            _syncWarning.value =
+                                "本地 ${balanceResult.localBalance} 代币，云端 ${balanceResult.cloudBalance}，请先同步"
+                        }
+                    }
+
                     _products.value = shopRepository.fetchTeacherProducts(teacherId)
                     _orders.value = shopRepository.fetchMyOrdersAsStudent()
                 } catch (e: Exception) {

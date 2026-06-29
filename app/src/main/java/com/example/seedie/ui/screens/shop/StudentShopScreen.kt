@@ -36,7 +36,9 @@ fun StudentShopScreen(
 ) {
     val products by viewModel.products.collectAsState()
     val teacherId by viewModel.teacherId.collectAsState()
-    val totalTokens by viewModel.totalTokens.collectAsState(initial = 0)
+    val availableTokens by viewModel.availableTokens.collectAsState()
+    val localTokens by viewModel.localTokens.collectAsState()
+    val syncWarning by viewModel.syncWarning.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val message by viewModel.message.collectAsState()
 
@@ -92,7 +94,28 @@ fun StudentShopScreen(
                 text = "教师商城",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
-            Text(text = "我的代币：$totalTokens")
+            Text(text = "我的代币：$availableTokens")
+            if (localTokens != availableTokens) {
+                Text(
+                    text = "本地记录：$localTokens",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            syncWarning?.let { warning ->
+                Text(
+                    text = warning,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+            OutlinedButton(
+                onClick = { viewModel.refresh() },
+                enabled = !isLoading,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Text(if (isLoading) "同步中…" else "同步代币")
+            }
         }
 
         when {
@@ -118,15 +141,22 @@ fun StudentShopScreen(
                             product.description?.let { Text(text = it) }
                             Text(text = "${product.priceTokens} 代币")
                             val outOfStock = product.stock == 0
+                            val canAfford = availableTokens >= product.priceTokens
                             Button(
                                 onClick = {
                                     confirmProductId = product.id
                                     confirmProductName = product.name
                                     confirmPrice = product.priceTokens
                                 },
-                                enabled = !outOfStock && totalTokens >= product.priceTokens
+                                enabled = !outOfStock && canAfford
                             ) {
-                                Text(if (outOfStock) "已售罄" else "购买")
+                                Text(
+                                    when {
+                                        outOfStock -> "已售罄"
+                                        !canAfford -> "代币不足（需 ${product.priceTokens}）"
+                                        else -> "购买"
+                                    }
+                                )
                             }
                         }
                     }

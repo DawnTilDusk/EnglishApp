@@ -12,6 +12,9 @@
 3. [`supabase/migrations/003_teacher_shop_rpc.sql`](../supabase/migrations/003_teacher_shop_rpc.sql)
 4. [`supabase/migrations/004_verify_teacher_setup.sql`](../supabase/migrations/004_verify_teacher_setup.sql)（验证用，可选）
 5. [`supabase/migrations/005_fix_teacher_account.sql`](../supabase/migrations/005_fix_teacher_account.sql)（修复教师账号 role 一致性）
+6. [`supabase/migrations/006_economy_sync_rpc.sql`](../supabase/migrations/006_economy_sync_rpc.sql)（代币云端同步 RPC，**商城购买必需**）
+7. [`supabase/migrations/007_sync_economy_batch_rpc.sql`](../supabase/migrations/007_sync_economy_batch_rpc.sql)（批量补同步本地代币，**修复本地有币云端为 0**）
+8. [`supabase/migrations/008_reconcile_token_balance.sql`](../supabase/migrations/008_reconcile_token_balance.sql)（差额补齐，**修复本地 96 云端 36 等部分同步**）
 
 若从未部署基础 schema，需先运行 `supabase/migrations/` 下原有 7 个文件。
 
@@ -57,8 +60,8 @@ VALUES ('<teacher_uuid>', '文具套装', '测试商品', 50, 10, true);
 | 步骤 | 操作 | 预期 |
 |------|------|------|
 | 1 | 学生登录 → 学习赚代币 | 本地 Room 有交易记录 |
-| 2 | 联网 sync | `user_economy_transactions` 有正向记录 |
-| 3 | 学生 → 我的 → 教师商城 → 购买 | `shop_orders.status = pending` |
+| 2 | 联网 sync | `user_economy_transactions` 有正向记录（需已执行 006、007、008 migration） |
+| 3 | 学生 → 我的 → 教师商城 → 同步代币 → 购买 | `shop_orders.status = pending` |
 | 4 | 教师登录 → 商城 → 批准/拒绝 | 状态变更；拒绝时退款 |
 
 ## 6. 日常运维
@@ -84,5 +87,6 @@ WHERE p.email = '<teacher_email>';
 ## 7. 注意事项
 
 - 学生未绑定 `teacher_id` 时，App 商城入口会提示无法购物。
-- 购买需联网，走 RPC 原子扣款。
+- 购买需联网，走 RPC 原子扣款；进入商城时会自动将本地代币补同步到云端。
+- 若个人资料显示代币但商城显示不足，请点击商城内「同步代币」按钮。
 - legacy 表 `rewards` / `redemptions` 本次不使用，商城数据在 `shop_products` / `shop_orders`。
