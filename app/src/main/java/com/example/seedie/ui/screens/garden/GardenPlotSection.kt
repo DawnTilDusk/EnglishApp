@@ -1,5 +1,6 @@
 package com.example.seedie.ui.screens.garden
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -21,7 +22,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -41,8 +41,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -50,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -63,7 +60,6 @@ import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
 import com.example.seedie.ui.theme.gardenShadow
-import kotlinx.coroutines.delay
 
 @Composable
 fun GardenPlotSection(
@@ -72,11 +68,8 @@ fun GardenPlotSection(
     onPlotClick: (GardenPlotEntity) -> Unit = {}
 ) {
     val cardShape = RoundedCornerShape(28.dp)
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
     var selectedPlotIndex by rememberSaveable { mutableStateOf<Int?>(null) }
-    var actionBarInteractionKey by remember { mutableIntStateOf(0) }
     val selectedPlot = plots.firstOrNull { it.plotIndex == selectedPlotIndex }
     val occupiedPlots = plots.count { it.plantType != "empty" }
     val gridTopInset by animateDpAsState(
@@ -84,19 +77,12 @@ fun GardenPlotSection(
         label = "gardenGridTopInset"
     )
 
-    LaunchedEffect(selectedPlotIndex, actionBarInteractionKey) {
-        if (selectedPlotIndex != null) {
-            delay(5000)
-            selectedPlotIndex = null
-        }
-    }
-
     Surface(
         modifier = modifier
             .fillMaxSize()
             .gardenShadow(shape = cardShape),
         shape = cardShape,
-        color = surfaceColor
+        color = MaterialTheme.colorScheme.surface
     ) {
         Box(
             modifier = Modifier
@@ -104,9 +90,9 @@ fun GardenPlotSection(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            surfaceVariantColor.copy(alpha = 0.30f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f),
                             PrimaryGreen.copy(alpha = 0.06f),
-                            surfaceColor
+                            MaterialTheme.colorScheme.surface
                         )
                     )
                 )
@@ -151,23 +137,8 @@ fun GardenPlotSection(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(24.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    surfaceVariantColor.copy(alpha = 0.42f),
-                                    PrimaryGreen.copy(alpha = 0.10f),
-                                    Color.Transparent
-                                )
-                            )
-                        )
-                )
-
-                Box(
-                    modifier = Modifier
                         .weight(1f)
-                        .padding(top = 4.dp),
+                        .padding(top = 18.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     androidx.compose.animation.AnimatedVisibility(
@@ -191,10 +162,7 @@ fun GardenPlotSection(
                             GardenPlotActionBar(
                                 plot = plot,
                                 modifier = Modifier.padding(horizontal = 8.dp),
-                                onActionClick = {
-                                    actionBarInteractionKey += 1
-                                    onPlotClick(plot)
-                                }
+                                onActionClick = { onPlotClick(plot) }
                             )
                         }
                     }
@@ -206,21 +174,6 @@ fun GardenPlotSection(
                         modifier = Modifier
                             .fillMaxSize(0.92f)
                             .padding(top = gridTopInset)
-                            .drawWithContent {
-                                drawContent()
-                                val fadeHeight = 56.dp.toPx().coerceAtMost(size.height)
-                                drawRect(
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            surfaceColor.copy(alpha = 0.88f),
-                                            surfaceColor.copy(alpha = 0.35f),
-                                            Color.Transparent
-                                        ),
-                                        startY = 0f,
-                                        endY = fadeHeight
-                                    )
-                                )
-                            }
                     ) {
                         items(
                             items = plots,
@@ -229,10 +182,7 @@ fun GardenPlotSection(
                             PlantSlot(
                                 plot = plot,
                                 isSelected = plot.plotIndex == selectedPlotIndex,
-                                onClick = {
-                                    selectedPlotIndex = plot.plotIndex
-                                    actionBarInteractionKey += 1
-                                }
+                                onClick = { selectedPlotIndex = plot.plotIndex }
                             )
                         }
                     }
@@ -409,7 +359,6 @@ private fun GardenPlotActionBar(
     onActionClick: () -> Unit
 ) {
     val presentation = remember(plot.plantType, plot.level) { plot.toPresentation() }
-    val surfaceColor = MaterialTheme.colorScheme.surface
     val actionLabel = when {
         plot.plantType == "empty" -> "播下种子 -20"
         plot.level < 2 -> "继续培育 -10"
@@ -425,81 +374,64 @@ private fun GardenPlotActionBar(
     Surface(
         modifier = modifier.gardenShadow(shape = RoundedCornerShape(24.dp)),
         shape = RoundedCornerShape(24.dp),
-        color = Color.Transparent,
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
         tonalElevation = 3.dp,
         shadowElevation = 4.dp
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(
+                    Brush.horizontalGradient(
                         colors = listOf(
-                            surfaceColor.copy(alpha = 0.98f),
-                            presentation.container.copy(alpha = 0.16f),
-                            surfaceColor.copy(alpha = 0.60f),
-                            Color.Transparent
+                            presentation.container.copy(alpha = 0.20f),
+                            MaterialTheme.colorScheme.surface
                         )
                     )
                 )
-                .drawWithContent {
-                    drawContent()
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                Color.Transparent,
-                                surfaceColor.copy(alpha = 0.16f),
-                                Color.Transparent
-                            )
-                        )
-                    )
-                }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Surface(
+                shape = RoundedCornerShape(999.dp),
+                color = presentation.accent.copy(alpha = 0.14f)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = presentation.accent.copy(alpha = 0.14f)
-                ) {
-                    Text(
-                        text = "${plot.plotIndex + 1}号",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                        color = presentation.accent
-                    )
-                }
+                Text(
+                    text = "${plot.plotIndex + 1}号",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    color = presentation.accent
+                )
+            }
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Text(
-                        text = presentation.label,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = actionHint,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = presentation.label,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = actionHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
 
-                Button(
-                    onClick = onActionClick,
-                    enabled = actionEnabled,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = presentation.accent,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                ) {
-                    Text(text = actionLabel)
-                }
+            Button(
+                onClick = onActionClick,
+                enabled = actionEnabled,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = presentation.accent,
+                    disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(text = actionLabel)
             }
         }
     }
