@@ -7,9 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -20,30 +18,27 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -59,13 +54,13 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.seedie.ui.theme.AccentOrange
@@ -104,14 +99,9 @@ private enum class TrendRangeOption(val label: String) {
     ThisYear("本年度")
 }
 
-private enum class TrendMetricOption(
-    val label: String,
-    val lineLegend: String,
-    val areaLegend: String,
-    val headlineLabel: String
-) {
-    Cumulative("累计掌握", "累计掌握", "掌握走势", "累计掌握"),
-    Growth("增长区间", "增长区间", "阶段波动", "本期增长")
+private enum class TrendMetricOption(val label: String) {
+    Cumulative("累计掌握"),
+    Growth("增长区间")
 }
 
 private enum class TrendFilterMenuType {
@@ -137,12 +127,12 @@ fun StatsPanelSection(
     var selectedRange by remember { mutableStateOf(TrendRangeOption.Last7Days) }
     var selectedMetric by remember { mutableStateOf(TrendMetricOption.Cumulative) }
     var expandedMenu by remember { mutableStateOf<TrendFilterMenuType?>(null) }
-    var trendRefreshKey by remember { mutableStateOf(0) }
+    var trendRefreshKey by remember { mutableIntStateOf(0) }
     val trendSeries = remember(selectedRange, selectedMetric) {
         trendCatalog.getValue(selectedRange to selectedMetric)
     }
     var selectedTrendIndex by remember(trendSeries.points) {
-        mutableStateOf(trendSeries.points.lastIndex.coerceAtLeast(0))
+        mutableIntStateOf(trendSeries.points.lastIndex.coerceAtLeast(0))
     }
 
     LaunchedEffect(trendReplayKey) {
@@ -257,12 +247,11 @@ private fun DonutFocusCard(
                     slices = slices,
                     selectedIndex = selectedIndex,
                     totalMinutes = totalMinutes,
-                    onSliceSelected = onSelectionChange,
-                    showSupportingText = false
+                    onSliceSelected = onSelectionChange
                 )
             }
 
-            androidx.compose.animation.AnimatedVisibility(
+            AnimatedVisibility(
                 visible = detailsExpanded,
                 modifier = Modifier.fillMaxSize(),
                 enter = fadeIn(animationSpec = tween(220)) +
@@ -363,13 +352,19 @@ private fun TrendFocusCard(
 ) {
     val cardShape = RoundedCornerShape(28.dp)
     val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+    val density = LocalDensity.current
+    var cardRootPosition by remember { mutableStateOf(Offset.Zero) }
+    var rangeMenuAnchor by remember { mutableStateOf(IntOffset.Zero) }
+    var metricMenuAnchor by remember { mutableStateOf(IntOffset.Zero) }
+    var rangeMenuWidth by remember { mutableIntStateOf(0) }
+    var metricMenuWidth by remember { mutableIntStateOf(0) }
 
     Surface(
         modifier = modifier.gardenShadow(shape = cardShape),
         shape = cardShape,
         color = MaterialTheme.colorScheme.surface
     ) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
@@ -387,9 +382,10 @@ private fun TrendFocusCard(
                     shape = cardShape
                 )
                 .padding(24.dp)
+                .onGloballyPositioned { coordinates ->
+                    cardRootPosition = coordinates.positionInRoot()
+                }
         ) {
-            val menuMaxHeight = maxHeight * 0.48f
-
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -411,25 +407,23 @@ private fun TrendFocusCard(
                     ) {
                         TrendFilterMenuButton(
                             label = selectedRange.label,
-                            options = TrendRangeOption.entries,
-                            selectedOption = selectedRange,
                             expanded = expandedMenu == TrendFilterMenuType.Range,
-                            maxMenuHeight = menuMaxHeight,
-                            optionLabel = { it.label },
-                            onToggle = { onMenuToggle(TrendFilterMenuType.Range) },
-                            onSelect = onRangeSelect,
-                            onDismiss = onMenuDismiss
+                            rootPosition = cardRootPosition,
+                            onAnchorMeasured = { anchor, width ->
+                                rangeMenuAnchor = anchor
+                                rangeMenuWidth = width
+                            },
+                            onToggle = { onMenuToggle(TrendFilterMenuType.Range) }
                         )
                         TrendFilterMenuButton(
                             label = selectedMetric.label,
-                            options = TrendMetricOption.entries,
-                            selectedOption = selectedMetric,
                             expanded = expandedMenu == TrendFilterMenuType.Metric,
-                            maxMenuHeight = menuMaxHeight,
-                            optionLabel = { it.label },
-                            onToggle = { onMenuToggle(TrendFilterMenuType.Metric) },
-                            onSelect = onMetricSelect,
-                            onDismiss = onMenuDismiss
+                            rootPosition = cardRootPosition,
+                            onAnchorMeasured = { anchor, width ->
+                                metricMenuAnchor = anchor
+                                metricMenuWidth = width
+                            },
+                            onToggle = { onMenuToggle(TrendFilterMenuType.Metric) }
                         )
                     }
                 }
@@ -445,27 +439,58 @@ private fun TrendFocusCard(
                     onSelectionChange = onSelectionChange
                 )
             }
+
+            when (expandedMenu) {
+                TrendFilterMenuType.Range -> {
+                    TrendFilterOverlay(
+                        modifier = Modifier
+                            .offset { rangeMenuAnchor }
+                            .width(with(density) { rangeMenuWidth.toDp() })
+                            .zIndex(3f),
+                        options = TrendRangeOption.entries,
+                        selectedOption = selectedRange,
+                        optionLabel = { it.label },
+                        onSelect = {
+                            onRangeSelect(it)
+                            onMenuDismiss()
+                        }
+                    )
+                }
+
+                TrendFilterMenuType.Metric -> {
+                    TrendFilterOverlay(
+                        modifier = Modifier
+                            .offset { metricMenuAnchor }
+                            .width(with(density) { metricMenuWidth.toDp() })
+                            .zIndex(3f),
+                        options = TrendMetricOption.entries,
+                        selectedOption = selectedMetric,
+                        optionLabel = { it.label },
+                        onSelect = {
+                            onMetricSelect(it)
+                            onMenuDismiss()
+                        }
+                    )
+                }
+
+                null -> Unit
+            }
         }
     }
 }
 
 @Composable
-private fun <T> TrendFilterMenuButton(
+private fun TrendFilterMenuButton(
     label: String,
-    options: List<T>,
-    selectedOption: T,
     expanded: Boolean,
-    maxMenuHeight: androidx.compose.ui.unit.Dp,
-    optionLabel: (T) -> String,
-    onToggle: () -> Unit,
-    onSelect: (T) -> Unit,
-    onDismiss: () -> Unit
+    rootPosition: Offset,
+    onAnchorMeasured: (IntOffset, Int) -> Unit,
+    onToggle: () -> Unit
 ) {
     val density = LocalDensity.current
-    var buttonWidth by remember { mutableStateOf(0.dp) }
     val buttonShape = RoundedCornerShape(16.dp)
     val buttonContainerColor = AccentOrange.copy(alpha = if (expanded) 0.18f else 0.10f)
-    val selectedRowColor = AccentOrange.copy(alpha = 0.12f)
+    val dropdownGapPx = with(density) { 8.dp.roundToPx() }
 
     Box(
         modifier = Modifier.zIndex(if (expanded) 2f else 0f),
@@ -475,8 +500,15 @@ private fun <T> TrendFilterMenuButton(
             modifier = Modifier
                 .clip(buttonShape)
                 .clickable(onClick = onToggle)
-                .onSizeChanged {
-                    buttonWidth = with(density) { it.width.toDp() }
+                .onGloballyPositioned { coordinates ->
+                    val position = coordinates.positionInRoot()
+                    onAnchorMeasured(
+                        IntOffset(
+                            x = (position.x - rootPosition.x).roundToInt(),
+                            y = (position.y - rootPosition.y).roundToInt() + coordinates.size.height + dropdownGapPx
+                        ),
+                        coordinates.size.width
+                    )
                 },
             shape = buttonShape,
             color = buttonContainerColor
@@ -504,176 +536,60 @@ private fun <T> TrendFilterMenuButton(
                 )
             }
         }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismiss,
-            offset = DpOffset(x = 0.dp, y = 8.dp),
-            modifier = Modifier
-                .width(buttonWidth)
-                .heightIn(max = maxMenuHeight)
-        ) {
-            Column(
-                modifier = Modifier.padding(vertical = 8.dp)
-            ) {
-                options.forEach { option ->
-                    val selected = option == selectedOption
-                    val interactionSource = remember { MutableInteractionSource() }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(if (selected) selectedRowColor else Color.Transparent)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null
-                            ) {
-                                onSelect(option)
-                                onDismiss()
-                            }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = optionLabel(option),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-                            ),
-                            color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
+    }
+}
+
+@Composable
+private fun <T> TrendFilterOverlay(
+    modifier: Modifier = Modifier,
+    options: List<T>,
+    selectedOption: T,
+    optionLabel: (T) -> String,
+    onSelect: (T) -> Unit
+) {
+    val selectedRowColor = AccentOrange.copy(alpha = 0.12f)
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 3.dp,
+        shadowElevation = 6.dp
+    ) {
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            options.forEach { option ->
+                val selected = option == selectedOption
+                val interactionSource = remember { MutableInteractionSource() }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(if (selected) selectedRowColor else Color.Transparent)
+                        .clickable(
+                            interactionSource = interactionSource,
+                            indication = null
+                        ) { onSelect(option) }
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = optionLabel(option),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                        ),
+                        color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
+                    )
+                    if (selected) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(AccentOrange)
                         )
-                        if (selected) {
-                            Box(
-                                modifier = Modifier
-                                    .size(8.dp)
-                                    .clip(CircleShape)
-                                    .background(AccentOrange)
-                            )
-                        }
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun StatsCard(
-    modifier: Modifier = Modifier,
-    eyebrow: String,
-    title: String,
-    description: String,
-    accentColor: Color,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    val cardShape = RoundedCornerShape(28.dp)
-    Surface(
-        modifier = modifier.gardenShadow(shape = cardShape),
-        shape = cardShape,
-        color = MaterialTheme.colorScheme.surface
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
-                            accentColor.copy(alpha = 0.08f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = accentColor.copy(alpha = 0.10f),
-                    shape = cardShape
-                )
-                .padding(24.dp)
-        ) {
-            SectionPill(label = eyebrow, accentColor = accentColor)
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun SectionPill(label: String, accentColor: Color) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = accentColor.copy(alpha = 0.12f)
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-            color = accentColor
-        )
-    }
-}
-
-@Composable
-private fun DonutChartSection(
-    modifier: Modifier = Modifier,
-    slices: List<DonutSliceData>,
-    selectedIndex: Int?,
-    onSelectionChange: (Int) -> Unit
-) {
-    val totalMinutes = remember(slices) { slices.sumOf { it.minutes } }
-    val selectedSlice = selectedIndex?.let(slices::get)
-
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        DonutChart(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            slices = slices,
-            selectedIndex = selectedIndex,
-            totalMinutes = totalMinutes,
-            onSliceSelected = onSelectionChange
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            slices.forEachIndexed { index, slice ->
-                val selected = index == selectedIndex
-                val percent = ((slice.minutes / totalMinutes.toFloat()) * 100).roundToInt()
-                LegendRow(
-                    label = slice.label,
-                    supporting = "${slice.minutes} 分钟 · $percent%",
-                    color = slice.color,
-                    selected = selected
-                ) { onSelectionChange(index) }
-            }
-        }
-
-        Surface(
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-        ) {
-            val footerText = selectedSlice?.let {
-                "${it.label} 当前占比最高关注 ${it.supporting}"
-            } ?: "总计 $totalMinutes 分钟，点击图例可切换中心说明。"
-            Text(
-                text = footerText,
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -684,25 +600,18 @@ private fun DonutChart(
     slices: List<DonutSliceData>,
     selectedIndex: Int?,
     totalMinutes: Int,
-    onSliceSelected: (Int) -> Unit,
-    showSupportingText: Boolean = true
+    onSliceSelected: (Int) -> Unit
 ) {
-    var animationPlayed by remember { mutableStateOf(false) }
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
     val colorScheme = MaterialTheme.colorScheme
     val trackColor = colorScheme.surfaceVariant.copy(alpha = 0.32f)
     val centerSurfaceColor = colorScheme.surface.copy(alpha = 0.98f)
     val onSurface = colorScheme.onSurface
-    val onSurfaceVariant = colorScheme.onSurfaceVariant
     val progress by animateFloatAsState(
-        targetValue = if (animationPlayed) 1f else 0f,
+        targetValue = 1f,
         animationSpec = tween(durationMillis = 1100),
         label = "DonutChartProgress"
     )
-
-    LaunchedEffect(Unit) {
-        animationPlayed = true
-    }
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(
@@ -773,11 +682,6 @@ private fun DonutChart(
                 Crossfade(targetState = selectedIndex, label = "DonutCenterText") { currentIndex ->
                     val headline = currentIndex?.let { "${slices[it].minutes}m" } ?: "${totalMinutes}m"
                     val title = currentIndex?.let { slices[it].label } ?: "今日总时长"
-                    val supporting = if (showSupportingText) {
-                        currentIndex?.let { slices[it].supporting } ?: "轻触环形图查看细分"
-                    } else {
-                        null
-                    }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = headline,
@@ -790,15 +694,6 @@ private fun DonutChart(
                             style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = onSurface
                         )
-                        if (supporting != null) {
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = supporting,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
                     }
                 }
             }
@@ -873,8 +768,7 @@ private fun LineChartSection(
     refreshKey: Int,
     onSelectionChange: (Int) -> Unit
 ) {
-    var chartSize by remember { mutableStateOf(IntSize.Zero) }
-    var tooltipVisible by remember { mutableStateOf(false) }
+    val chartSizeState = remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
     val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
     val tooltipHorizontalOffset = with(density) { 44.dp.toPx() }
@@ -884,18 +778,16 @@ private fun LineChartSection(
     val bottomPaddingPx = with(density) { 12.dp.toPx() }
     val selectedPoint = points[safeSelectedIndex]
     val selectedPointOffset = rememberSelectedTrendOffset(
-        chartSize = chartSize,
+        chartSize = chartSizeState.value,
         points = points,
         selectedIndex = safeSelectedIndex,
         horizontalPadding = horizontalPaddingPx,
         topPadding = topPaddingPx,
         bottomPadding = bottomPaddingPx
     )
-
-    LaunchedEffect(refreshKey) {
-        tooltipVisible = false
+    val tooltipVisible by produceState(initialValue = false, key1 = refreshKey) {
         delay(720)
-        tooltipVisible = true
+        value = true
     }
 
     Column(
@@ -910,7 +802,7 @@ private fun LineChartSection(
             LineChart(
                 modifier = Modifier
                     .fillMaxSize()
-                    .onSizeChanged { chartSize = it },
+                    .onSizeChanged { chartSizeState.value = it },
                 points = points,
                 selectedIndex = safeSelectedIndex,
                 refreshKey = refreshKey,
@@ -973,54 +865,6 @@ private fun LineChartSection(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun MiniLegendChip(label: String, tint: Color, filled: Boolean) {
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = if (filled) tint.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surface
-    ) {
-        Row(
-            modifier = Modifier
-                .border(
-                    width = 1.dp,
-                    color = tint.copy(alpha = if (filled) 0f else 0.16f),
-                    shape = RoundedCornerShape(999.dp)
-                )
-                .padding(horizontal = 10.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (filled) {
-                Box(
-                    modifier = Modifier
-                        .size(width = 14.dp, height = 8.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    tint.copy(alpha = 0.34f),
-                                    tint.copy(alpha = 0.08f)
-                                )
-                            ),
-                            shape = RoundedCornerShape(999.dp)
-                        )
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .width(14.dp)
-                        .height(2.dp)
-                        .background(tint, RoundedCornerShape(999.dp))
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -1386,26 +1230,6 @@ private fun buildTrendSeriesCatalog(): Map<Pair<TrendRangeOption, TrendMetricOpt
             put(range to TrendMetricOption.Growth, TrendSeriesData(growth.getValue(range)))
         }
     }
-}
-
-private fun buildTrendChangeSummary(
-    points: List<TrendPointData>,
-    selectedIndex: Int,
-    metric: TrendMetricOption
-): String {
-    if (points.isEmpty() || selectedIndex !in points.indices) return ""
-    val current = points[selectedIndex].value
-    val previous = points.getOrNull(selectedIndex - 1)?.value
-    if (previous == null) {
-        return if (metric == TrendMetricOption.Cumulative) "当前区间起点" else "当前区间初次增长"
-    }
-    val delta = current - previous
-    val direction = when {
-        delta > 0 -> "较上一点 +$delta"
-        delta < 0 -> "较上一点 $delta"
-        else -> "较上一点持平"
-    }
-    return direction
 }
 
 private fun formatTrendValue(metric: TrendMetricOption, value: Int): String {
