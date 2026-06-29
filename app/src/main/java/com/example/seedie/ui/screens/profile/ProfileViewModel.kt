@@ -2,6 +2,7 @@ package com.example.seedie.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.data.remote.AuthService
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.UserSessionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -9,12 +10,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     economyManager: EconomyManager,
-    userSessionRepository: UserSessionRepository
+    userSessionRepository: UserSessionRepository,
+    private val authService: AuthService
 ) : ViewModel() {
 
     val totalTokens: StateFlow<Int> = economyManager.totalTokens
@@ -58,4 +61,10 @@ class ProfileViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    fun logout() {
+        viewModelScope.launch {
+            authService.logout()
+        }
+    }
 }
