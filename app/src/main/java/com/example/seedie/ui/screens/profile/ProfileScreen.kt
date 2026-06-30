@@ -16,8 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
@@ -38,7 +38,7 @@ fun ProfileScreen(
     val badges by viewModel.badges.collectAsState()
     val profileEditorUiState by viewModel.profileEditorUiState.collectAsState()
     val message by viewModel.message.collectAsState()
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    val showLogoutDialogState: MutableState<Boolean> = remember { mutableStateOf(false) }
 
     LaunchedEffect(message) {
         message?.let {
@@ -48,12 +48,12 @@ fun ProfileScreen(
     }
 
     LogoutConfirmDialog(
-        visible = showLogoutDialog,
+        visible = showLogoutDialogState.value,
         onConfirm = {
-            showLogoutDialog = false
+            showLogoutDialogState.value = false
             viewModel.logout()
         },
-        onDismiss = { showLogoutDialog = false }
+        onDismiss = { showLogoutDialogState.value = false }
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -70,7 +70,7 @@ fun ProfileScreen(
                 onProfileActionClick = { label ->
                     Toast.makeText(context, "$label 功能暂未开放", Toast.LENGTH_SHORT).show()
                 },
-                onLogoutClick = { showLogoutDialog = true }
+                onLogoutClick = { showLogoutDialogState.value = true }
             )
 
             AssetGallerySection(
