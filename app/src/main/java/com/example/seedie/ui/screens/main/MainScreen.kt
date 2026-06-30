@@ -20,7 +20,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import com.example.seedie.ui.components.BottomNavigationBar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -65,7 +64,6 @@ fun MainScreen(
     val vocabularyEntryState by viewModel.vocabularyEntryState.collectAsState()
     var showReviewChoiceDialog by remember { mutableStateOf(false) }
     var dataGardenEnterKey by remember { mutableStateOf(0) }
-    var isProfileOverlayVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(pendingStudyResult) {
         pendingStudyResult?.let { result ->
@@ -167,25 +165,14 @@ fun MainScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            Box {
-                Column(
-                    modifier = Modifier.alpha(if (isProfileOverlayVisible) 0.72f else 1f)
+            Column {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CustomIndicatorPanel(pagerState = pagerState)
-                    }
-                    BottomNavigationBar(pagerState = pagerState)
+                    CustomIndicatorPanel(pagerState = pagerState)
                 }
-                if (isProfileOverlayVisible) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.22f))
-                    )
-                }
+                BottomNavigationBar(pagerState = pagerState)
             }
         }
     ) { innerPadding ->
@@ -240,10 +227,7 @@ fun MainScreen(
                     snackbarHostState = snackbarHostState
                 ) // Tab 2: Learning Hub
                 2 -> DataGardenScreen(trendReplayKey = dataGardenEnterKey) // Tab 3: Data & Garden
-                3 -> ProfileScreen(
-                    onOpenShop = onOpenShop,
-                    onEditOverlayVisibilityChanged = { isProfileOverlayVisible = it }
-                )
+                3 -> ProfileScreen(onOpenShop = onOpenShop)
                 else -> {
                     // Placeholder for other Tabs
                     Box(

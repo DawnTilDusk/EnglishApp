@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.seedie.ui.theme.gardenShadow
+import com.example.seedie.ui.components.TabSectionSurface
 
 @Composable
 fun StudyModuleCard(
@@ -30,13 +30,10 @@ fun StudyModuleCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Surface(
+    TabSectionSurface(
         modifier = modifier
             .fillMaxWidth()
-            .gardenShadow()
-            .clickable { onClick() },
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface
+            .clickable { onClick() }
     ) {
         Box(modifier = Modifier.padding(24.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {

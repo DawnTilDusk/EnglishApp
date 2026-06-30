@@ -30,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.example.seedie.data.local.entity.DailyTaskEntity
-import com.example.seedie.ui.theme.gardenShadow
+import com.example.seedie.ui.components.TabSectionSurface
 
 @Composable
 fun DailyMissionSection(
@@ -42,15 +42,13 @@ fun DailyMissionSection(
     ),
     onTaskClick: (DailyTaskEntity) -> Unit = {}
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .gardenShadow(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface
+    TabSectionSurface(
+        modifier = modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Title Layer

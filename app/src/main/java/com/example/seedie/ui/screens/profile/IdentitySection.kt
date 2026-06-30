@@ -57,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.seedie.domain.profile.ProfileGradeOptions
+import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.gardenShadow
 
 private data class ProfileInfoItem(
@@ -96,12 +97,8 @@ fun IdentitySection(
         )
     }
 
-    Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .gardenShadow(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface
+    TabSectionSurface(
+        modifier = modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier

@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
@@ -203,29 +204,11 @@ private fun DonutFocusCard(
     val selectedSlice = selectedIndex?.let(slices::get)
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
 
-    Surface(
-        modifier = modifier.gardenShadow(shape = cardShape),
+    TabSectionSurface(
+        modifier = modifier,
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface
+        accentColor = PrimaryGreen
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
-                            PrimaryGreen.copy(alpha = 0.08f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = PrimaryGreen.copy(alpha = 0.10f),
-                    shape = cardShape
-                )
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -331,7 +314,6 @@ private fun DonutFocusCard(
                     }
                 }
             }
-        }
     }
 }
 
@@ -359,28 +341,14 @@ private fun TrendFocusCard(
     var rangeMenuWidth by remember { mutableIntStateOf(0) }
     var metricMenuWidth by remember { mutableIntStateOf(0) }
 
-    Surface(
-        modifier = modifier.gardenShadow(shape = cardShape),
+    TabSectionSurface(
+        modifier = modifier,
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface
+        accentColor = AccentOrange
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.32f),
-                            AccentOrange.copy(alpha = 0.08f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = AccentOrange.copy(alpha = 0.10f),
-                    shape = cardShape
-                )
                 .padding(24.dp)
                 .onGloballyPositioned { coordinates ->
                     cardRootPosition = coordinates.positionInRoot()

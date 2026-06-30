@@ -25,10 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
-import com.example.seedie.ui.theme.gardenShadow
+import com.example.seedie.ui.components.TabSectionSurface
 
 @Composable
 fun AssetGallerySection(
@@ -37,15 +37,13 @@ fun AssetGallerySection(
     badges: List<BadgeConfig> = emptyList(),
     onOpenShop: () -> Unit = {}
 ) {
-    Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .gardenShadow(),
-        shape = MaterialTheme.shapes.large,
-        color = MaterialTheme.colorScheme.surface
+    TabSectionSurface(
+        modifier = modifier.fillMaxSize()
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Top: Tokens Balance

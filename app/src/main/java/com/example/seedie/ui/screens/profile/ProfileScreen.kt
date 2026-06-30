@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
@@ -19,17 +20,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.seedie.ui.components.LogoutConfirmDialog
 
 @Composable
 fun ProfileScreen(
     onOpenShop: () -> Unit,
-    onEditOverlayVisibilityChanged: (Boolean) -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -46,10 +47,6 @@ fun ProfileScreen(
         }
     }
 
-    LaunchedEffect(profileEditorUiState.isEditOverlayVisible) {
-        onEditOverlayVisibilityChanged(profileEditorUiState.isEditOverlayVisible)
-    }
-
     LogoutConfirmDialog(
         visible = showLogoutDialog,
         onConfirm = {
@@ -63,7 +60,6 @@ fun ProfileScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(if (profileEditorUiState.isEditOverlayVisible) 0.82f else 1f)
                 .padding(24.dp),
             horizontalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -87,29 +83,44 @@ fun ProfileScreen(
 
         if (profileEditorUiState.isEditOverlayVisible) {
             val dismissInteractionSource = remember { MutableInteractionSource() }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.34f))
-                    .clickable(
-                        interactionSource = dismissInteractionSource,
-                        indication = null
-                    ) { viewModel.dismissProfileEditor() }
-            )
-
-            ProfileEditOverlay(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth(0.42f),
-                draft = profileEditorUiState.draft,
-                isSaving = profileEditorUiState.isSaving,
-                onAvatarToneChange = viewModel::cycleDraftAvatarTone,
-                onDisplayNameChange = viewModel::updateDraftDisplayName,
-                onGradeChange = viewModel::updateDraftGrade,
-                onBindPhoneClick = viewModel::openPhoneBindingDialog,
-                onDismiss = viewModel::dismissProfileEditor,
-                onSave = viewModel::saveProfileEdits
-            )
+            val contentInteractionSource = remember { MutableInteractionSource() }
+            Dialog(
+                onDismissRequest = viewModel::dismissProfileEditor,
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false,
+                    dismissOnClickOutside = false
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.34f))
+                        .clickable(
+                            interactionSource = dismissInteractionSource,
+                            indication = null
+                        ) { viewModel.dismissProfileEditor() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    ProfileEditOverlay(
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .widthIn(max = 520.dp)
+                            .clickable(
+                                interactionSource = contentInteractionSource,
+                                indication = null
+                            ) {},
+                        draft = profileEditorUiState.draft,
+                        isSaving = profileEditorUiState.isSaving,
+                        onAvatarToneChange = viewModel::cycleDraftAvatarTone,
+                        onDisplayNameChange = viewModel::updateDraftDisplayName,
+                        onGradeChange = viewModel::updateDraftGrade,
+                        onBindPhoneClick = viewModel::openPhoneBindingDialog,
+                        onDismiss = viewModel::dismissProfileEditor,
+                        onSave = viewModel::saveProfileEdits
+                    )
+                }
+            }
         }
 
         ProfilePhoneBindingDialog(
