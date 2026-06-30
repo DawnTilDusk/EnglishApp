@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -79,11 +80,11 @@ fun IdentitySection(
     }
     val profileEntries = remember {
         listOf(
-            ProfileActionEntry("编辑资料", "统一打开资料编辑浮层", Icons.Default.Edit),
-            ProfileActionEntry("学习目标", "后续接入每日目标与学习计划", Icons.Default.Flag),
-            ProfileActionEntry("账号安全", "后续接入密码与绑定管理", Icons.Default.Lock),
-            ProfileActionEntry("帮助与反馈", "问题反馈、使用帮助与常见问题", Icons.Default.HelpOutline),
-            ProfileActionEntry("关于 Seedie", "查看版本说明与产品介绍", Icons.Default.Info)
+            ProfileActionEntry("编辑资料", "更新头像、昵称和年级信息", Icons.Default.Edit),
+            ProfileActionEntry("学习目标", "查看并调整你的学习计划", Icons.Default.Flag),
+            ProfileActionEntry("账号安全", "管理登录方式与账号保护", Icons.Default.Lock),
+            ProfileActionEntry("帮助与反馈", "获取使用帮助或提交问题反馈", Icons.Default.HelpOutline),
+            ProfileActionEntry("关于 Seedie", "了解版本信息与产品介绍", Icons.Default.Info)
         )
     }
 
@@ -191,6 +192,7 @@ fun ProfileEditOverlay(
     onAvatarToneChange: () -> Unit,
     onDisplayNameChange: (String) -> Unit,
     onGradeChange: (String) -> Unit,
+    onMoreActionClick: (String) -> Unit,
     onDismiss: () -> Unit,
     onSave: () -> Unit
 ) {
@@ -208,18 +210,11 @@ fun ProfileEditOverlay(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = "编辑资料",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "个人名片卡与“编辑资料”入口共用这一个编辑浮层。",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = "编辑资料",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
             Surface(
                 shape = MaterialTheme.shapes.medium,
@@ -290,14 +285,21 @@ fun ProfileEditOverlay(
                 )
             }
 
-            ProfileGroup(title = "更多可编辑信息") {
+            ProfileGroup(title = "更多") {
+                ProfileActionRow(
+                    icon = Icons.Default.Phone,
+                    label = "绑定手机号",
+                    supporting = "绑定常用手机号，便于登录验证与账号找回",
+                    onClick = { onMoreActionClick("绑定手机号") }
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.06f)
                 ) {
                     Text(
-                        text = "这里预留给后续扩展的资料字段，例如绑定方式、联系信息或学习偏好。",
+                        text = "更多资料设置将陆续开放，当前可先完成手机号绑定。",
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant

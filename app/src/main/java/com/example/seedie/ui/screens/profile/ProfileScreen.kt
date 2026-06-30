@@ -91,6 +91,9 @@ fun ProfileScreen(
                 onAvatarToneChange = viewModel::cycleDraftAvatarTone,
                 onDisplayNameChange = viewModel::updateDraftDisplayName,
                 onGradeChange = viewModel::updateDraftGrade,
+                onMoreActionClick = { label ->
+                    Toast.makeText(context, "$label 功能暂未开放", Toast.LENGTH_SHORT).show()
+                },
                 onDismiss = viewModel::dismissProfileEditor,
                 onSave = viewModel::saveProfileEdits
             )
