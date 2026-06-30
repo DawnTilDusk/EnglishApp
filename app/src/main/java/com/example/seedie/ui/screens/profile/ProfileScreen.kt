@@ -104,7 +104,7 @@ fun ProfileScreen(
                 ) {
                     ProfileEditOverlay(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
+                            .fillMaxWidth(0.42f)
                             .widthIn(max = 520.dp)
                             .clickable(
                                 interactionSource = contentInteractionSource,
