@@ -9,12 +9,14 @@ data class Profile(
     val role: String,
     @SerialName("agency_id") val agency_id: String?,
     @SerialName("display_name") val display_name: String?,
+    val grade: String? = null,
     val status: String?,
     val email: String? = null,
     val phone: String? = null,
     @SerialName("phone_verified") val phone_verified: Boolean = false,
     @SerialName("phone_updated_at") val phone_updated_at: String? = null,
-    @SerialName("current_device_id") val current_device_id: String? = null
+    @SerialName("current_device_id") val current_device_id: String? = null,
+    @SerialName("avatar_tone") val avatar_tone: Int = 0
 )
 
 @Serializable

@@ -27,7 +27,12 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.School
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -39,7 +44,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.seedie.domain.profile.ProfileGradeOptions
 import com.example.seedie.ui.theme.gardenShadow
 
 private data class ProfileInfoItem(
@@ -185,17 +193,21 @@ fun IdentitySection(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileEditOverlay(
     modifier: Modifier = Modifier,
     draft: ProfileIdentityUiState,
+    isSaving: Boolean,
     onAvatarToneChange: () -> Unit,
     onDisplayNameChange: (String) -> Unit,
     onGradeChange: (String) -> Unit,
-    onMoreActionClick: (String) -> Unit,
+    onBindPhoneClick: () -> Unit,
     onDismiss: () -> Unit,
     onSave: () -> Unit
 ) {
+    var isGradeMenuExpanded by remember { mutableStateOf(false) }
+
     Surface(
         modifier = modifier.gardenShadow(),
         shape = MaterialTheme.shapes.large,
@@ -241,7 +253,7 @@ fun ProfileEditOverlay(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = draft.grade.ifBlank { "待补充年级" },
+                            text = draft.grade,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.secondary
                         )
@@ -270,19 +282,44 @@ fun ProfileEditOverlay(
                     singleLine = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = draft.grade,
-                    onValueChange = onGradeChange,
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text("年级") },
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.School,
-                            contentDescription = null
-                        )
+                ExposedDropdownMenuBox(
+                    expanded = isGradeMenuExpanded,
+                    onExpandedChange = { isGradeMenuExpanded = !isGradeMenuExpanded }
+                ) {
+                    OutlinedTextField(
+                        value = draft.grade,
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth(),
+                        label = { Text("年级") },
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.School,
+                                contentDescription = null
+                            )
+                        },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = isGradeMenuExpanded)
+                        }
+                    )
+                    ExposedDropdownMenu(
+                        expanded = isGradeMenuExpanded,
+                        onDismissRequest = { isGradeMenuExpanded = false }
+                    ) {
+                        ProfileGradeOptions.values.forEach { grade ->
+                            DropdownMenuItem(
+                                text = { Text(grade) },
+                                onClick = {
+                                    onGradeChange(grade)
+                                    isGradeMenuExpanded = false
+                                }
+                            )
+                        }
                     }
-                )
+                }
             }
 
             ProfileGroup(title = "更多") {
@@ -290,7 +327,7 @@ fun ProfileEditOverlay(
                     icon = Icons.Default.Phone,
                     label = "绑定手机号",
                     supporting = "绑定常用手机号，便于登录验证与账号找回",
-                    onClick = { onMoreActionClick("绑定手机号") }
+                    onClick = onBindPhoneClick
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
                 Surface(
@@ -314,12 +351,79 @@ fun ProfileEditOverlay(
                 TextButton(onClick = onDismiss) {
                     Text("取消")
                 }
-                Button(onClick = onSave) {
-                    Text("保存")
+                Button(
+                    onClick = onSave,
+                    enabled = !isSaving
+                ) {
+                    Text(if (isSaving) "保存中..." else "保存")
                 }
             }
         }
     }
+}
+
+@Composable
+fun ProfilePhoneBindingDialog(
+    visible: Boolean,
+    phone: String,
+    phoneError: String?,
+    isSubmitting: Boolean,
+    onPhoneChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (!visible) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("绑定手机号") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "请输入常用手机号，保存后会同步到个人资料。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = onPhoneChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text("手机号") },
+                    singleLine = true,
+                    isError = phoneError != null,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = null
+                        )
+                    }
+                )
+                if (phoneError != null) {
+                    Text(
+                        text = phoneError,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isSubmitting
+            ) {
+                Text(if (isSubmitting) "提交中..." else "保存")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                enabled = !isSubmitting
+            ) {
+                Text("取消")
+            }
+        }
+    )
 }
 
 @Composable

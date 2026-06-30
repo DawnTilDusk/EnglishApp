@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,13 +29,26 @@ import com.example.seedie.ui.components.LogoutConfirmDialog
 @Composable
 fun ProfileScreen(
     onOpenShop: () -> Unit,
+    onEditOverlayVisibilityChanged: (Boolean) -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val totalTokens by viewModel.totalTokens.collectAsState()
     val badges by viewModel.badges.collectAsState()
     val profileEditorUiState by viewModel.profileEditorUiState.collectAsState()
+    val message by viewModel.message.collectAsState()
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(message) {
+        message?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessage()
+        }
+    }
+
+    LaunchedEffect(profileEditorUiState.isEditOverlayVisible) {
+        onEditOverlayVisibilityChanged(profileEditorUiState.isEditOverlayVisible)
+    }
 
     LogoutConfirmDialog(
         visible = showLogoutDialog,
@@ -88,15 +102,24 @@ fun ProfileScreen(
                     .align(Alignment.Center)
                     .fillMaxWidth(0.42f),
                 draft = profileEditorUiState.draft,
+                isSaving = profileEditorUiState.isSaving,
                 onAvatarToneChange = viewModel::cycleDraftAvatarTone,
                 onDisplayNameChange = viewModel::updateDraftDisplayName,
                 onGradeChange = viewModel::updateDraftGrade,
-                onMoreActionClick = { label ->
-                    Toast.makeText(context, "$label 功能暂未开放", Toast.LENGTH_SHORT).show()
-                },
+                onBindPhoneClick = viewModel::openPhoneBindingDialog,
                 onDismiss = viewModel::dismissProfileEditor,
                 onSave = viewModel::saveProfileEdits
             )
         }
+
+        ProfilePhoneBindingDialog(
+            visible = profileEditorUiState.isPhoneDialogVisible,
+            phone = profileEditorUiState.phoneDraft,
+            phoneError = profileEditorUiState.phoneInputError,
+            isSubmitting = profileEditorUiState.isBindingPhone,
+            onPhoneChange = viewModel::updatePhoneDraft,
+            onConfirm = viewModel::bindPhone,
+            onDismiss = viewModel::dismissPhoneBindingDialog
+        )
     }
 }
