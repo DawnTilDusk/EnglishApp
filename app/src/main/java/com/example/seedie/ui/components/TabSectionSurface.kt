@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import com.example.seedie.ui.theme.gardenPressable
 import com.example.seedie.ui.theme.gardenShadow
 
 @Composable
@@ -20,6 +21,7 @@ fun TabSectionSurface(
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.large,
     accentColor: Color = MaterialTheme.colorScheme.primary,
+    onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
     Surface(
@@ -30,6 +32,13 @@ fun TabSectionSurface(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .then(
+                    if (onClick != null) {
+                        Modifier.gardenPressable(shape = shape, onClick = onClick)
+                    } else {
+                        Modifier
+                    }
+                )
                 .background(
                     brush = Brush.verticalGradient(
                         colors = listOf(

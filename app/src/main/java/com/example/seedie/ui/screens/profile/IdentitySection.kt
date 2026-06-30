@@ -2,8 +2,6 @@ package com.example.seedie.ui.screens.profile
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.seedie.domain.profile.ProfileGradeOptions
 import com.example.seedie.ui.components.TabSectionSurface
+import com.example.seedie.ui.theme.gardenPressable
 import com.example.seedie.ui.theme.gardenShadow
 
 private data class ProfileInfoItem(
@@ -540,23 +539,10 @@ private fun ProfileInfoRow(
     label: String,
     value: String
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(MaterialTheme.shapes.small)
-            .indication(
-                interactionSource = interactionSource,
-                indication = androidx.compose.material.ripple.rememberRipple(
-                    bounded = true,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-                )
-            )
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = {}
-            )
+            .gardenPressable(shape = MaterialTheme.shapes.small, onClick = {})
             .padding(horizontal = 12.dp, vertical = 14.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
