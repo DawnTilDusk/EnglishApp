@@ -16,15 +16,15 @@ data class ActivityModuleMeta(
 )
 
 object ActivityModuleIds {
-    const val DASHBOARD = ActivityModule.Dashboard.id
-    const val LEARNING_HUB = ActivityModule.LearningHub.id
-    const val DATA_GARDEN = ActivityModule.DataGarden.id
-    const val PROFILE = ActivityModule.Profile.id
-    const val VOCABULARY_STUDY = ActivityModule.VocabularyStudy.id
-    const val VOCABULARY_REVIEW = ActivityModule.VocabularyReview.id
-    const val LISTENING = ActivityModule.ListeningPractice.id
-    const val QUIZ = ActivityModule.VocabularyQuiz.id
-    const val SHOP = ActivityModule.Shop.id
+    val DASHBOARD = ActivityModule.Dashboard.id
+    val LEARNING_HUB = ActivityModule.LearningHub.id
+    val DATA_GARDEN = ActivityModule.DataGarden.id
+    val PROFILE = ActivityModule.Profile.id
+    val VOCABULARY_STUDY = ActivityModule.VocabularyStudy.id
+    val VOCABULARY_REVIEW = ActivityModule.VocabularyReview.id
+    val LISTENING = ActivityModule.ListeningPractice.id
+    val QUIZ = ActivityModule.VocabularyQuiz.id
+    val SHOP = ActivityModule.Shop.id
 }
 
 val ActivityTrackingModules = ActivityModule.values().map { module ->
