@@ -2,13 +2,14 @@ package com.example.seedie.ui.screens.garden
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,8 +30,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -160,6 +164,7 @@ fun StatsPanelSection(
             distribution = learningDistribution,
             slices = donutData,
             selectedIndex = selectedDonutIndex,
+            replayKey = trendReplayKey,
             onSelectionChange = { tappedIndex ->
                 selectedDonutIndex = if (selectedDonutIndex == tappedIndex) null else tappedIndex
             }
@@ -206,6 +211,7 @@ private fun DonutFocusCard(
     distribution: LearningDistributionUiState,
     slices: List<DonutSliceData>,
     selectedIndex: Int?,
+    replayKey: Int,
     onSelectionChange: (Int) -> Unit
 ) {
     val cardShape = RoundedCornerShape(28.dp)
@@ -213,6 +219,18 @@ private fun DonutFocusCard(
     val selectedSlice = selectedIndex?.let(slices::getOrNull)
     val leadingSlice = slices.maxByOrNull { it.durationSec }
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    val hasDetails = detailsExpanded && distribution.hasData
+    val legendScrollState = rememberScrollState()
+    val chartWidthFraction by animateFloatAsState(
+        targetValue = if (hasDetails) 0.58f else 0.84f,
+        animationSpec = tween(durationMillis = 260),
+        label = "DonutChartWidthFraction"
+    )
+    val chartOffsetX by animateDpAsState(
+        targetValue = if (hasDetails) (-44).dp else 0.dp,
+        animationSpec = tween(durationMillis = 260),
+        label = "DonutChartOffsetX"
+    )
     val summaryText = when {
         !distribution.hasData -> "今天还没有学习记录，开始学习后这里会自动更新。"
         selectedSlice != null -> "你今天在${selectedSlice.label}上投入了${formatDurationShort(selectedSlice.durationSec)}。"
@@ -266,8 +284,7 @@ private fun DonutFocusCard(
                     Text(
                         text = when {
                             !distribution.hasData -> "等待记录"
-                            detailsExpanded -> "收起分类"
-                            else -> "查看分类"
+                            else -> "详细分类"
                         },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -282,52 +299,69 @@ private fun DonutFocusCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            AnimatedVisibility(
-                visible = detailsExpanded && distribution.hasData,
-                enter = fadeIn(animationSpec = tween(180)) +
-                    slideInVertically(
-                        animationSpec = tween(220),
-                        initialOffsetY = { -it / 3 }
-                    ),
-                exit = fadeOut(animationSpec = tween(160)) +
-                    slideOutVertically(
-                        animationSpec = tween(180),
-                        targetOffsetY = { -it / 4 }
-                    )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(22.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
+                DonutChart(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(chartWidthFraction)
+                        .align(Alignment.Center)
+                        .offset(x = chartOffsetX),
+                    slices = slices,
+                    selectedIndex = selectedIndex,
+                    totalDurationSec = totalDurationSec,
+                    refreshKey = replayKey,
+                    onSliceSelected = onSelectionChange
+                )
+
+                AnimatedVisibility(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(0.42f)
+                        .align(Alignment.TopEnd),
+                    visible = hasDetails,
+                    enter = fadeIn(animationSpec = tween(180)) +
+                        slideInVertically(
+                            animationSpec = tween(220),
+                            initialOffsetY = { -it / 5 }
+                        ),
+                    exit = fadeOut(animationSpec = tween(160)) +
+                        slideOutVertically(
+                            animationSpec = tween(180),
+                            targetOffsetY = { -it / 6 }
+                        )
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        shape = RoundedCornerShape(22.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
                     ) {
-                        slices.forEachIndexed { index, slice ->
-                            LegendPill(
-                                label = slice.label,
-                                supporting = buildSliceSupportingText(
-                                    durationSec = slice.durationSec,
-                                    totalDurationSec = totalDurationSec
-                                ),
-                                color = slice.color,
-                                selected = index == selectedIndex,
-                                onClick = { onSelectionChange(index) }
-                            )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(legendScrollState)
+                                .padding(horizontal = 12.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            slices.forEachIndexed { index, slice ->
+                                LegendPill(
+                                    label = slice.label,
+                                    supporting = buildSliceSupportingText(
+                                        durationSec = slice.durationSec,
+                                        totalDurationSec = totalDurationSec
+                                    ),
+                                    color = slice.color,
+                                    selected = index == selectedIndex,
+                                    onClick = { onSelectionChange(index) }
+                                )
+                            }
                         }
                     }
                 }
             }
-
-            DonutChart(
-                modifier = Modifier.fillMaxSize(),
-                slices = slices,
-                selectedIndex = selectedIndex,
-                totalDurationSec = totalDurationSec,
-                onSliceSelected = onSelectionChange
-            )
         }
     }
 }
@@ -583,6 +617,7 @@ private fun DonutChart(
     slices: List<DonutSliceData>,
     selectedIndex: Int?,
     totalDurationSec: Int,
+    refreshKey: Int,
     onSliceSelected: (Int) -> Unit
 ) {
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -591,11 +626,15 @@ private fun DonutChart(
     val centerSurfaceColor = colorScheme.surface.copy(alpha = 0.98f)
     val onSurface = colorScheme.onSurface
     val safeTotalDurationSec = totalDurationSec.coerceAtLeast(1)
-    val progress by animateFloatAsState(
-        targetValue = 1f,
-        animationSpec = tween(durationMillis = 1100),
-        label = "DonutChartProgress"
-    )
+    val revealProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(refreshKey, slices) {
+        revealProgress.snapTo(0f)
+        revealProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 980)
+        )
+    }
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Canvas(
@@ -613,7 +652,7 @@ private fun DonutChart(
                 }
         ) {
             val minDimension = min(size.width, size.height)
-            val baseStroke = minDimension * 0.16f
+            val baseStroke = minDimension * 0.18f
             val arcSize = Size(minDimension - baseStroke, minDimension - baseStroke)
             val topLeft = Offset(
                 x = (size.width - arcSize.width) / 2f,
@@ -633,7 +672,7 @@ private fun DonutChart(
             var startAngle = -90f
             slices.forEachIndexed { index, slice ->
                 val fullSweep = slice.durationSec / safeTotalDurationSec.toFloat() * 360f
-                val sweepAngle = fullSweep * progress
+                val sweepAngle = fullSweep * revealProgress.value
                 val isSelected = index == selectedIndex
                 val alpha = if (selectedIndex == null || isSelected) 1f else 0.25f
                 val strokeWidth = if (isSelected) baseStroke * 1.12f else baseStroke
@@ -659,7 +698,7 @@ private fun DonutChart(
         ) {
             Box(
                 modifier = Modifier
-                    .size(118.dp)
+                    .size(114.dp)
                     .padding(12.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -712,14 +751,14 @@ private fun buildSliceSupportingText(durationSec: Int, totalDurationSec: Int): S
 }
 
 private fun formatDurationCompact(durationSec: Int): String {
-    if (durationSec <= 0) return "0 分"
+    if (durationSec <= 0) return "0 min"
     val totalMinutes = (durationSec + 59) / 60
     val hours = totalMinutes / 60
     val minutes = totalMinutes % 60
     return when {
-        hours <= 0 -> "${totalMinutes} 分"
-        minutes == 0 -> "${hours}小时"
-        else -> "${hours}小时${minutes}分"
+        hours <= 0 -> "${totalMinutes} min"
+        minutes == 0 -> "${hours} h"
+        else -> "${hours} h ${minutes} min"
     }
 }
 
@@ -1059,7 +1098,7 @@ private fun detectDonutSliceIndex(
     val width = canvasSize.width.toFloat()
     val height = canvasSize.height.toFloat()
     val minDimension = min(width, height)
-    val strokeWidth = minDimension * 0.16f
+    val strokeWidth = minDimension * 0.18f
     val center = Offset(width / 2f, height / 2f)
     val distance = hypot(tapOffset.x - center.x, tapOffset.y - center.y)
     val outerRadius = minDimension / 2f
