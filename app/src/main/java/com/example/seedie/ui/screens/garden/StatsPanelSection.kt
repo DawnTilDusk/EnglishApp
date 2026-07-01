@@ -34,6 +34,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -62,6 +63,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -71,6 +73,7 @@ import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
+import com.example.seedie.ui.theme.gardenPressable
 import kotlinx.coroutines.delay
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -221,13 +224,19 @@ private fun DonutFocusCard(
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
     val hasDetails = detailsExpanded && distribution.hasData
     val legendScrollState = rememberScrollState()
+    var chartHostSize by remember { mutableStateOf(IntSize.Zero) }
+    val density = LocalDensity.current
     val chartWidthFraction by animateFloatAsState(
-        targetValue = if (hasDetails) 0.58f else 0.84f,
+        targetValue = if (hasDetails) 0.52f else 0.84f,
         animationSpec = tween(durationMillis = 260),
         label = "DonutChartWidthFraction"
     )
     val chartOffsetX by animateDpAsState(
-        targetValue = if (hasDetails) (-44).dp else 0.dp,
+        targetValue = if (hasDetails && chartHostSize.width > 0) {
+            with(density) { (chartHostSize.width * -0.23f).toDp() }
+        } else {
+            0.dp
+        },
         animationSpec = tween(durationMillis = 260),
         label = "DonutChartOffsetX"
     )
@@ -303,6 +312,7 @@ private fun DonutFocusCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .onSizeChanged { chartHostSize = it }
             ) {
                 DonutChart(
                     modifier = Modifier
@@ -320,7 +330,7 @@ private fun DonutFocusCard(
                 androidx.compose.animation.AnimatedVisibility(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.42f)
+                        .fillMaxWidth(0.46f)
                         .align(Alignment.TopEnd),
                     visible = hasDetails,
                     enter = fadeIn(animationSpec = tween(180)) +
@@ -337,17 +347,16 @@ private fun DonutFocusCard(
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         shape = RoundedCornerShape(22.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.00f)
                     ) {
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(legendScrollState)
-                                .padding(horizontal = 12.dp, vertical = 12.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                                .padding(horizontal = 12.dp, vertical = 10.dp)
                         ) {
                             slices.forEachIndexed { index, slice ->
-                                LegendPill(
+                                LegendListItem(
                                     label = slice.label,
                                     supporting = buildSliceSupportingText(
                                         durationSec = slice.durationSec,
@@ -357,6 +366,11 @@ private fun DonutFocusCard(
                                     selected = index == selectedIndex,
                                     onClick = { onSelectionChange(index) }
                                 )
+                                if (index != slices.lastIndex) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.68f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -767,62 +781,46 @@ private fun formatDurationShort(durationSec: Int): String {
 }
 
 @Composable
-private fun LegendPill(
+private fun LegendListItem(
     label: String,
     supporting: String,
     color: Color,
     selected: Boolean,
     onClick: () -> Unit
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val shape = RoundedCornerShape(18.dp)
-    val containerColor = if (selected) color.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surface
-    val borderColor = if (selected) color.copy(alpha = 0.28f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
-
-    Surface(
+    Row(
         modifier = Modifier
-            .clip(shape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            ),
-        shape = shape,
-        color = containerColor
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.small)
+            .background(if (selected) color.copy(alpha = 0.08f) else Color.Transparent)
+            .gardenPressable(shape = MaterialTheme.shapes.small, onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .border(1.dp, borderColor, shape)
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(9.dp)
-                    .background(color = color, shape = CircleShape)
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Column {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = supporting,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (selected) {
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "已选",
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = color
-                )
-            }
-        }
+                .size(9.dp)
+                .background(color = color, shape = CircleShape)
+        )
+        Text(
+            text = label,
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            ),
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = supporting,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            ),
+            color = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
+        )
     }
 }
 
