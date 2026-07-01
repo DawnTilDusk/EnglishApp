@@ -317,7 +317,7 @@ private fun DonutFocusCard(
                     onSliceSelected = onSelectionChange
                 )
 
-                AnimatedVisibility(
+                androidx.compose.animation.AnimatedVisibility(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(0.42f)
