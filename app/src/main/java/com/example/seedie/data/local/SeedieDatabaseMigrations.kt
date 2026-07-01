@@ -170,6 +170,29 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS activity_durations (
+                    userId TEXT NOT NULL,
+                    date TEXT NOT NULL,
+                    moduleId TEXT NOT NULL,
+                    durationSec INTEGER NOT NULL,
+                    updatedAt INTEGER NOT NULL,
+                    PRIMARY KEY(userId, date, moduleId)
+                )
+                """.trimIndent()
+            )
+            database.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS index_activity_durations_userId_date
+                ON activity_durations(userId, date)
+                """.trimIndent()
+            )
+        }
+    }
+
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(

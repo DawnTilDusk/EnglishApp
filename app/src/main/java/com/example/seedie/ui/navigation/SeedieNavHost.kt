@@ -1,14 +1,18 @@
 package com.example.seedie.ui.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.seedie.domain.model.ActivityModule
+import com.example.seedie.domain.usecase.GlobalActivityTracker
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
@@ -22,10 +26,28 @@ import com.example.seedie.ui.screens.splash.SplashScreen
 @Composable
 fun SeedieNavHost(
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Screen.Splash.route
+    startDestination: String = Screen.Splash.route,
+    activityTracker: GlobalActivityTracker
 ) {
     var pendingStudyResult by remember { mutableStateOf<StudyResult?>(null) }
     var currentVocabularyArgs by remember { mutableStateOf(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute, currentVocabularyArgs) {
+        val module = when (currentRoute) {
+            Screen.VocabularyPractice.route -> ActivityModule.fromPracticeSource(currentVocabularyArgs.sourceModuleId)
+            Screen.ListeningPractice.route -> ActivityModule.ListeningPractice
+            Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
+            ShopScreen.StudentShop.route,
+            ShopScreen.MyOrders.route -> ActivityModule.Shop
+            Screen.Main.route -> null
+            else -> null
+        }
+        if (currentRoute != Screen.Main.route) {
+            activityTracker.trackModule(module)
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -59,6 +81,7 @@ fun SeedieNavHost(
                 onOpenShop = {
                     navController.navigate(ShopScreen.StudentShop.route)
                 },
+                onVisibleModuleChanged = activityTracker::trackModule,
                 pendingStudyResult = pendingStudyResult,
                 onStudyResultConsumed = {
                     pendingStudyResult = null
