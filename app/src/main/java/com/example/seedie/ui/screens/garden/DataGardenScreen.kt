@@ -17,6 +17,7 @@ fun DataGardenScreen(
     viewModel: GardenViewModel = hiltViewModel()
 ) {
     val plots by viewModel.gardenPlots.collectAsState()
+    val statsUiState by viewModel.statsUiState.collectAsState()
 
     Row(
         modifier = Modifier
@@ -27,6 +28,7 @@ fun DataGardenScreen(
         // Left side: Stats Panel (Takes 40% of width)
         StatsPanelSection(
             modifier = Modifier.weight(0.4f),
+            learningDistribution = statsUiState.learningDistribution,
             trendReplayKey = trendReplayKey
         )
 

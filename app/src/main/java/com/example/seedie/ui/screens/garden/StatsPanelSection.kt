@@ -67,7 +67,6 @@ import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
-import com.example.seedie.ui.theme.gardenShadow
 import kotlinx.coroutines.delay
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -77,9 +76,8 @@ import kotlin.math.roundToInt
 
 private data class DonutSliceData(
     val label: String,
-    val minutes: Int,
-    val color: Color,
-    val supporting: String
+    val durationSec: Int,
+    val color: Color
 )
 
 private data class TrendPointData(
@@ -113,14 +111,17 @@ private enum class TrendFilterMenuType {
 @Composable
 fun StatsPanelSection(
     modifier: Modifier = Modifier,
+    learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
     trendReplayKey: Int = 0
 ) {
-    val donutData = remember {
-        listOf(
-            DonutSliceData("记新词", 18, PrimaryGreen, "吸收新内容"),
-            DonutSliceData("复习巩固", 15, AccentOrange, "稳定记忆曲线"),
-            DonutSliceData("错题回看", 12, SecondaryBrown, "查漏补缺")
-        )
+    val donutData = remember(learningDistribution.items) {
+        learningDistribution.items.mapIndexed { index, item ->
+            DonutSliceData(
+                label = item.label,
+                durationSec = item.durationSec,
+                color = donutPaletteColor(index)
+            )
+        }
     }
     val trendCatalog = remember { buildTrendSeriesCatalog() }
 
@@ -142,6 +143,12 @@ fun StatsPanelSection(
         }
     }
 
+    LaunchedEffect(donutData) {
+        if (selectedDonutIndex !in donutData.indices) {
+            selectedDonutIndex = null
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -150,6 +157,7 @@ fun StatsPanelSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
+            distribution = learningDistribution,
             slices = donutData,
             selectedIndex = selectedDonutIndex,
             onSelectionChange = { tappedIndex ->
@@ -195,125 +203,132 @@ fun StatsPanelSection(
 @Composable
 private fun DonutFocusCard(
     modifier: Modifier = Modifier,
+    distribution: LearningDistributionUiState,
     slices: List<DonutSliceData>,
     selectedIndex: Int?,
     onSelectionChange: (Int) -> Unit
 ) {
     val cardShape = RoundedCornerShape(28.dp)
-    val totalMinutes = remember(slices) { slices.sumOf { it.minutes } }
-    val selectedSlice = selectedIndex?.let(slices::get)
+    val totalDurationSec = distribution.totalDurationSec
+    val selectedSlice = selectedIndex?.let(slices::getOrNull)
+    val leadingSlice = slices.maxByOrNull { it.durationSec }
     var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    val summaryText = when {
+        !distribution.hasData -> "今天还没有学习记录，开始学习后这里会自动更新。"
+        selectedSlice != null -> "你今天在${selectedSlice.label}上投入了${formatDurationShort(selectedSlice.durationSec)}。"
+        leadingSlice != null -> "今天已学习${formatDurationShort(totalDurationSec)}，${leadingSlice.label}占比最高。"
+        else -> "今天的学习分布会在这里自动整理。"
+    }
+
+    LaunchedEffect(distribution.hasData) {
+        if (!distribution.hasData) {
+            detailsExpanded = false
+        }
+    }
 
     TabSectionSurface(
         modifier = modifier,
         shape = cardShape,
         accentColor = PrimaryGreen
     ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "学习时间分布",
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable { detailsExpanded = !detailsExpanded }
-                        .padding(vertical = 4.dp),
+                    modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                DonutChart(
-                    modifier = Modifier.fillMaxSize(),
-                    slices = slices,
-                    selectedIndex = selectedIndex,
-                    totalMinutes = totalMinutes,
-                    onSliceSelected = onSelectionChange
-                )
+                Surface(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable(enabled = distribution.hasData) {
+                            if (distribution.hasData) {
+                                detailsExpanded = !detailsExpanded
+                            }
+                        },
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (distribution.hasData) {
+                        PrimaryGreen.copy(alpha = if (detailsExpanded) 0.16f else 0.10f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                    }
+                ) {
+                    Text(
+                        text = when {
+                            !distribution.hasData -> "等待记录"
+                            detailsExpanded -> "收起分类"
+                            else -> "查看分类"
+                        },
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (distribution.hasData) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
+            Text(
+                text = summaryText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
             AnimatedVisibility(
-                visible = detailsExpanded,
-                modifier = Modifier.fillMaxSize(),
-                enter = fadeIn(animationSpec = tween(220)) +
+                visible = detailsExpanded && distribution.hasData,
+                enter = fadeIn(animationSpec = tween(180)) +
                     slideInVertically(
-                        animationSpec = tween(260),
-                        initialOffsetY = { -it / 2 }
-                    ),
-                exit = fadeOut(animationSpec = tween(180)) +
-                    slideOutVertically(
                         animationSpec = tween(220),
-                        targetOffsetY = { -it / 3 }
+                        initialOffsetY = { -it / 3 }
+                    ),
+                exit = fadeOut(animationSpec = tween(160)) +
+                    slideOutVertically(
+                        animationSpec = tween(180),
+                        targetOffsetY = { -it / 4 }
                     )
             ) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(cardShape),
-                    shape = cardShape,
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
-                    tonalElevation = 3.dp,
-                    shadowElevation = 4.dp
+                    shape = RoundedCornerShape(22.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.42f)
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text(
-                            text = "学习时间分布",
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(16.dp))
-                                .clickable { detailsExpanded = false }
-                                .padding(vertical = 4.dp),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        Text(
-                            text = selectedSlice?.let {
-                                "${it.label} ${it.minutes} 分钟，当前占比 ${((it.minutes / totalMinutes.toFloat()) * 100).roundToInt()}%。"
-                            } ?: "总计 $totalMinutes 分钟，当前详细分类与切换入口都收纳在这里。",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            slices.forEachIndexed { index, slice ->
-                                val selected = index == selectedIndex
-                                val percent = ((slice.minutes / totalMinutes.toFloat()) * 100).roundToInt()
-                                LegendRow(
-                                    label = slice.label,
-                                    supporting = "${slice.minutes} 分钟 · $percent%",
-                                    color = slice.color,
-                                    selected = selected
-                                ) { onSelectionChange(index) }
-                            }
-                        }
-
-                        Surface(
-                            shape = RoundedCornerShape(18.dp),
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
-                        ) {
-                            val footerText = selectedSlice?.let {
-                                "${it.supporting}，可继续点击其它图例切换饼图高亮。"
-                            } ?: "这里集中展示说明和图例，默认页面只保留饼图主体。"
-                            Text(
-                                text = footerText,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                        slices.forEachIndexed { index, slice ->
+                            LegendPill(
+                                label = slice.label,
+                                supporting = buildSliceSupportingText(
+                                    durationSec = slice.durationSec,
+                                    totalDurationSec = totalDurationSec
+                                ),
+                                color = slice.color,
+                                selected = index == selectedIndex,
+                                onClick = { onSelectionChange(index) }
                             )
                         }
                     }
                 }
             }
+
+            DonutChart(
+                modifier = Modifier.fillMaxSize(),
+                slices = slices,
+                selectedIndex = selectedIndex,
+                totalDurationSec = totalDurationSec,
+                onSliceSelected = onSelectionChange
+            )
+        }
     }
 }
 
@@ -567,7 +582,7 @@ private fun DonutChart(
     modifier: Modifier = Modifier,
     slices: List<DonutSliceData>,
     selectedIndex: Int?,
-    totalMinutes: Int,
+    totalDurationSec: Int,
     onSliceSelected: (Int) -> Unit
 ) {
     var canvasSize by remember { mutableStateOf(IntSize.Zero) }
@@ -575,6 +590,7 @@ private fun DonutChart(
     val trackColor = colorScheme.surfaceVariant.copy(alpha = 0.32f)
     val centerSurfaceColor = colorScheme.surface.copy(alpha = 0.98f)
     val onSurface = colorScheme.onSurface
+    val safeTotalDurationSec = totalDurationSec.coerceAtLeast(1)
     val progress by animateFloatAsState(
         targetValue = 1f,
         animationSpec = tween(durationMillis = 1100),
@@ -616,7 +632,7 @@ private fun DonutChart(
 
             var startAngle = -90f
             slices.forEachIndexed { index, slice ->
-                val fullSweep = slice.minutes / totalMinutes.toFloat() * 360f
+                val fullSweep = slice.durationSec / safeTotalDurationSec.toFloat() * 360f
                 val sweepAngle = fullSweep * progress
                 val isSelected = index == selectedIndex
                 val alpha = if (selectedIndex == null || isSelected) 1f else 0.25f
@@ -648,8 +664,14 @@ private fun DonutChart(
                 contentAlignment = Alignment.Center
             ) {
                 Crossfade(targetState = selectedIndex, label = "DonutCenterText") { currentIndex ->
-                    val headline = currentIndex?.let { "${slices[it].minutes}m" } ?: "${totalMinutes}m"
-                    val title = currentIndex?.let { slices[it].label } ?: "今日总时长"
+                    val currentSlice = currentIndex?.let(slices::getOrNull)
+                    val headline = currentSlice?.let { formatDurationCompact(it.durationSec) }
+                        ?: formatDurationCompact(totalDurationSec)
+                    val title = when {
+                        currentSlice != null -> currentSlice.label
+                        totalDurationSec > 0 -> "今日总时长"
+                        else -> "开始后更新"
+                    }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = headline,
@@ -669,8 +691,44 @@ private fun DonutChart(
     }
 }
 
+private val donutPalette = listOf(
+    PrimaryGreen,
+    AccentOrange,
+    SecondaryBrown,
+    Color(0xFF5B8DEF),
+    Color(0xFF2EAEA1),
+    Color(0xFF9C6ADE),
+    Color(0xFFD96C75)
+)
+
+private fun donutPaletteColor(index: Int): Color {
+    return donutPalette[index % donutPalette.size]
+}
+
+private fun buildSliceSupportingText(durationSec: Int, totalDurationSec: Int): String {
+    if (durationSec <= 0 || totalDurationSec <= 0) return "0%"
+    val percent = (durationSec * 100f / totalDurationSec).roundToInt()
+    return "${formatDurationShort(durationSec)} · $percent%"
+}
+
+private fun formatDurationCompact(durationSec: Int): String {
+    if (durationSec <= 0) return "0 分"
+    val totalMinutes = (durationSec + 59) / 60
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return when {
+        hours <= 0 -> "${totalMinutes} 分"
+        minutes == 0 -> "${hours}小时"
+        else -> "${hours}小时${minutes}分"
+    }
+}
+
+private fun formatDurationShort(durationSec: Int): String {
+    return formatDurationCompact(durationSec)
+}
+
 @Composable
-private fun LegendRow(
+private fun LegendPill(
     label: String,
     supporting: String,
     color: Color,
@@ -678,35 +736,34 @@ private fun LegendRow(
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(18.dp)
     val containerColor = if (selected) color.copy(alpha = 0.14f) else MaterialTheme.colorScheme.surface
-    val borderColor = if (selected) color.copy(alpha = 0.22f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
+    val borderColor = if (selected) color.copy(alpha = 0.28f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.10f)
 
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(18.dp),
+        shape = shape,
         color = containerColor
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .border(1.dp, borderColor, RoundedCornerShape(18.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
+                .border(1.dp, borderColor, shape)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(9.dp)
                     .background(color = color, shape = CircleShape)
             )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Spacer(modifier = Modifier.width(10.dp))
+            Column {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
@@ -718,11 +775,14 @@ private fun LegendRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Text(
-                text = if (selected) "已选" else "查看",
-                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (selected) {
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = "已选",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = color
+                )
+            }
         }
     }
 }
@@ -1014,10 +1074,11 @@ private fun detectDonutSliceIndex(
         )
     ).toFloat()
     val normalizedAngle = (angle + 450f) % 360f
-    val total = slices.sumOf { it.minutes }.toFloat()
+    val total = slices.sumOf { it.durationSec }.toFloat()
+    if (total <= 0f) return null
     var currentSweep = 0f
     slices.forEachIndexed { index, slice ->
-        val sliceSweep = slice.minutes / total * 360f
+        val sliceSweep = slice.durationSec / total * 360f
         if (normalizedAngle in currentSweep..(currentSweep + sliceSweep)) {
             return index
         }
