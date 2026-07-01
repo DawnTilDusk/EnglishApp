@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
 import androidx.compose.ui.zIndex
 import kotlin.math.absoluteValue
 
@@ -40,8 +42,8 @@ fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
         val actualPage = page.mod(DashboardFeatureCardCount)
         val rawOffset = (page - pagerState.currentPage) + pagerState.currentPageOffsetFraction
         val pageOffset = rawOffset.absoluteValue.coerceIn(0f, 1f)
-        val targetScale = lerpFloat(start = 0.86f, stop = 1f, fraction = 1f - pageOffset)
-        val targetAlpha = lerpFloat(start = 0.52f, stop = 1f, fraction = 1f - pageOffset)
+        val targetScale = lerp(start = 0.86f, stop = 1f, fraction = 1f - pageOffset)
+        val targetAlpha = lerp(start = 0.52f, stop = 1f, fraction = 1f - pageOffset)
         val targetTranslationX = -rawOffset * dragTranslationDistance
         val targetTranslationY = pageOffset * stackLiftDistance
         val scale by animateFloatAsState(
@@ -60,7 +62,7 @@ fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
             ),
             label = "dashboardFeatureAlpha"
         )
-        val translationX by animateFloatAsState(
+        val animatedTranslationX by animateFloatAsState(
             targetValue = targetTranslationX,
             animationSpec = spring(
                 dampingRatio = 0.78f,
@@ -68,7 +70,7 @@ fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
             ),
             label = "dashboardFeatureTranslationX"
         )
-        val translationY by animateFloatAsState(
+        val animatedTranslationY by animateFloatAsState(
             targetValue = targetTranslationY,
             animationSpec = spring(
                 dampingRatio = 0.86f,
@@ -85,8 +87,8 @@ fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
                     scaleX = scale
                     scaleY = scale
                     this.alpha = alpha
-                    translationX = translationX
-                    translationY = translationY
+                    translationX = animatedTranslationX
+                    translationY = animatedTranslationY
                 }
         ) {
             when (actualPage) {
@@ -95,8 +97,4 @@ fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
             }
         }
     }
-}
-
-private fun lerpFloat(start: Float, stop: Float, fraction: Float): Float {
-    return start + (stop - start) * fraction
 }
