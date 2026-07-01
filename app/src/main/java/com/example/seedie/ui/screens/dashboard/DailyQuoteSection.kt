@@ -22,15 +22,19 @@ import androidx.compose.ui.unit.dp
 import com.example.seedie.ui.components.TabSectionSurface
 
 private data class DailyQuoteCardContent(
-    val quote: String,
+    val englishQuote: String,
+    val chineseMeaning: String,
     val source: String,
-    val note: String
+    val note: String,
+    val footerBadge: String
 )
 
 private val defaultDailyQuote = DailyQuoteCardContent(
-    quote = "Small steps every day still move you forward.",
-    source = "Seedie Daily Quote",
-    note = "今日关键词：持续、耐心、积累"
+    englishQuote = "Small steps every day still move you forward.",
+    chineseMeaning = "每天前进一小步，也会把你稳稳带向更远的地方。",
+    source = "Seedie Morning Note",
+    note = "适合今天慢慢完成任务、背一点词、给自己留出持续发芽的空间。",
+    footerBadge = "本地精选语句"
 )
 
 @Composable
@@ -57,8 +61,8 @@ fun DailyQuoteSection(modifier: Modifier = Modifier) {
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.background)
-                    .padding(horizontal = 24.dp, vertical = 28.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .padding(horizontal = 24.dp, vertical = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -73,38 +77,42 @@ fun DailyQuoteSection(modifier: Modifier = Modifier) {
                     )
                 }
 
-                Text(
-                    text = "\"${defaultDailyQuote.quote}\"",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Start
-                )
-
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    Text(
+                        text = "\"${defaultDailyQuote.englishQuote}\"",
+                        style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Start
+                    )
+                    Text(
+                        text = defaultDailyQuote.chineseMeaning,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Text(
                         text = defaultDailyQuote.note,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.secondary
                     )
+                }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = defaultDailyQuote.source,
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = "静态占位内容",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = defaultDailyQuote.source,
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = defaultDailyQuote.footerBadge,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
         }
