@@ -1,0 +1,40 @@
+---
+description: Apply Supabase SQL to the remote project yourself when credentials exist
+alwaysApply: true
+---
+
+# Apply remote Supabase migrations yourself (this repo only)
+
+When a change set adds or updates SQL under `supabase/migrations/` (or otherwise needs DDL/DML on the live project), **do not default to asking the user to paste SQL in the Dashboard**. Apply it yourself if credentials are available.
+
+## Credentials (already in repo-local secrets)
+
+Read from gitignored [`.env.local`](../../.env.local) (never commit; never echo secrets in chat):
+
+| Key | Use |
+|-----|-----|
+| `SUPABASE_ACCESS_TOKEN` | Management API — preferred for running SQL |
+| `SUPABASE_URL` | Project ref (`https://<ref>.supabase.co`) |
+| `SUPABASE_DB_URL` / `SUPABASE_DB_PASSWORD` | Optional direct Postgres if present |
+
+Existing helper pattern: [`scripts/apply_migrations.py`](../../scripts/apply_migrations.py) posts to  
+`https://api.supabase.com/v1/projects/<ref>/database/query` with `Authorization: Bearer <token>`.
+
+## When to apply
+
+- After writing a new migration meant for the live project in this workspace
+- When the user says to continue / ship / fix schema and remote apply is implied
+- Smoke-test with `select 1`, then run the migration SQL; verify with a short follow-up query when useful
+
+## When not to apply / when to ask
+
+- Missing `SUPABASE_ACCESS_TOKEN` (or equivalent) — say what is missing; user can paste into `.env.local`
+- Destructive ops the user did not request (drop production data, reset DB, force push schema)
+- Auth Dashboard-only settings (e.g. leaked password protection) that have no SQL/API path here
+- User explicitly says local-only / do not touch remote
+
+## Notes
+
+- Prefer Management API over telling the user “run this in SQL Editor”
+- Do not print tokens, service_role keys, or full connection strings in replies
+- After a successful apply, report that remote was updated (migration name + brief verify), not “please run it yourself”

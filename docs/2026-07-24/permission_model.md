@@ -45,3 +45,15 @@ service_role → agency_admin → teacher → student
 教师 / 机构账号登录 App → 拒绝并提示使用网页端。
 
 学生代币账本、同步与余额排查见 [`economy_token_system.md`](./economy_token_system.md)。
+
+## SECURITY DEFINER 与 EXECUTE
+
+Migration [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql)：
+
+- 所有相关函数固定 `search_path = public`。
+- **产品 RPC**（`authenticated` 可调）：`create_teacher_account`、`create_student_account`、`bind_student_to_teacher`、`submit_shop_order`、`sync_my_economy_transactions`、`get_my_token_balance`、`get_teacher_student_stats`、`set_my_profile` / `set_my_phone` / `set_my_device_id`。一律 `REVOKE` 掉 `anon` / `PUBLIC`。
+- **RLS 助手**（`authenticated` 可 EXECUTE，供 policy 调用；非业务 API）：`get_auth_role`、`get_auth_agency_id`、`is_agency_admin_of`、`is_teacher_in_agency`。
+- **触发器 / 内部**：`handle_new_user`、`sync_*`、`enforce_student_teacher_same_agency`、`get_user_token_balance`、`is_service_role` — 对 `anon` / `authenticated` 无 EXECUTE；`reconcile_my_token_balance` / `create_agency_admin` 仅 `service_role`。
+- 业务 RPC 仍为 `SECURITY DEFINER`（写 `auth.users`、跨表事务等）；Database Linter 的 `authenticated_security_definer_function_executable`（0029）对这批会残留，属预期。
+- Storage：`word-audio` 去掉可 listing 的 broad SELECT；公开对象 URL 仍可用。
+- Auth：在 Dashboard 开启 **Leaked password protection**（HaveIBeenPwned）；无法用 SQL migration 开关。

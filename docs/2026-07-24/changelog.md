@@ -1,5 +1,28 @@
 # Changelog — 2026-07-24
 
+## Database Linter 安全硬化（search_path / EXECUTE / Storage）
+
+### 摘要
+
+按混合策略收紧 `SECURITY DEFINER`：补 `search_path`、对 `anon`/`PUBLIC` 撤权、触发器与内部函数不对客户端开放；产品 RPC 仍由 `authenticated` 调用。顺带去掉 `word-audio` 可 listing 的 SELECT 策略。
+
+### Schema
+
+| 项 | 说明 |
+|----|------|
+| SQL | [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql) |
+| Storage | `DROP POLICY "public read audio"` on `storage.objects`（公开 URL 仍可用） |
+
+### 运维
+
+- 应用 `016` 后复跑 Database Linter：`function_search_path_mutable`、`anon_security_definer_*`、`public_bucket_allows_listing` 应消失。
+- `authenticated_security_definer_function_executable`（0029）对产品 RPC / RLS 助手会残留，见 [permission_model.md](./permission_model.md)。
+- Dashboard → Auth → 开启 **Leaked password protection**（`auth_leaked_password_protection`）。
+
+### 文档
+
+- 修订 [permission_model.md](./permission_model.md)、[supabase_table_map.md](./supabase_table_map.md)
+
 ## Supabase 表地图文档
 
 新建 [supabase_table_map.md](./supabase_table_map.md)：每张在用/已删表的用途与交互；澄清经济双账本与 `content_assignments` 原意图。

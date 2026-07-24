@@ -157,8 +157,11 @@ flowchart TB
 | RPC | 作用 |
 |-----|------|
 | `sync_my_economy_transactions` | 批量上传本地 PENDING 流水 |
-| `get_my_token_balance` / `get_user_token_balance` | 读云端余额 |
+| `get_my_token_balance` | 读本人云端余额（客户端） |
+| `get_user_token_balance` | 内部汇总；016 起不对客户端开放 |
 | `submit_shop_order` | 即时购买 |
 | `reconcile_my_token_balance` | 仅 `service_role` 运维 |
 | `get_teacher_student_stats` | 教师看学生统计 |
 | `set_my_profile` / `set_my_phone` / `set_my_device_id` | 资料 / 设备 |
+
+EXECUTE / `search_path` 硬化见 [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql) 与 [permission_model.md](./permission_model.md)。
