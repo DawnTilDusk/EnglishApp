@@ -283,6 +283,8 @@
 ## 11. 2026-07-24 废表清理补注
 
 - Migration [`015_drop_legacy_tables_and_rpcs.sql`](../../supabase/migrations/015_drop_legacy_tables_and_rpcs.sql) 已 DROP：`content_items`、`content_assignments`、`study_events`、`points_ledger`、`rewards`、`redemptions`，以及未使用的 `purchase_shop_product` / `record_my_economy_transaction`。
+- **远端已于 2026-07-24 应用**（预检 6 表行数均为 0）。
 - **`agencies` 现为在用**（机构层级 + 机构店，见 `010`/`011` 与 Web `/agency`），不再按「高疑似残留」处理。
 - 词书三表、`redemption_status` enum 保留。
-- 完整变更记录：[`docs/2026-07-24/legacy_schema_cleanup.md`](../2026-07-24/legacy_schema_cleanup.md)。
+- 完整变更记录：[legacy_schema_cleanup.md](../2026-07-24/legacy_schema_cleanup.md)。
+- **现行表用途与交互**：[supabase_table_map.md](../2026-07-24/supabase_table_map.md)。

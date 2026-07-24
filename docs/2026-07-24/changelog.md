@@ -1,5 +1,9 @@
 # Changelog — 2026-07-24
 
+## Supabase 表地图文档
+
+新建 [supabase_table_map.md](./supabase_table_map.md)：每张在用/已删表的用途与交互；澄清经济双账本与 `content_assignments` 原意图。
+
 ## Supabase 废表与废函数清理
 
 ### 摘要
@@ -22,12 +26,12 @@
 
 ### 运维
 
-- 应用 `015` 前对 6 表跑 `COUNT(*)` 预检（见 migration 注释）；估行为 0。
+- 应用 `015` 前对 6 表跑 `COUNT(*)` 预检；**远端已于 2026-07-24 预检全 0 后执行 DROP**，复查表/函数均已不存在；`agencies` / `user_economy_transactions` / `shop_*` 保留。
 - 不自动回滚：表为空时可从历史 migration 重建结构，无需数据恢复。
 
 ### 文档
 
-- 新建 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md)
+- 新建 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md)、[supabase_table_map.md](./supabase_table_map.md)
 - 修订 [economy_token_system.md](./economy_token_system.md)、[permission_model.md](./permission_model.md)
 - 修订 `docs/2026-06-28/teacher_setup.md`、`docs/2026-06-30/supabase_schema_health_report.md`
 - 修订 `supabase/migrations/004_verify_teacher_setup.sql`

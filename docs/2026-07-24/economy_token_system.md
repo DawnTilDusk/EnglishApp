@@ -9,7 +9,7 @@
 权威余额：`SUM(amount)` on `public.user_economy_transactions`。  
 本地账本：Room `economy_transactions`，仅上传 `PENDING` 行。
 
-详细根因与修复见同目录 [changelog.md](./changelog.md)。
+表级总览见 [supabase_table_map.md](./supabase_table_map.md)。详细根因与修复见同目录 [changelog.md](./changelog.md)。
 
 ## 2. 不变量
 

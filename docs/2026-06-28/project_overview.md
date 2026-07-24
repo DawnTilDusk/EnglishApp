@@ -810,10 +810,12 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 |--------|------|----------|--------|
 | `DailyTaskEntity` | `daily_tasks` | date, title, isCompleted, rewardAmount | ❌ |
 | `GardenPlotEntity` | `garden_plots` | userId, plotIndex, plantType, level | ❌（有 syncStatus 无 Syncer） |
-| `EconomyTransactionEntity` | `economy_transactions` | id, userId, amount, reason | ❌（有 syncStatus 无 Syncer） |
+| `EconomyTransactionEntity` | `economy_transactions` | id, userId, amount, reason, refId | ✅ `EconomyTransactionSyncer` → `user_economy_transactions` |
 | `SyncOperationEntity` | `sync_operations` | 通用同步队列 | ❌（未使用） |
 
 ### 6.3 Supabase 表对照
+
+完整用途与交互见 [`docs/2026-07-24/supabase_table_map.md`](../2026-07-24/supabase_table_map.md)。
 
 #### 账号体系（[`supabase/migrations/`](../supabase/migrations/)）
 
@@ -851,9 +853,10 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 
 | Scope | 触发 Syncer |
 |-------|-------------|
-| `ALL` | CheckIn + VocabularyProgress |
+| `ALL` | CheckIn + VocabularyProgress + Economy |
 | `CHECK_IN` | CheckInSyncer |
 | `VOCABULARY_PROGRESS` | VocabularyProgressSyncer |
+| `ECONOMY` | EconomyTransactionSyncer |
 
 **自动同步：** 监听 [`NetworkConnectivityObserver`](../app/src/main/java/com/example/seedie/data/sync/NetworkConnectivityObserver.kt)，网络从断开恢复连接时自动 `syncNow(ALL)`。
 

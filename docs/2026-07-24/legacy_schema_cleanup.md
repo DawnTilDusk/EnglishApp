@@ -52,8 +52,8 @@ Migration：[`015_drop_legacy_tables_and_rpcs.sql`](../../supabase/migrations/01
 
 ## 运维
 
-应用 `015` 前建议对 6 表做 `COUNT(*)`（见 migration 文件头注释）。估行为 0。  
-本仓库不自动对远端执行 migration；由 Dashboard / CLI 手工应用。
+应用 `015` 前建议对 6 表做 `COUNT(*)`（见 migration 文件头注释）。  
+**远端已于 2026-07-24 预检全 0 后执行 DROP**；复查 6 表与 2 个函数均已不存在。
 
 ## 不做
 
