@@ -24,9 +24,7 @@ WHERE routine_schema = 'public'
   AND routine_name IN (
     'create_teacher_account',
     'get_teacher_student_stats',
-    'submit_shop_order',
-    'approve_shop_order',
-    'reject_shop_order'
+    'submit_shop_order'
   )
 ORDER BY routine_name;
 

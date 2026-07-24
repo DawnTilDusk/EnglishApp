@@ -73,7 +73,7 @@ SELECT public.bind_student_to_teacher('<student_uuid>', '<teacher_uuid>');
 
 - 一机构一店：`shop_products.agency_id` / `shop_orders.agency_id`
 - 机构 Web 管理商品；教师 Web 只读；学生 App 浏览并购买
-- 购买 RPC：`submit_shop_order` / `purchase_shop_product` — **即时扣款**，订单状态 `completed`
+- 购买 RPC：`submit_shop_order` — **即时扣款**，订单状态 `completed`
 - **已移除** `approve_shop_order` / `reject_shop_order`
 
 测试商品（机构 UUID）：

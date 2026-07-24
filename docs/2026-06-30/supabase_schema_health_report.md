@@ -278,5 +278,11 @@
 
 - Migration `014_economy_sync_hardening.sql`：`sync_my_economy_transactions` 仅接受合法 UUID，`ON CONFLICT (id) DO NOTHING`；非法 id 跳过（不再无 id 插入）。
 - 新增部分唯一索引 `(user_id, ref_id) WHERE ref_id IS NOT NULL`。
-- `points_ledger` 仍为残留表，**本次不删除**；主经济路径继续只用 `user_economy_transactions`。
 - 设计与排障：[`docs/2026-07-24/economy_token_system.md`](../2026-07-24/economy_token_system.md)。
+
+## 11. 2026-07-24 废表清理补注
+
+- Migration [`015_drop_legacy_tables_and_rpcs.sql`](../../supabase/migrations/015_drop_legacy_tables_and_rpcs.sql) 已 DROP：`content_items`、`content_assignments`、`study_events`、`points_ledger`、`rewards`、`redemptions`，以及未使用的 `purchase_shop_product` / `record_my_economy_transaction`。
+- **`agencies` 现为在用**（机构层级 + 机构店，见 `010`/`011` 与 Web `/agency`），不再按「高疑似残留」处理。
+- 词书三表、`redemption_status` enum 保留。
+- 完整变更记录：[`docs/2026-07-24/legacy_schema_cleanup.md`](../2026-07-24/legacy_schema_cleanup.md)。

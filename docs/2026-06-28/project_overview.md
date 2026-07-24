@@ -365,12 +365,15 @@ Pager 上方有 [`CustomIndicatorPanel`](../app/src/main/java/com/example/seedie
 
 **Supabase 后端 schema：**
 
-[`supabase/migrations/`](../supabase/migrations/) 包含多租户设计：
+[`supabase/migrations/`](../supabase/migrations/) 包含多租户与机构店设计：
 
-- `agencies` — 机构表
-- `profiles` — 用户 profile（role: admin/agency/student）
-- `students` — 学生扩展信息
+- `agencies` — 机构表（在用：机构管理员 / 机构店）
+- `profiles` — 用户 profile（role: agency_admin / teacher / student 等）
+- `students` / `teachers` — 角色扩展
+- `shop_products` / `shop_orders` / `user_economy_transactions` — 商城与代币流水
 - RLS 策略、自动创建 profile 触发器、设备 ID / 手机号 RPC
+
+早期内容/积分/兑换残留表已由 [`015_drop_legacy_tables_and_rpcs.sql`](../supabase/migrations/015_drop_legacy_tables_and_rpcs.sql) 删除；说明见 [`docs/2026-07-24/legacy_schema_cleanup.md`](../2026-07-24/legacy_schema_cleanup.md)。
 
 Phase 3 词书相关 Supabase 表（`word_books`、`word_book_modules`、`vocabulary_words`）已在 Supabase 控制台创建，但 Android 端下载逻辑尚未实现。
 

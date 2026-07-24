@@ -52,23 +52,6 @@ class EconomyRemoteDataSource @Inject constructor(
         )
     }
 
-    suspend fun recordMyEconomyTransaction(
-        id: String,
-        amount: Int,
-        reason: String,
-        refId: String? = null
-    ) {
-        client.postgrest.rpc(
-            "record_my_economy_transaction",
-            buildJsonObject {
-                put("p_id", id)
-                put("p_amount", amount)
-                put("p_reason", reason)
-                if (refId != null) put("p_ref_id", refId)
-            }
-        )
-    }
-
     private fun decodeRpcInt(element: JsonElement): Int {
         return when (element) {
             is JsonPrimitive -> element.content.toIntOrNull()

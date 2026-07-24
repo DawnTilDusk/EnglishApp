@@ -26,7 +26,7 @@ service_role → agency_admin → teacher → student
 ## 商城模型（机构一店）
 
 - 一机构一店：`shop_products.agency_id` / `shop_orders.agency_id`。
-- **无审单**：`purchase_shop_product`（或升级后的 `submit_shop_order`）校验余额与库存后**即时扣款**，订单状态直接为 `completed`。
+- **无审单**：`submit_shop_order` 校验余额与库存后**即时扣款**，订单状态直接为 `completed`。
 - 已废弃：`approve_shop_order`、`reject_shop_order`、业务上的 `pending` 工作流。
 - 教师不再拥有独立店铺。
 

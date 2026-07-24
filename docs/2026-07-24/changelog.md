@@ -1,5 +1,37 @@
 # Changelog — 2026-07-24
 
+## Supabase 废表与废函数清理
+
+### 摘要
+
+删除早期多租户内容/积分/兑换残留表，以及未使用的购买别名与单条经济 RPC；主链路不变。
+
+详细说明见 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md)。
+
+### Schema / 代码
+
+| 项 | 说明 |
+|----|------|
+| SQL | [`015_drop_legacy_tables_and_rpcs.sql`](../../supabase/migrations/015_drop_legacy_tables_and_rpcs.sql)：DROP 6 表 + `purchase_shop_product` + `record_my_economy_transaction` |
+| App | 删除未使用的 `EconomyRemoteDataSource.recordMyEconomyTransaction` |
+| 保留 | `agencies`、词书表、`redemption_status`、`submit_shop_order` / `sync_my_economy_transactions` |
+
+### 已删表
+
+`content_assignments`、`content_items`、`redemptions`、`rewards`、`study_events`、`points_ledger`
+
+### 运维
+
+- 应用 `015` 前对 6 表跑 `COUNT(*)` 预检（见 migration 注释）；估行为 0。
+- 不自动回滚：表为空时可从历史 migration 重建结构，无需数据恢复。
+
+### 文档
+
+- 新建 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md)
+- 修订 [economy_token_system.md](./economy_token_system.md)、[permission_model.md](./permission_model.md)
+- 修订 `docs/2026-06-28/teacher_setup.md`、`docs/2026-06-30/supabase_schema_health_report.md`
+- 修订 `supabase/migrations/004_verify_teacher_setup.sql`
+
 ## 学生代币虚增修复与经济链路硬化
 
 ### 摘要

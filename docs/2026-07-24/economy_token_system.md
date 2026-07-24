@@ -54,8 +54,9 @@ failure → remain PENDING，下次重试
 
 - 花园服务端权威扣款
 - 客户端镜像全量云端流水
-- 废弃 `points_ledger`
 - 自动清洗已污染生产账户
+
+（`points_ledger` 已删除，见 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md) / migration `015`。）
 
 ## 8. 运维排查（只读示例）
 
