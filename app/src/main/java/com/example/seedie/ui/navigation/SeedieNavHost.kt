@@ -39,8 +39,8 @@ fun SeedieNavHost(
             Screen.VocabularyPractice.route -> ActivityModule.fromPracticeSource(currentVocabularyArgs.sourceModuleId)
             Screen.ListeningPractice.route -> ActivityModule.ListeningPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
-            ShopScreen.StudentShop.route,
-            ShopScreen.MyOrders.route -> ActivityModule.Shop
+            Screen.StudentShop.route,
+            Screen.MyOrders.route -> ActivityModule.Shop
             Screen.Main.route -> null
             else -> null
         }
@@ -79,7 +79,7 @@ fun SeedieNavHost(
                     navController.navigate(Screen.VocabularyQuiz.route)
                 },
                 onOpenShop = {
-                    navController.navigate(ShopScreen.StudentShop.route)
+                    navController.navigate(Screen.StudentShop.route)
                 },
                 onVisibleModuleChanged = activityTracker::trackModule,
                 pendingStudyResult = pendingStudyResult,
@@ -122,13 +122,13 @@ fun SeedieNavHost(
                 }
             )
         }
-        composable(route = ShopScreen.StudentShop.route) {
+        composable(route = Screen.StudentShop.route) {
             StudentShopScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onOpenOrders = { navController.navigate(ShopScreen.MyOrders.route) }
+                onOpenOrders = { navController.navigate(Screen.MyOrders.route) }
             )
         }
-        composable(route = ShopScreen.MyOrders.route) {
+        composable(route = Screen.MyOrders.route) {
             MyOrdersScreen(onNavigateBack = { navController.popBackStack() })
         }
     }

@@ -1,0 +1,32 @@
+---
+description: After code changes, compile the touched surface before finishing
+alwaysApply: true
+---
+
+# Compile after code changes (this repo only)
+
+This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
+
+## When to compile
+
+After finishing a change set that touches **compilable** sources, run a compile check before telling the user you are done. Fix failures before finishing.
+
+| Touched paths | Command |
+|---------------|---------|
+| `app/**/*.kt`, `app/**/*.java`, or Android Gradle under `app/` / root `*.gradle*` | `.\gradlew.bat :app:compileDebugKotlin` (Windows) or `./gradlew :app:compileDebugKotlin` |
+| `web/**` (TS/TSX/JS, Next config, etc.) | `npm run build` in `web/` |
+| Both Android and web in the same change set | Run both |
+
+## When not to compile
+
+Skip compile when the change set is **only**:
+
+- Markdown / docs under `docs/` or `README*`
+- SQL under `supabase/`
+- Cursor rules, `.env*` examples, or other non-build assets with no app/web source edits
+
+## Notes
+
+- Prefer the lightest relevant task (`compileDebugKotlin` over full `assembleDebug` unless packaging must be verified).
+- If compile fails, fix the code and re-run until it passes (or report a blocker you cannot resolve).
+- Do not skip this because the change “looks small.”
