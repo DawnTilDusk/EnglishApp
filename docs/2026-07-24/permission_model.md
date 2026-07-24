@@ -43,3 +43,5 @@ service_role → agency_admin → teacher → student
 
 学生账号登录 Web → 拒绝并提示使用 App。  
 教师 / 机构账号登录 App → 拒绝并提示使用网页端。
+
+学生代币账本、同步与余额排查见 [`economy_token_system.md`](./economy_token_system.md)。

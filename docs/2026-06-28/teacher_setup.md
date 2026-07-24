@@ -97,9 +97,12 @@ npm run dev
 | 步骤 | 操作 | 预期 |
 |------|------|------|
 | 1 | 学生登录 App | 仅学生角色可进 |
-| 2 | 学习赚代币并同步 | `user_economy_transactions` 有记录 |
+| 2 | 学习赚代币并同步 | `user_economy_transactions` 有记录；同 session 重试不双倍 |
 | 3 | 机构商城购买 | 即时扣款；`shop_orders.status = completed` |
 | 4 | 机构 Web 看订单 | 可见该订单；无审单按钮 |
+| 5 | 共用设备换账号 | 后登录者余额不继承前用户本地流水 |
+
+代币同步与余额异常排查见 [`docs/2026-07-24/economy_token_system.md`](../2026-07-24/economy_token_system.md)。
 
 ## 8. 日常运维
 
@@ -109,4 +112,5 @@ npm run dev
 | 新教师 | 机构 Web 或 `create_teacher_account` |
 | 换绑学生 | `bind_student_to_teacher` / 机构 Web |
 | 查订单 | 机构 Web 或 Table Editor → `shop_orders` |
-| 补代币差额 | 仅 service_role 可调 `reconcile_my_token_balance`（App 已不再调用） |
+| 补代币差额 | 仅 service_role 可调 `reconcile_my_token_balance`（**App 不调用**） |
+| 余额异常 / 疑似重复入账 | 见 [economy_token_system.md](../2026-07-24/economy_token_system.md) §8；人工对账，勿对 authenticated 开放 reconcile |

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface EconomyManager {
     val totalTokens: Flow<Int>
 
-    suspend fun addTokens(amount: Int, reason: String)
+    suspend fun addTokens(amount: Int, reason: String, refId: String? = null)
     suspend fun spendTokens(amount: Int, item: String): Boolean
     suspend fun refreshBalanceFromCloud(): BalanceRefreshResult
 }

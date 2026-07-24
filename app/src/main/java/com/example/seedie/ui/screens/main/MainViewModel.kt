@@ -3,6 +3,7 @@ package com.example.seedie.ui.screens.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.local.dao.DailyTaskDao
+import com.example.seedie.data.remote.AuthService
 import com.example.seedie.domain.model.RewardEvent
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.EconomyManager
@@ -31,6 +32,7 @@ class MainViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val economyManager: EconomyManager,
     private val taskDao: DailyTaskDao,
+    private val authService: AuthService,
     private val rewardEventBus: RewardEventBus,
     private val vocabularyPracticeRepository: VocabularyPracticeRepository
 ) : ViewModel() {
@@ -54,14 +56,17 @@ class MainViewModel @Inject constructor(
                 userSessionRepository.addVocabulary(result.vocabularyDelta)
             }
             if (result.earnedTokens > 0) {
-                userSessionRepository.addTokens(result.earnedTokens)
                 val reason = when (result.moduleId) {
                     "listening" -> "Listening Practice"
                     "vocabulary_review" -> "Vocabulary Review"
                     "quiz" -> "Vocabulary Quiz"
                     else -> "Vocabulary Practice"
                 }
-                economyManager.addTokens(result.earnedTokens, reason)
+                economyManager.addTokens(
+                    amount = result.earnedTokens,
+                    reason = reason,
+                    refId = "study:${result.sessionId}"
+                )
                 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
             }
             if (result.isCompleted) {
@@ -76,8 +81,9 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun completeTodayListeningTask() {
+        val userId = authService.currentSession.value?.userId ?: return
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val task = taskDao.getTasksByDate(today)
+        val task = taskDao.getTasksByUserAndDate(userId, today)
             .first()
             .firstOrNull { !it.isCompleted && it.title.contains("听力") }
             ?: return
@@ -86,8 +92,9 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun completeTodayVocabularyTask() {
+        val userId = authService.currentSession.value?.userId ?: return
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val task = taskDao.getTasksByDate(today)
+        val task = taskDao.getTasksByUserAndDate(userId, today)
             .first()
             .firstOrNull { !it.isCompleted && (it.title.contains("背诵") || it.title.contains("单词")) }
             ?: return

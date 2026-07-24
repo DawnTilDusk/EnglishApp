@@ -1,12 +1,19 @@
 package com.example.seedie.data.local.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "daily_tasks")
+@Entity(
+    tableName = "daily_tasks",
+    indices = [
+        Index(value = ["userId", "date"], name = "index_daily_tasks_userId_date")
+    ]
+)
 data class DailyTaskEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    val userId: String,
     val date: String, // Format: "yyyy-MM-dd"
     val title: String,
     val isCompleted: Boolean = false,

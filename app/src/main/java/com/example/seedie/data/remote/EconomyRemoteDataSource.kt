@@ -17,20 +17,21 @@ import javax.inject.Singleton
 data class EconomyTransactionEntry(
     val id: String,
     val amount: Int,
-    val reason: String
+    val reason: String,
+    val refId: String? = null
 )
 
 @Singleton
 class EconomyRemoteDataSource @Inject constructor(
     private val client: SupabaseClient
-) {
-    suspend fun fetchMyTokenBalance(): Int {
+) : EconomyCloudGateway {
+    override suspend fun fetchMyTokenBalance(): Int {
         return decodeRpcInt(
             client.postgrest.rpc("get_my_token_balance").decodeAs<JsonElement>()
         )
     }
 
-    suspend fun syncMyEconomyTransactions(entries: List<EconomyTransactionEntry>): Int {
+    override suspend fun syncMyEconomyTransactions(entries: List<EconomyTransactionEntry>): Int {
         val payload = buildJsonArray {
             entries.forEach { entry ->
                 add(
@@ -38,6 +39,7 @@ class EconomyRemoteDataSource @Inject constructor(
                         put("id", entry.id)
                         put("amount", entry.amount)
                         put("reason", entry.reason)
+                        entry.refId?.let { put("ref_id", it) }
                     }
                 )
             }
@@ -46,15 +48,6 @@ class EconomyRemoteDataSource @Inject constructor(
             client.postgrest.rpc(
                 "sync_my_economy_transactions",
                 buildJsonObject { put("p_entries", payload) }
-            ).decodeAs<JsonElement>()
-        )
-    }
-
-    suspend fun reconcileMyTokenBalance(targetBalance: Int): Int {
-        return decodeRpcInt(
-            client.postgrest.rpc(
-                "reconcile_my_token_balance",
-                buildJsonObject { put("p_target_balance", targetBalance) }
             ).decodeAs<JsonElement>()
         )
     }

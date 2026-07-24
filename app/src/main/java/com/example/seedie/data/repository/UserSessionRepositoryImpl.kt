@@ -12,14 +12,9 @@ import javax.inject.Singleton
 @Singleton
 class UserSessionRepositoryImpl @Inject constructor() : UserSessionRepository {
 
-    // For MVP, we hold session state in memory. 
-    // In a real app, this would be backed by DataStore or Room and initialized on startup.
+    // Study stats only. Token balance is owned exclusively by EconomyManager.
     private val _sessionState = MutableStateFlow(UserSessionState())
     override val sessionState: StateFlow<UserSessionState> = _sessionState.asStateFlow()
-
-    override suspend fun addTokens(amount: Int) {
-        _sessionState.update { it.copy(tokens = it.tokens + amount) }
-    }
 
     override suspend fun addStudyTime(minutes: Int) {
         _sessionState.update { it.copy(totalStudyTimeMinutes = it.totalStudyTimeMinutes + minutes) }

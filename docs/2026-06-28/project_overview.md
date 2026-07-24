@@ -247,7 +247,7 @@ flowchart TB
 
 1. **Domain 层引用 UI 类型**：`VocabularyPracticeRepository` 接口直接引用 `ui/screens/learning/practice/` 下的 `VocabularyPracticeArgs`、`VocabularyPracticeSession` 等类型，domain 与 UI 未完全解耦。
 2. **GardenEngine 依赖 Data Entity**：`GardenEngine` 直接操作 `GardenPlotEntity` 和 `GardenPlotDao`，未经过 domain model 转换。
-3. **双轨代币系统**：`EconomyManager`（Room 持久化）与 `UserSessionRepository`（内存 only）同时追踪代币，用途不完全一致（详见 5.8 节）。
+3. **单一代币账本**：`EconomyManager`（Room + 云端同步）为唯一代币入口；`UserSessionRepository` 仅保留学习时长/词汇量等 session 统计（详见 5.8 节）。
 4. **两个 MainViewModel**：
    - `com.example.seedie.MainViewModel` — 根级，负责 Auth 门控（MainActivity 使用）
    - `com.example.seedie.ui.screens.main.MainViewModel` — 主 Tab 业务逻辑（MainScreen 使用）
@@ -716,24 +716,24 @@ gardenPlots           → Flow，随 authSession.userId 切换自动刷新
 
 **相关文件：**
 
-- [`domain/repository/EconomyManager.kt`](../app/src/main/java/com/example/seedie/domain/repository/EconomyManager.kt)
-- [`data/repository/EconomyManagerImpl.kt`](../app/src/main/java/com/example/seedie/data/repository/EconomyManagerImpl.kt)
-- [`domain/repository/UserSessionRepository.kt`](../app/src/main/java/com/example/seedie/domain/repository/UserSessionRepository.kt)
-- [`data/repository/UserSessionRepositoryImpl.kt`](../app/src/main/java/com/example/seedie/data/repository/UserSessionRepositoryImpl.kt)
-- [`domain/usecase/RewardEventBus.kt`](../app/src/main/java/com/example/seedie/domain/usecase/RewardEventBus.kt)
+- [`domain/repository/EconomyManager.kt`](../../app/src/main/java/com/example/seedie/domain/repository/EconomyManager.kt)
+- [`data/repository/EconomyManagerImpl.kt`](../../app/src/main/java/com/example/seedie/data/repository/EconomyManagerImpl.kt)
+- [`data/sync/syncer/EconomyTransactionSyncer.kt`](../../app/src/main/java/com/example/seedie/data/sync/syncer/EconomyTransactionSyncer.kt)
+- [`domain/usecase/RewardEventBus.kt`](../../app/src/main/java/com/example/seedie/domain/usecase/RewardEventBus.kt)
 
-#### 双轨代币设计
+设计说明（余额公式、`refId`、运维排查）：[`docs/2026-07-24/economy_token_system.md`](../2026-07-24/economy_token_system.md)。
+
+#### 单一账本
 
 | 组件 | 持久化 | 数据来源 | 主要用途 |
 |------|--------|----------|----------|
-| `EconomyManager` | Room `economy_transactions` | 每笔交易记录，sum 得 totalTokens | Profile 展示、花园消费 |
-| `UserSessionRepository` | **内存 only** | `UserSessionState` StateFlow | 徽章解锁、session 统计展示 |
+| `EconomyManager` | Room `economy_transactions` + 云端 ledger | 投影：`cloudBalance + PENDING` | Profile / 花园 / 商城展示与消费 |
+| `UserSessionRepository` | 内存 | 学习时长、词汇量 | 徽章等非代币统计 |
 
-背单词完成时，`MainViewModel.handleStudyResult` **同时更新两者**：
+背单词完成时只写 Economy（带 `refId = study:{sessionId}`）：
 
 ```kotlin
-userSessionRepository.addTokens(result.earnedTokens)
-economyManager.addTokens(result.earnedTokens, "Vocabulary Practice")
+economyManager.addTokens(result.earnedTokens, reason, refId = "study:${result.sessionId}")
 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
 ```
 
@@ -741,9 +741,8 @@ rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
 
 | 途径 | 触发位置 | 典型金额 |
 |------|----------|----------|
-| 手动点击完成任务 | `DashboardViewModel.onTaskClicked` | 10-20 |
+| 手动点击完成任务 | `DashboardViewModel.onTaskClicked` | 10-20（`task:{userId}:{date}:{key}`） |
 | 背单词完成 | `MainViewModel.handleStudyResult` | 按 StudyResult.earnedTokens |
-| 背单词自动完成任务 | 同上（间接） | — |
 
 #### 代币消费途径
 
@@ -751,6 +750,7 @@ rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
 |------|------|------|
 | 种植 seed | 20 代币 | `GardenEngine.plantSeed` |
 | 浇水升级 | 10 代币 | `GardenEngine.waterPlant` |
+| 机构商城 | 商品价 | 服务端 RPC 扣款 |
 
 #### 奖励动画事件
 
@@ -768,7 +768,7 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 
 #### 经济系统云同步
 
-`EconomyTransactionEntity` 有 `syncStatus` 字段，但**无对应 Syncer**，代币数据仅本地存储。
+`EconomyTransactionSyncer` 删除无主流水后，仅上传 `PENDING`，RPC `sync_my_economy_transactions`（014 起）按 UUID 幂等插入。详见 2026-07-24 经济文档。
 
 ---
 

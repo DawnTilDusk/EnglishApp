@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface DailyTaskDao {
-    @Query("SELECT * FROM daily_tasks WHERE date = :date")
-    fun getTasksByDate(date: String): Flow<List<DailyTaskEntity>>
+    @Query("SELECT * FROM daily_tasks WHERE userId = :userId AND date = :date")
+    fun getTasksByUserAndDate(userId: String, date: String): Flow<List<DailyTaskEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: DailyTaskEntity)

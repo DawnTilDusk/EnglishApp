@@ -273,3 +273,10 @@
 - 当前 Supabase 没有明显的“随手乱建垃圾表”，但确实有一批“旧架构没清干净”的表。
 - 最像烂尾的是早期多租户内容/积分兑换那一套。
 - 当前真实在跑的主业务已经切换到 `profiles + students + 教师商城 + 用户经济流水 + 学习进度同步` 这条新链路。
+
+## 10. 2026-07-24 经济同步补注
+
+- Migration `014_economy_sync_hardening.sql`：`sync_my_economy_transactions` 仅接受合法 UUID，`ON CONFLICT (id) DO NOTHING`；非法 id 跳过（不再无 id 插入）。
+- 新增部分唯一索引 `(user_id, ref_id) WHERE ref_id IS NOT NULL`。
+- `points_ledger` 仍为残留表，**本次不删除**；主经济路径继续只用 `user_economy_transactions`。
+- 设计与排障：[`docs/2026-07-24/economy_token_system.md`](../2026-07-24/economy_token_system.md)。

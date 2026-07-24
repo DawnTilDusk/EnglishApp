@@ -1,12 +1,14 @@
 package com.example.seedie.di
 
+import com.example.seedie.data.remote.EconomyCloudGateway
+import com.example.seedie.data.remote.EconomyRemoteDataSource
 import com.example.seedie.data.repository.ActivityTrackingRepositoryImpl
 import com.example.seedie.data.repository.EconomyManagerImpl
+import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.ProfileRepositoryImpl
 import com.example.seedie.data.repository.ShopRepositoryImpl
 import com.example.seedie.data.repository.TeacherRepositoryImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
-import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
 import com.example.seedie.domain.repository.ActivityTrackingRepository
@@ -27,6 +29,12 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindEconomyCloudGateway(
+        economyRemoteDataSource: EconomyRemoteDataSource
+    ): EconomyCloudGateway
 
     @Binds
     @Singleton

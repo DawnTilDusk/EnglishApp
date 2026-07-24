@@ -193,6 +193,26 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_7_8 = object : Migration(7, 8) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            database.execSQL("ALTER TABLE economy_transactions ADD COLUMN refId TEXT")
+            database.execSQL(
+                """
+                CREATE UNIQUE INDEX IF NOT EXISTS index_economy_transactions_userId_refId
+                ON economy_transactions(userId, refId)
+                """.trimIndent()
+            )
+
+            database.execSQL("ALTER TABLE daily_tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+            database.execSQL(
+                """
+                CREATE INDEX IF NOT EXISTS index_daily_tasks_userId_date
+                ON daily_tasks(userId, date)
+                """.trimIndent()
+            )
+        }
+    }
+
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(

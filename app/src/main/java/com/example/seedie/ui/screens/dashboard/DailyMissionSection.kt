@@ -36,9 +36,9 @@ import com.example.seedie.ui.components.TabSectionSurface
 fun DailyMissionSection(
     modifier: Modifier = Modifier,
     tasks: List<DailyTaskEntity> = listOf(
-        DailyTaskEntity(id = 1, date = "2024-01-01", title = "背诵 20 个单词", rewardAmount = 10),
-        DailyTaskEntity(id = 2, date = "2024-01-01", title = "完成一次语法测验", rewardAmount = 15, isCompleted = true),
-        DailyTaskEntity(id = 3, date = "2024-01-01", title = "听力训练 10 分钟", rewardAmount = 20)
+        DailyTaskEntity(id = 1, userId = "preview", date = "2024-01-01", title = "背诵 20 个单词", rewardAmount = 10),
+        DailyTaskEntity(id = 2, userId = "preview", date = "2024-01-01", title = "完成一次语法测验", rewardAmount = 15, isCompleted = true),
+        DailyTaskEntity(id = 3, userId = "preview", date = "2024-01-01", title = "听力训练 10 分钟", rewardAmount = 20)
     ),
     onTaskClick: (DailyTaskEntity) -> Unit = {}
 ) {

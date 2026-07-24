@@ -44,6 +44,7 @@ object DatabaseModule {
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_4_5)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_5_6)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_6_7)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_7_8)
             .build()
     }
 
