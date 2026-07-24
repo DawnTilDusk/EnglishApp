@@ -157,8 +157,8 @@ flowchart TB
 | RPC | 作用 |
 |-----|------|
 | `sync_my_economy_transactions` | 批量上传本地 PENDING 流水 |
-| `get_my_token_balance` | 读本人云端余额（客户端） |
-| `get_user_token_balance` | 内部汇总；016 起不对客户端开放 |
+| `get_my_token_balance` | 读本人云端余额（客户端；public INVOKER → private DEFINER） |
+| `get_user_token_balance` | 内部汇总；现仅 `private.get_user_token_balance` |
 | `submit_shop_order` | 即时购买 |
 | `reconcile_my_token_balance` | 仅 `service_role` 运维 |
 | `get_teacher_student_stats` | 教师看学生统计 |

@@ -1,5 +1,32 @@
 # Changelog — 2026-07-24
 
+## 清理已删账号残留数据
+
+扫远端后删除无对应 `profiles` 的学习同步行，以及无 profile 的 `auth.users`（8 个测试账号）。存活：`temp_agency` + `0@0.com`（教师）+ `3@3.com`（学生）；其 310 条经济流水与 28 笔订单保留。
+
+| 项 | 说明 |
+|----|------|
+| SQL | [`018_purge_orphan_user_residuals.sql`](../../supabase/migrations/018_purge_orphan_user_residuals.sql)（已应用） |
+| 删除 | check_ins 3、word_progress 37、rounds 5、book_progress 2、auth.users 8 |
+| 剩余孤儿 | 0 |
+
+## Lint 0029：DEFINER 迁入 private + public INVOKER
+
+### 摘要
+
+把仍被 `authenticated` 调用的 `SECURITY DEFINER` 实现移到未暴露的 `private` schema；`public` 只保留同名 `SECURITY INVOKER` 包装，消除 `authenticated_security_definer_function_executable`。顺带用 014 语义重写远端 `sync_my_economy_transactions`。
+
+### Schema
+
+| 项 | 说明 |
+|----|------|
+| SQL | [`017_private_security_definer.sql`](../../supabase/migrations/017_private_security_definer.sql)（已应用到远端） |
+| HIBP | Management API `password_hibp_enabled` → **402**（需 Pro+）；Free 无法开 |
+
+### 文档
+
+- 修订 [permission_model.md](./permission_model.md)
+
 ## Database Linter 安全硬化（search_path / EXECUTE / Storage）
 
 ### 摘要
