@@ -1,13 +1,11 @@
 package com.example.seedie.data.remote
 
-import com.example.seedie.domain.model.LoginMode
 import com.example.seedie.domain.model.UserRole
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.status.SessionStatus
 import io.github.jan.supabase.postgrest.postgrest
-import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,6 +72,14 @@ class AuthService @Inject constructor(
                 }
                 .decodeSingle<Profile>()
 
+            val role = UserRole.from(profile.role)
+            if (role != UserRole.STUDENT) {
+                client.auth.signOut()
+                _currentSession.value = null
+                setPendingLoginError("教师与机构账号请使用网页端登录")
+                return Result.success(null)
+            }
+
             val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profile)
             _currentSession.value = session
             Result.success(session)
@@ -86,7 +92,6 @@ class AuthService @Inject constructor(
     suspend fun login(
         email: String,
         password: String,
-        loginMode: LoginMode,
         phone: String? = null
     ): Result<AuthSession> {
         return loginMutex.withLock {
@@ -109,27 +114,18 @@ class AuthService @Inject constructor(
                 val role = UserRole.from(profileBefore.role)
                     ?: return@withLock Result.failure(Exception("未知账号角色"))
 
-                when (loginMode) {
-                    LoginMode.STUDENT -> {
-                        if (role != UserRole.STUDENT) {
-                            return@withLock Result.failure(Exception("该账号不是学生账号，请选择教师登录"))
-                        }
-                    }
-                    LoginMode.TEACHER -> {
-                        if (role != UserRole.TEACHER) {
-                            return@withLock Result.failure(Exception("该账号不是教师账号，请选择学生登录"))
-                        }
-                    }
+                if (role != UserRole.STUDENT) {
+                    client.auth.signOut()
+                    _currentSession.value = null
+                    _isLoginInProgress.value = false
+                    return@withLock Result.failure(Exception("教师与机构账号请使用网页端登录"))
                 }
 
-                if (role == UserRole.STUDENT &&
-                    profileBefore.phone.isNullOrBlank() &&
-                    phone.isNullOrBlank()
-                ) {
+                if (profileBefore.phone.isNullOrBlank() && phone.isNullOrBlank()) {
                     return@withLock Result.failure(Exception("请填写手机号完成绑定"))
                 }
 
-                if (!phone.isNullOrBlank() && role == UserRole.STUDENT) {
+                if (!phone.isNullOrBlank()) {
                     try {
                         syncPhoneForCurrentUser(userId = user.id, phone = phone)
                     } catch (e: Exception) {
@@ -137,16 +133,14 @@ class AuthService @Inject constructor(
                     }
                 }
 
-                if (role == UserRole.STUDENT) {
-                    try {
-                        val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
-                        client.postgrest.rpc(
-                            "set_my_device_id",
-                            buildJsonObject { put("p_device_id", currentDeviceId) }
-                        )
-                    } catch (e: Exception) {
-                        android.util.Log.e("AuthService", "Update device_id failed", e)
-                    }
+                try {
+                    val currentDeviceId = devicePreferencesRepository.getOrCreateDeviceId()
+                    client.postgrest.rpc(
+                        "set_my_device_id",
+                        buildJsonObject { put("p_device_id", currentDeviceId) }
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthService", "Update device_id failed", e)
                 }
 
                 val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
@@ -170,27 +164,23 @@ class AuthService @Inject constructor(
         val role = UserRole.from(profile.role) ?: UserRole.STUDENT
         var studentName: String? = null
         var teacherId: String? = null
+        var agencyId = profile.agency_id
 
-        when (role) {
-            UserRole.STUDENT -> {
-                val student = client.postgrest["students"]
-                    .select {
-                        filter { eq("id", userId) }
-                    }
-                    .decodeSingle<Student>()
-                studentName = student.name
-                teacherId = student.teacher_id
-            }
-            UserRole.TEACHER -> {
-                teacherId = userId
-            }
-            else -> Unit
+        if (role == UserRole.STUDENT) {
+            val student = client.postgrest["students"]
+                .select {
+                    filter { eq("id", userId) }
+                }
+                .decodeSingle<Student>()
+            studentName = student.name
+            teacherId = student.teacher_id
+            agencyId = student.agency_id
         }
 
         return AuthSession(
             userId = userId,
             role = role,
-            agencyId = profile.agency_id,
+            agencyId = agencyId,
             displayName = profile.display_name,
             studentName = studentName,
             teacherId = teacherId
@@ -203,6 +193,12 @@ class AuthService @Inject constructor(
                 ?: return Result.success(null)
 
             val session = fetchBusinessSession(userId = user.id)
+            if (session.role != UserRole.STUDENT) {
+                client.auth.signOut()
+                _currentSession.value = null
+                setPendingLoginError("教师与机构账号请使用网页端登录")
+                return Result.success(null)
+            }
             _currentSession.value = session
             Result.success(session)
         } catch (e: Exception) {

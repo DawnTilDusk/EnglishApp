@@ -109,15 +109,11 @@ class EconomyManagerImpl @Inject constructor(
             }
 
             if (cloudBalance < localBalance) {
-                cloudBalance = economyRemote.reconcileMyTokenBalance(localBalance)
-            }
-
-            if (cloudBalance < localBalance) {
                 return BalanceRefreshResult(
                     cloudBalance = cloudBalance,
                     localBalance = localBalance,
                     success = false,
-                    errorMessage = "代币同步未完成：本地 $localBalance，云端 $cloudBalance。请确认已在 Supabase 执行 008 migration 后重试。"
+                    errorMessage = "代币同步未完成：本地 $localBalance，云端 $cloudBalance。请联网完成学习同步后再试。"
                 )
             }
 

@@ -27,8 +27,8 @@ class StudentShopViewModel @Inject constructor(
     private val _orders = MutableStateFlow<List<ShopOrder>>(emptyList())
     val orders: StateFlow<List<ShopOrder>> = _orders.asStateFlow()
 
-    private val _teacherId = MutableStateFlow<String?>(null)
-    val teacherId: StateFlow<String?> = _teacherId.asStateFlow()
+    private val _agencyId = MutableStateFlow<String?>(null)
+    val agencyId: StateFlow<String?> = _agencyId.asStateFlow()
 
     private val _availableTokens = MutableStateFlow(0)
     val availableTokens: StateFlow<Int> = _availableTokens.asStateFlow()
@@ -55,11 +55,11 @@ class StudentShopViewModel @Inject constructor(
             _syncWarning.value = null
 
             authService.refreshBusinessSession()
-                .onSuccess { session -> _teacherId.value = session?.teacherId }
+                .onSuccess { session -> _agencyId.value = session?.agencyId }
                 .onFailure { e -> _message.value = e.message }
 
-            val teacherId = _teacherId.value
-            if (teacherId == null) {
+            val agencyId = _agencyId.value
+            if (agencyId == null) {
                 _products.value = emptyList()
                 _availableTokens.value = 0
                 _localTokens.value = 0
@@ -79,7 +79,7 @@ class StudentShopViewModel @Inject constructor(
                         }
                     }
 
-                    _products.value = shopRepository.fetchTeacherProducts(teacherId)
+                    _products.value = shopRepository.fetchAgencyProducts(agencyId, activeOnly = true)
                     _orders.value = shopRepository.fetchMyOrdersAsStudent()
                 } catch (e: Exception) {
                     _message.value = e.message
@@ -93,10 +93,10 @@ class StudentShopViewModel @Inject constructor(
         viewModelScope.launch {
             shopRepository.submitOrder(productId)
                 .onSuccess {
-                    _message.value = "下单成功，等待教师审核"
+                    _message.value = "购买成功，代币已扣除"
                     refresh()
                 }
-                .onFailure { _message.value = it.message ?: "下单失败" }
+                .onFailure { _message.value = it.message ?: "购买失败" }
         }
     }
 

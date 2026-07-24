@@ -12,10 +12,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.seedie.domain.model.UserRole
 import com.example.seedie.ui.SeedieNavGraph
 import com.example.seedie.ui.navigation.SeedieNavHost
-import com.example.seedie.ui.navigation.TeacherNavHost
 import com.example.seedie.ui.theme.SeedieTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -38,10 +36,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     is AuthUiState.LoggedIn -> {
-                        when (state.session.role) {
-                            UserRole.TEACHER -> TeacherNavHost()
-                            else -> SeedieNavHost()
-                        }
+                        SeedieNavHost()
                     }
                     is AuthUiState.LoggedOut -> {
                         SeedieNavGraph(onLoginSuccess = {})

@@ -30,13 +30,14 @@ data class Student(
 @Serializable
 data class Teacher(
     val id: String,
-    @SerialName("display_name") val display_name: String
+    @SerialName("display_name") val display_name: String,
+    @SerialName("agency_id") val agency_id: String? = null
 )
 
 @Serializable
 data class SupabaseShopProduct(
     val id: String,
-    @SerialName("teacher_id") val teacher_id: String,
+    @SerialName("agency_id") val agency_id: String,
     val name: String,
     val description: String? = null,
     @SerialName("price_tokens") val price_tokens: Int,
@@ -49,7 +50,7 @@ data class SupabaseShopProduct(
 data class SupabaseShopOrder(
     val id: String,
     @SerialName("student_id") val student_id: String,
-    @SerialName("teacher_id") val teacher_id: String,
+    @SerialName("agency_id") val agency_id: String,
     @SerialName("product_id") val product_id: String,
     @SerialName("tokens_amount") val tokens_amount: Int,
     val status: String,

@@ -2,7 +2,6 @@ package com.example.seedie.ui.screens.login
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,9 +13,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +26,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.seedie.domain.model.LoginMode
 
 @Composable
 fun LoginScreen(
@@ -40,12 +35,10 @@ fun LoginScreen(
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val phone by viewModel.phone.collectAsState()
-    val loginMode by viewModel.loginMode.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isEmailValid = remember(email) { viewModel.isEmailFormatValid(email) }
     val isPhoneValid = remember(phone) { viewModel.isPhoneInputValid(phone) }
-    val isStudentMode = loginMode == LoginMode.STUDENT
 
     LaunchedEffect(Unit) {
         viewModel.consumePendingLoginError()
@@ -63,32 +56,14 @@ fun LoginScreen(
                 text = "Welcome to Seedie!",
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            Text(
+                text = "学生登录",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(bottom = 24.dp)
             )
-
-            SingleChoiceSegmentedButtonRow(
-                modifier = Modifier
-                    .fillMaxWidth(0.6f)
-                    .padding(bottom = 24.dp)
-            ) {
-                LoginMode.entries.forEachIndexed { index, mode ->
-                    SegmentedButton(
-                        selected = loginMode == mode,
-                        onClick = { viewModel.onLoginModeChange(mode) },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = LoginMode.entries.size
-                        )
-                    ) {
-                        Text(
-                            when (mode) {
-                                LoginMode.STUDENT -> "学生登录"
-                                LoginMode.TEACHER -> "教师登录"
-                            }
-                        )
-                    }
-                }
-            }
 
             OutlinedTextField(
                 value = email,
@@ -117,24 +92,22 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(0.6f)
             )
 
-            if (isStudentMode) {
-                Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { viewModel.onPhoneChange(it) },
-                    label = { Text("手机号（首次必填）") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    singleLine = true,
-                    isError = phone.isNotBlank() && !isPhoneValid,
-                    supportingText = {
-                        if (phone.isNotBlank() && !isPhoneValid) {
-                            Text("手机号格式不正确")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(0.6f)
-                )
-            }
+            OutlinedTextField(
+                value = phone,
+                onValueChange = { viewModel.onPhoneChange(it) },
+                label = { Text("手机号（首次必填）") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true,
+                isError = phone.isNotBlank() && !isPhoneValid,
+                supportingText = {
+                    if (phone.isNotBlank() && !isPhoneValid) {
+                        Text("手机号格式不正确")
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(0.6f)
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -150,7 +123,7 @@ fun LoginScreen(
             }
 
             val canLogin = !isLoading && isEmailValid && password.isNotBlank() &&
-                (!isStudentMode || (phone.isNotBlank() && isPhoneValid))
+                phone.isNotBlank() && isPhoneValid
 
             Button(
                 onClick = { viewModel.login(onLoginSuccess = { onNavigateToNext() }) },

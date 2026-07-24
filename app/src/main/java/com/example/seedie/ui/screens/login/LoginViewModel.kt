@@ -3,7 +3,6 @@ package com.example.seedie.ui.screens.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.remote.AuthService
-import com.example.seedie.domain.model.LoginMode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,9 +18,6 @@ class LoginViewModel @Inject constructor(
     private val emailPattern = Regex(".*@.*")
     private val phonePattern = Regex("^\\+?[0-9]{11,13}$")
 
-    private val _loginMode = MutableStateFlow(LoginMode.STUDENT)
-    val loginMode: StateFlow<LoginMode> = _loginMode.asStateFlow()
-
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email.asStateFlow()
 
@@ -36,11 +32,6 @@ class LoginViewModel @Inject constructor(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
-
-    fun onLoginModeChange(mode: LoginMode) {
-        _loginMode.value = mode
-        _errorMessage.value = null
-    }
 
     fun onEmailChange(newEmail: String) { _email.value = newEmail }
     fun onPasswordChange(newPassword: String) { _password.value = newPassword }
@@ -77,28 +68,24 @@ class LoginViewModel @Inject constructor(
             return
         }
 
-        if (_loginMode.value == LoginMode.STUDENT) {
-            val normalizedPhone = normalizePhone(_phone.value)
-            if (normalizedPhone.isBlank()) {
-                _errorMessage.value = "学生登录请填写手机号"
-                return
-            }
-            if (!isPhoneInputValid()) {
-                _errorMessage.value = "手机号格式不正确"
-                return
-            }
+        val normalizedPhone = normalizePhone(_phone.value)
+        if (normalizedPhone.isBlank()) {
+            _errorMessage.value = "请填写手机号"
+            return
+        }
+        if (!isPhoneInputValid()) {
+            _errorMessage.value = "手机号格式不正确"
+            return
         }
 
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
 
-            val normalizedPhone = normalizePhone(_phone.value).ifBlank { null }
             try {
                 val result = authService.login(
                     email = _email.value,
                     password = _password.value,
-                    loginMode = _loginMode.value,
                     phone = normalizedPhone
                 )
                 if (result.isSuccess) {

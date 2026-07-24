@@ -2,7 +2,7 @@ package com.example.seedie.domain.model
 
 data class ShopProduct(
     val id: String,
-    val teacherId: String,
+    val agencyId: String,
     val name: String,
     val description: String?,
     val priceTokens: Int,
@@ -14,7 +14,7 @@ data class ShopProduct(
 data class ShopOrder(
     val id: String,
     val studentId: String,
-    val teacherId: String,
+    val agencyId: String,
     val productId: String,
     val productName: String?,
     val tokensAmount: Int,

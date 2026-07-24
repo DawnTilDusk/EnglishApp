@@ -1,92 +1,112 @@
-# 教师 / 学生双模式与商城 — Supabase 操作指南
+# 教师 / 机构 / 学生 — Supabase 与客户端操作指南
 
 项目 Supabase URL：`https://xojbnrxnkgkqacrkcmqc.supabase.co`
 
+权限说明见 [`docs/2026-07-24/permission_model.md`](../2026-07-24/permission_model.md)。
+
+## 客户端边界
+
+| 角色 | 客户端 |
+|------|--------|
+| 学生 | Android App |
+| 教师 | Web `web/` → `/teacher` |
+| 机构管理员 | Web `web/` → `/agency` |
+| 开发者 | Dashboard / `service_role` / 脚本（非产品登录） |
+
 ## 1. 执行 Migration（按顺序）
 
-在 Dashboard → **SQL Editor** 中依次运行：
+在 Dashboard → **SQL Editor** 中依次运行（或配置 `SUPABASE_DB_URL` 后执行 `python scripts/apply_migrations.py`）：
 
-0. [`supabase/migrations/000_user_sync_tables.sql`](../supabase/migrations/000_user_sync_tables.sql)（若尚无 4 张 `user_*` 同步表）
-1. [`supabase/migrations/001_add_teacher_role.sql`](../supabase/migrations/001_add_teacher_role.sql)
-2. [`supabase/migrations/002_shop_and_economy.sql`](../supabase/migrations/002_shop_and_economy.sql)
-3. [`supabase/migrations/003_teacher_shop_rpc.sql`](../supabase/migrations/003_teacher_shop_rpc.sql)
-4. [`supabase/migrations/004_verify_teacher_setup.sql`](../supabase/migrations/004_verify_teacher_setup.sql)（验证用，可选）
-5. [`supabase/migrations/005_fix_teacher_account.sql`](../supabase/migrations/005_fix_teacher_account.sql)（修复教师账号 role 一致性）
-6. [`supabase/migrations/006_economy_sync_rpc.sql`](../supabase/migrations/006_economy_sync_rpc.sql)（代币云端同步 RPC，**商城购买必需**）
-7. [`supabase/migrations/007_sync_economy_batch_rpc.sql`](../supabase/migrations/007_sync_economy_batch_rpc.sql)（批量补同步本地代币，**修复本地有币云端为 0**）
-8. [`supabase/migrations/008_reconcile_token_balance.sql`](../supabase/migrations/008_reconcile_token_balance.sql)（差额补齐，**修复本地 96 云端 36 等部分同步**）
+### 既有（若环境已部署可跳过）
 
-若从未部署基础 schema，需先运行 `supabase/migrations/` 下原有 7 个文件。
+0. `000_user_sync_tables.sql` … `009`（见历史文档）
 
-若缺少 App 同步用的 4 张 `user_*` 表，请参考 [`docs/2026-05-19/claude_project.md`](2026-05-19/claude_project.md) 或在 SQL Editor 中按 App DTO 字段补建。
+### 本次分层 + 机构商城
 
-## 2. 创建教师账号
+1. [`supabase/migrations/010_agency_teacher_hierarchy.sql`](../../supabase/migrations/010_agency_teacher_hierarchy.sql)
+2. [`supabase/migrations/011_agency_shop.sql`](../../supabase/migrations/011_agency_shop.sql)
+3. [`supabase/migrations/012_account_rpc_and_triggers.sql`](../../supabase/migrations/012_account_rpc_and_triggers.sql)
+4. [`supabase/migrations/013_rls_progress_hierarchy.sql`](../../supabase/migrations/013_rls_progress_hierarchy.sql)
+
+跑完后：
+
+```bash
+python scripts/audit_hierarchy.py
+```
+
+## 2. 创建机构管理员（仅 service_role）
+
+在 SQL Editor（postgres）或带 service_role 的脚本中：
 
 ```sql
+SELECT public.create_agency_admin(
+  'agency1@example.com',
+  'YourPassword123',
+  '<agency_uuid>',
+  '某机构管理员'
+);
+```
+
+## 3. 创建教师（机构管理员或 service_role）
+
+机构管理员登录 Web 后在「教师」页创建，或：
+
+```sql
+-- 作为 service_role 时必须传 p_agency_id
 SELECT public.create_teacher_account(
   'teacher1@example.com',
   'YourPassword123',
-  '张老师'
+  '张老师',
+  '<agency_uuid>'
 );
--- 记下返回的 UUID
 ```
 
-## 3. 绑定学生到教师
+## 4. 绑定学生到教师
+
+Web 机构台「学生」页，或：
 
 ```sql
-UPDATE public.students
-SET teacher_id = '<teacher_uuid>'
-WHERE id = '<student_uuid>';
+SELECT public.bind_student_to_teacher('<student_uuid>', '<teacher_uuid>');
 ```
 
-验证：
+## 5. 机构商城
+
+- 一机构一店：`shop_products.agency_id` / `shop_orders.agency_id`
+- 机构 Web 管理商品；教师 Web 只读；学生 App 浏览并购买
+- 购买 RPC：`submit_shop_order` / `purchase_shop_product` — **即时扣款**，订单状态 `completed`
+- **已移除** `approve_shop_order` / `reject_shop_order`
+
+测试商品（机构 UUID）：
 
 ```sql
-SELECT s.name, t.display_name AS teacher
-FROM public.students s
-JOIN public.teachers t ON t.id = s.teacher_id
-WHERE s.id = '<student_uuid>';
+INSERT INTO public.shop_products (agency_id, name, description, price_tokens, stock, is_active)
+VALUES ('<agency_uuid>', '文具套装', '测试商品', 50, 10, true);
 ```
 
-## 4. 测试商品（可选）
+## 6. Web 本地启动
 
-```sql
-INSERT INTO public.shop_products (teacher_id, name, description, price_tokens, stock, is_active)
-VALUES ('<teacher_uuid>', '文具套装', '测试商品', 50, 10, true);
+```bash
+cd web
+cp .env.example .env.local   # 填入 NEXT_PUBLIC_SUPABASE_URL / ANON_KEY
+npm install
+npm run dev
 ```
 
-## 5. App 联调流程
+## 7. App 联调
 
 | 步骤 | 操作 | 预期 |
 |------|------|------|
-| 1 | 学生登录 → 学习赚代币 | 本地 Room 有交易记录 |
-| 2 | 联网 sync | `user_economy_transactions` 有正向记录（需已执行 006、007、008 migration） |
-| 3 | 学生 → 我的 → 教师商城 → 同步代币 → 购买 | `shop_orders.status = pending` |
-| 4 | 教师登录 → 商城 → 批准/拒绝 | 状态变更；拒绝时退款 |
+| 1 | 学生登录 App | 仅学生角色可进 |
+| 2 | 学习赚代币并同步 | `user_economy_transactions` 有记录 |
+| 3 | 机构商城购买 | 即时扣款；`shop_orders.status = completed` |
+| 4 | 机构 Web 看订单 | 可见该订单；无审单按钮 |
 
-## 6. 日常运维
+## 8. 日常运维
 
-| 需求 | SQL / 位置 |
-|------|------------|
-| 新教师 | `create_teacher_account(...)` |
-| 换绑学生 | `UPDATE students SET teacher_id = ...` |
-| 查订单 | Table Editor → `shop_orders` |
-| 查代币 | `SELECT SUM(amount) FROM user_economy_transactions WHERE user_id = '...'` |
-
-教师账号 role 快速核验：
-
-```sql
-SELECT p.id, p.email, p.role, t.id AS teacher_id
-FROM public.profiles p
-LEFT JOIN public.teachers t ON t.id = p.id
-WHERE p.email = '<teacher_email>';
-```
-
-期望结果：`p.role = 'teacher'` 且 `teacher_id` 非空。
-
-## 7. 注意事项
-
-- 学生未绑定 `teacher_id` 时，App 商城入口会提示无法购物。
-- 购买需联网，走 RPC 原子扣款；进入商城时会自动将本地代币补同步到云端。
-- 若个人资料显示代币但商城显示不足，请点击商城内「同步代币」按钮。
-- legacy 表 `rewards` / `redemptions` 本次不使用，商城数据在 `shop_products` / `shop_orders`。
+| 需求 | 方式 |
+|------|------|
+| 新机构管理员 | `create_agency_admin` + service_role |
+| 新教师 | 机构 Web 或 `create_teacher_account` |
+| 换绑学生 | `bind_student_to_teacher` / 机构 Web |
+| 查订单 | 机构 Web 或 Table Editor → `shop_orders` |
+| 补代币差额 | 仅 service_role 可调 `reconcile_my_token_balance`（App 已不再调用） |

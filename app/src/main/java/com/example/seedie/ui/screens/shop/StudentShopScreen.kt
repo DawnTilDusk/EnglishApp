@@ -35,7 +35,7 @@ fun StudentShopScreen(
     viewModel: StudentShopViewModel = hiltViewModel()
 ) {
     val products by viewModel.products.collectAsState()
-    val teacherId by viewModel.teacherId.collectAsState()
+    val agencyId by viewModel.agencyId.collectAsState()
     val availableTokens by viewModel.availableTokens.collectAsState()
     val localTokens by viewModel.localTokens.collectAsState()
     val syncWarning by viewModel.syncWarning.collectAsState()
@@ -50,7 +50,7 @@ fun StudentShopScreen(
         AlertDialog(
             onDismissRequest = { confirmProductId = null },
             title = { Text("确认购买") },
-            text = { Text("购买「$confirmProductName」将花费 $confirmPrice 代币，提交后等待教师审核。") },
+            text = { Text("购买「$confirmProductName」将立即扣除 $confirmPrice 代币。") },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.submitOrder(it)
@@ -91,7 +91,7 @@ fun StudentShopScreen(
 
         item {
             Text(
-                text = "教师商城",
+                text = "机构商城",
                 style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
             )
             Text(text = "我的代币：$availableTokens")
@@ -119,16 +119,16 @@ fun StudentShopScreen(
         }
 
         when {
-            teacherId == null -> {
+            agencyId == null -> {
                 item {
-                    Text("暂未绑定教师，无法购物。请联系管理员在后台设置 students.teacher_id。")
+                    Text("账号未归属机构，无法购物。请联系机构管理员。")
                 }
             }
             isLoading && products.isEmpty() -> {
                 item { CircularProgressIndicator() }
             }
             products.isEmpty() -> {
-                item { Text("教师暂未上架商品") }
+                item { Text("机构暂未上架商品") }
             }
             else -> {
                 items(products, key = { it.id }) { product ->
@@ -205,7 +205,7 @@ fun MyOrdersScreen(
 }
 
 private fun orderStatusLabel(status: String): String = when (status) {
-    "pending" -> "待审核"
+    "pending" -> "待处理（旧单）"
     "approved" -> "已批准"
     "completed" -> "已完成"
     "rejected" -> "已拒绝"
