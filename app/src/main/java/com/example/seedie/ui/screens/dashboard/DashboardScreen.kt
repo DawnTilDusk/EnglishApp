@@ -23,8 +23,8 @@ fun DashboardScreen(
             .padding(24.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Left side: Heatmap (takes 60% of width)
-        HeatmapSection(modifier = Modifier.weight(0.6f))
+        // Left side: heatmap + daily quote carousel (takes 60% of width)
+        DashboardFeatureCarousel(modifier = Modifier.weight(0.6f))
 
         // Right side: Daily Missions (takes 40% of width)
         DailyMissionSection(

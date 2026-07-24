@@ -2,6 +2,7 @@ package com.example.seedie.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.example.seedie.data.local.dao.ActivityDurationDao
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
@@ -18,6 +19,7 @@ import com.example.seedie.data.local.entity.CheckInEntity
 import com.example.seedie.data.local.entity.DailyTaskEntity
 import com.example.seedie.data.local.entity.EconomyTransactionEntity
 import com.example.seedie.data.local.entity.GardenPlotEntity
+import com.example.seedie.data.local.entity.ActivityDurationEntity
 import com.example.seedie.data.local.entity.SyncOperationEntity
 import com.example.seedie.data.local.entity.VocabularyBookProgressEntity
 import com.example.seedie.data.local.entity.VocabularyStudyRoundEntity
@@ -33,6 +35,7 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         CheckInEntity::class,
         GardenPlotEntity::class,
         EconomyTransactionEntity::class,
+        ActivityDurationEntity::class,
         WordBookEntity::class,
         WordBookModuleEntity::class,
         VocabularyWordEntity::class,
@@ -42,10 +45,11 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         VocabularyStudyRoundWordEntity::class,
         SyncOperationEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class SeedieDatabase : RoomDatabase() {
+    abstract fun activityDurationDao(): ActivityDurationDao
     abstract fun dailyTaskDao(): DailyTaskDao
     abstract fun checkInDao(): CheckInDao
     abstract fun gardenPlotDao(): GardenPlotDao

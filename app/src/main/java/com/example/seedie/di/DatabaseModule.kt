@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Room
 import com.example.seedie.data.local.SeedieDatabase
 import com.example.seedie.data.local.SeedieDatabaseMigrations
+import com.example.seedie.data.local.dao.ActivityDurationDao
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
@@ -42,8 +43,13 @@ object DatabaseModule {
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_3_4)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_4_5)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_5_6)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_6_7)
             .build()
     }
+
+    @Provides
+    fun provideActivityDurationDao(database: SeedieDatabase): ActivityDurationDao =
+        database.activityDurationDao()
 
     @Provides
     fun provideDailyTaskDao(database: SeedieDatabase): DailyTaskDao = database.dailyTaskDao()

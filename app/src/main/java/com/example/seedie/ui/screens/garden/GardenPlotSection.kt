@@ -56,6 +56,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.seedie.data.local.entity.GardenPlotEntity
+import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.AccentOrange
 import com.example.seedie.ui.theme.PrimaryGreen
 import com.example.seedie.ui.theme.SecondaryBrown
@@ -77,31 +78,11 @@ fun GardenPlotSection(
         label = "gardenGridTopInset"
     )
 
-    Surface(
-        modifier = modifier
-            .fillMaxSize()
-            .gardenShadow(shape = cardShape),
+    TabSectionSurface(
+        modifier = modifier.fillMaxSize(),
         shape = cardShape,
-        color = MaterialTheme.colorScheme.surface
+        accentColor = PrimaryGreen
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.30f),
-                            PrimaryGreen.copy(alpha = 0.06f),
-                            MaterialTheme.colorScheme.surface
-                        )
-                    )
-                )
-                .border(
-                    width = 1.dp,
-                    color = PrimaryGreen.copy(alpha = 0.10f),
-                    shape = cardShape
-                )
-        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -210,7 +191,6 @@ fun GardenPlotSection(
                     onDismiss = { detailsExpanded = false }
                 )
             }
-        }
     }
 }
 

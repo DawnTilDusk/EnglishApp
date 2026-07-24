@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.example.seedie.domain.model.ActivityModule
 import com.example.seedie.ui.screens.learning.LearningHubScreen
 import com.example.seedie.ui.screens.learning.ModuleConfig
 import androidx.compose.material.icons.Icons
@@ -54,6 +55,7 @@ fun MainScreen(
     onOpenListeningPractice: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
+    onVisibleModuleChanged: (ActivityModule) -> Unit,
     pendingStudyResult: StudyResult?,
     onStudyResultConsumed: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
@@ -85,6 +87,15 @@ fun MainScreen(
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
+            onVisibleModuleChanged(
+                when (page) {
+                    0 -> ActivityModule.Dashboard
+                    1 -> ActivityModule.LearningHub
+                    2 -> ActivityModule.DataGarden
+                    3 -> ActivityModule.Profile
+                    else -> ActivityModule.Dashboard
+                }
+            )
             if (page == 2) {
                 dataGardenEnterKey += 1
             }
@@ -166,7 +177,6 @@ fun MainScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             Column {
-                // Suspended indicator above bottom bar
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
