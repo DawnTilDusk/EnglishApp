@@ -11,6 +11,7 @@ import com.example.seedie.data.repository.TeacherRepositoryImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
 import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
+import com.example.seedie.data.repository.WordBookRepositoryImpl
 import com.example.seedie.domain.repository.ActivityTrackingRepository
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
@@ -20,6 +21,7 @@ import com.example.seedie.domain.repository.TeacherRepository
 import com.example.seedie.domain.repository.UserSessionRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.VocabularyQuizRepository
+import com.example.seedie.domain.repository.WordBookRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -89,4 +91,10 @@ abstract class RepositoryModule {
     abstract fun bindTeacherRepository(
         teacherRepositoryImpl: TeacherRepositoryImpl
     ): TeacherRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWordBookRepository(
+        wordBookRepositoryImpl: WordBookRepositoryImpl
+    ): WordBookRepository
 }

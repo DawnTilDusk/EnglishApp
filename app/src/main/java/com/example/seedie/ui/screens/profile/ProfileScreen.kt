@@ -37,6 +37,7 @@ fun ProfileScreen(
     val totalTokens by viewModel.totalTokens.collectAsState()
     val badges by viewModel.badges.collectAsState()
     val profileEditorUiState by viewModel.profileEditorUiState.collectAsState()
+    val learningTargetUiState by viewModel.learningTargetUiState.collectAsState()
     val message by viewModel.message.collectAsState()
     val showLogoutDialogState: MutableState<Boolean> = remember { mutableStateOf(false) }
 
@@ -68,7 +69,11 @@ fun ProfileScreen(
                 profile = profileEditorUiState.profile,
                 onOpenProfileEditor = viewModel::openProfileEditor,
                 onProfileActionClick = { label ->
-                    Toast.makeText(context, "$label 功能暂未开放", Toast.LENGTH_SHORT).show()
+                    if (label == "学习目标") {
+                        viewModel.openLearningTargetOverlay()
+                    } else {
+                        Toast.makeText(context, "$label 功能暂未开放", Toast.LENGTH_SHORT).show()
+                    }
                 },
                 onLogoutClick = { showLogoutDialogState.value = true }
             )
@@ -118,6 +123,45 @@ fun ProfileScreen(
                         onBindPhoneClick = viewModel::openPhoneBindingDialog,
                         onDismiss = viewModel::dismissProfileEditor,
                         onSave = viewModel::saveProfileEdits
+                    )
+                }
+            }
+        }
+
+        if (learningTargetUiState.isVisible) {
+            val dismissInteractionSource = remember { MutableInteractionSource() }
+            val contentInteractionSource = remember { MutableInteractionSource() }
+            Dialog(
+                onDismissRequest = viewModel::dismissLearningTargetOverlay,
+                properties = DialogProperties(
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false,
+                    dismissOnClickOutside = false
+                )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.34f))
+                        .clickable(
+                            interactionSource = dismissInteractionSource,
+                            indication = null
+                        ) { viewModel.dismissLearningTargetOverlay() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    LearningTargetOverlay(
+                        modifier = Modifier
+                            .fillMaxWidth(0.46f)
+                            .widthIn(max = 560.dp)
+                            .clickable(
+                                interactionSource = contentInteractionSource,
+                                indication = null
+                            ) {},
+                        state = learningTargetUiState,
+                        onRefresh = viewModel::refreshLearningTargets,
+                        onDownload = viewModel::downloadWordBook,
+                        onActivate = viewModel::activateWordBook,
+                        onDismiss = viewModel::dismissLearningTargetOverlay
                     )
                 }
             }

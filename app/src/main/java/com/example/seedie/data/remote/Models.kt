@@ -67,3 +67,42 @@ data class UserEconomyTransactionDto(
     val reason: String,
     @SerialName("ref_id") val ref_id: String? = null
 )
+
+@Serializable
+data class SupabaseWordBook(
+    @SerialName("book_id") val book_id: String,
+    val title: String,
+    val description: String? = null,
+    val language: String? = null,
+    val difficulty: String? = null,
+    val version: Int = 1,
+    @SerialName("word_count") val word_count: Int = 0,
+    @SerialName("cover_url") val cover_url: String? = null,
+    @SerialName("updated_at") val updated_at: Long = 0L
+)
+
+@Serializable
+data class SupabaseWordBookModule(
+    @SerialName("module_id") val module_id: String,
+    @SerialName("book_id") val book_id: String,
+    val title: String,
+    @SerialName("sort_order") val sort_order: Int,
+    @SerialName("word_count") val word_count: Int = 0
+)
+
+@Serializable
+data class SupabaseVocabularyWord(
+    @SerialName("word_id") val word_id: String,
+    @SerialName("book_id") val book_id: String,
+    @SerialName("module_id") val module_id: String? = null,
+    val english: String,
+    val phonetic: String = "",
+    @SerialName("part_of_speech") val part_of_speech: String = "",
+    val translation: String = "",
+    @SerialName("example_sentence") val example_sentence: String = "",
+    @SerialName("difficulty_level") val difficulty_level: String = "mixed",
+    @SerialName("reward_token") val reward_token: Int = 0,
+    @SerialName("estimated_duration_sec") val estimated_duration_sec: Int = 0,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    @SerialName("audio_url") val audio_url: String? = null
+)

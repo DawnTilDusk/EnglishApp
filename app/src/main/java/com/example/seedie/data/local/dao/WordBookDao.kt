@@ -42,4 +42,10 @@ interface WordBookDao {
 
     @Query("SELECT * FROM word_books WHERE bookId = :bookId")
     suspend fun getBookById(bookId: String): WordBookEntity?
+
+    @Query("SELECT COUNT(*) FROM word_books WHERE downloadStatus = :status")
+    suspend fun getBookCountByDownloadStatus(status: String): Int
+
+    @Query("SELECT * FROM word_books WHERE downloadStatus = :status ORDER BY updatedAt DESC LIMIT 1")
+    suspend fun getLatestBookByDownloadStatus(status: String): WordBookEntity?
 }

@@ -6,14 +6,17 @@ import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.AuthSession
 import com.example.seedie.domain.profile.ProfileGradeOptions
 import com.example.seedie.domain.repository.EconomyManager
+import com.example.seedie.domain.repository.ManagedWordBook
 import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.UserProfile
 import com.example.seedie.domain.repository.UserSessionRepository
+import com.example.seedie.domain.repository.WordBookRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -42,12 +45,22 @@ data class ProfileEditorUiState(
     val isBindingPhone: Boolean = false
 )
 
+data class LearningTargetUiState(
+    val isVisible: Boolean = false,
+    val isLoading: Boolean = false,
+    val books: List<ManagedWordBook> = emptyList(),
+    val activeOperationBookId: String? = null,
+    val currentBookId: String? = null,
+    val errorMessage: String? = null
+)
+
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     economyManager: EconomyManager,
     userSessionRepository: UserSessionRepository,
     private val authService: AuthService,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val wordBookRepository: WordBookRepository
 ) : ViewModel() {
     private val phonePattern = Regex("^\\+?[0-9]{11,13}$")
 
@@ -59,6 +72,8 @@ class ProfileViewModel @Inject constructor(
         )
     )
     val profileEditorUiState: StateFlow<ProfileEditorUiState> = _profileEditorUiState.asStateFlow()
+    private val _learningTargetUiState = MutableStateFlow(LearningTargetUiState())
+    val learningTargetUiState: StateFlow<LearningTargetUiState> = _learningTargetUiState.asStateFlow()
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
@@ -105,7 +120,9 @@ class ProfileViewModel @Inject constructor(
         )
 
     init {
+        observeWordBooks()
         refreshProfile()
+        refreshLearningTargets()
     }
 
     fun openProfileEditor() {
@@ -239,6 +256,91 @@ class ProfileViewModel @Inject constructor(
         _message.value = null
     }
 
+    fun openLearningTargetOverlay() {
+        _learningTargetUiState.value = _learningTargetUiState.value.copy(
+            isVisible = true,
+            errorMessage = null
+        )
+        refreshLearningTargets()
+    }
+
+    fun dismissLearningTargetOverlay() {
+        _learningTargetUiState.value = _learningTargetUiState.value.copy(
+            isVisible = false,
+            activeOperationBookId = null,
+            errorMessage = null
+        )
+    }
+
+    fun refreshLearningTargets() {
+        _learningTargetUiState.value = _learningTargetUiState.value.copy(
+            isLoading = true,
+            errorMessage = null
+        )
+        viewModelScope.launch {
+            wordBookRepository.refreshWordBooks()
+                .onSuccess { books ->
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        isLoading = false,
+                        books = books,
+                        currentBookId = books.firstOrNull { it.isActive }?.bookId
+                    )
+                }
+                .onFailure { error ->
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "词书列表加载失败"
+                    )
+                }
+        }
+    }
+
+    fun downloadWordBook(bookId: String) {
+        _learningTargetUiState.value = _learningTargetUiState.value.copy(
+            activeOperationBookId = bookId,
+            errorMessage = null
+        )
+        viewModelScope.launch {
+            wordBookRepository.downloadWordBook(bookId)
+                .onSuccess {
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        activeOperationBookId = null
+                    )
+                    _message.value = "词书已下载"
+                    refreshLearningTargets()
+                }
+                .onFailure { error ->
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        activeOperationBookId = null,
+                        errorMessage = error.message ?: "词书下载失败"
+                    )
+                }
+        }
+    }
+
+    fun activateWordBook(bookId: String) {
+        _learningTargetUiState.value = _learningTargetUiState.value.copy(
+            activeOperationBookId = bookId,
+            errorMessage = null
+        )
+        viewModelScope.launch {
+            wordBookRepository.setActiveWordBook(bookId)
+                .onSuccess {
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        activeOperationBookId = null
+                    )
+                    _message.value = "当前词书已切换"
+                    refreshLearningTargets()
+                }
+                .onFailure { error ->
+                    _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                        activeOperationBookId = null,
+                        errorMessage = error.message ?: "词书切换失败"
+                    )
+                }
+        }
+    }
+
     fun refreshProfile() {
         _profileEditorUiState.value = _profileEditorUiState.value.copy(isLoading = true)
         viewModelScope.launch {
@@ -289,6 +391,17 @@ class ProfileViewModel @Inject constructor(
     private fun extractEditablePhone(displayValue: String): String {
         val normalized = normalizePhone(displayValue)
         return normalized.takeIf { phonePattern.matches(it) }.orEmpty()
+    }
+
+    private fun observeWordBooks() {
+        viewModelScope.launch {
+            wordBookRepository.observeWordBooks().collect { books ->
+                _learningTargetUiState.value = _learningTargetUiState.value.copy(
+                    books = books,
+                    currentBookId = books.firstOrNull { it.isActive }?.bookId
+                )
+            }
+        }
     }
 }
 

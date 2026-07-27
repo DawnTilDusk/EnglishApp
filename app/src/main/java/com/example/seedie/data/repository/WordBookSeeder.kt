@@ -4,6 +4,8 @@ import com.example.seedie.data.local.dao.VocabularyWordDao
 import com.example.seedie.data.local.dao.WordBookDao
 import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.data.local.entity.WordBookEntity
+import com.example.seedie.domain.repository.WordBookDownloadStatus
+import com.example.seedie.domain.repository.asStorageValue
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,14 +15,23 @@ class WordBookSeeder @Inject constructor(
     private val vocabularyWordDao: VocabularyWordDao
 ) {
     suspend fun ensureSeeded() {
-        if (wordBookDao.getBookCount() > 0) return
-        wordBookDao.insertBook(VocabularyStaticWordPack.defaultBookEntity())
-        vocabularyWordDao.insertWords(VocabularyStaticWordPack.defaultWordEntities())
+        if (wordBookDao.getBookById(VocabularyStaticWordPack.DEFAULT_BOOK_ID) == null) {
+            wordBookDao.insertBook(
+                VocabularyStaticWordPack.defaultBookEntity().copy(
+                    isActive = wordBookDao.getActiveBook() == null
+                )
+            )
+        }
+        if (vocabularyWordDao.getWordCountByBook(VocabularyStaticWordPack.DEFAULT_BOOK_ID) == 0) {
+            vocabularyWordDao.insertWords(VocabularyStaticWordPack.defaultWordEntities())
+        }
     }
 
     suspend fun loadActiveBook(): WordBookEntity {
         ensureSeeded()
-        return wordBookDao.getActiveBook() ?: wordBookDao.getLatestBook()
+        val downloadedStatus = WordBookDownloadStatus.DOWNLOADED.asStorageValue()
+        return wordBookDao.getActiveBook()?.takeIf { it.downloadStatus == downloadedStatus }
+            ?: wordBookDao.getLatestBookByDownloadStatus(downloadedStatus)
             ?: error("未找到可用词书")
     }
 

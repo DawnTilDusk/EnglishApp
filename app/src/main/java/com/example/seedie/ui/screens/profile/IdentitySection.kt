@@ -56,6 +56,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.seedie.domain.profile.ProfileGradeOptions
+import com.example.seedie.domain.repository.ManagedWordBook
+import com.example.seedie.domain.repository.WordBookDownloadStatus
 import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.gardenPressable
 import com.example.seedie.ui.theme.gardenShadow
@@ -430,6 +432,119 @@ fun ProfilePhoneBindingDialog(
 }
 
 @Composable
+fun LearningTargetOverlay(
+    modifier: Modifier = Modifier,
+    state: LearningTargetUiState,
+    onRefresh: () -> Unit,
+    onDownload: (String) -> Unit,
+    onActivate: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    Surface(
+        modifier = modifier.gardenShadow(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 6.dp,
+        shadowElevation = 12.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Text(
+                text = "学习目标",
+                style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.background
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = state.books.firstOrNull { it.isActive }?.title ?: "当前使用默认词书",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = state.books.firstOrNull { it.isActive }?.description
+                            ?.takeIf { it.isNotBlank() }
+                            ?: "你可以在这里下载新的词书，并把已下载词书设为当前学习内容。",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (state.errorMessage != null) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f)
+                ) {
+                    Text(
+                        text = state.errorMessage,
+                        modifier = Modifier.padding(14.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+
+            ProfileGroup(title = "可选词书") {
+                if (state.isLoading && state.books.isEmpty()) {
+                    Text(
+                        text = "词书列表加载中...",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else if (state.books.isEmpty()) {
+                    Text(
+                        text = "暂时还没有可显示的词书，请稍后刷新。",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                } else {
+                    state.books.forEachIndexed { index, book ->
+                        WordBookRow(
+                            book = book,
+                            isOperating = state.activeOperationBookId == book.bookId,
+                            onDownload = { onDownload(book.bookId) },
+                            onActivate = { onActivate(book.bookId) }
+                        )
+                        if (index != state.books.lastIndex) {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f))
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onRefresh, enabled = !state.isLoading) {
+                    Text(if (state.isLoading) "刷新中..." else "刷新列表")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("关闭")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun ProfileHeroCard(
     profile: ProfileIdentityUiState,
     onClick: () -> Unit
@@ -499,6 +614,71 @@ private fun ProfileAvatar(
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             color = MaterialTheme.colorScheme.primary
         )
+    }
+}
+
+@Composable
+private fun WordBookRow(
+    book: ManagedWordBook,
+    isOperating: Boolean,
+    onDownload: () -> Unit,
+    onActivate: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text(
+            text = book.title,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = book.description.ifBlank { "适合加入当前学习计划的词书。" },
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "词量 ${book.wordCount}  |  难度 ${book.difficulty}  |  ${bookStatusText(book)}",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            if (book.downloadStatus != WordBookDownloadStatus.DOWNLOADED) {
+                OutlinedButton(
+                    onClick = onDownload,
+                    enabled = !isOperating
+                ) {
+                    Text(if (isOperating) "下载中..." else "下载")
+                }
+            }
+            Button(
+                onClick = onActivate,
+                enabled = book.downloadStatus == WordBookDownloadStatus.DOWNLOADED &&
+                    !book.isActive &&
+                    !isOperating
+            ) {
+                Text(
+                    when {
+                        book.isActive -> "当前使用中"
+                        isOperating -> "切换中..."
+                        else -> "使用这本"
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun bookStatusText(book: ManagedWordBook): String {
+    return when {
+        book.isActive -> "当前使用"
+        book.downloadStatus == WordBookDownloadStatus.DOWNLOADED -> "已下载"
+        book.downloadStatus == WordBookDownloadStatus.DOWNLOADING -> "下载中"
+        book.downloadStatus == WordBookDownloadStatus.FAILED -> "下载失败"
+        else -> "未下载"
     }
 }
 
