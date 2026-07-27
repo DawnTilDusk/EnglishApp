@@ -1,5 +1,40 @@
 # Changelog — 2026-07-27
 
+## Android：Profile 新增词书下载与切换
+
+在 `Profile -> 更多功能 -> 学习目标` 接入真实词书管理浮层，不再是占位 Toast。用户现在可以查看远端词书目录、下载词书，并把已下载词书设为当前学习词书；练习/测验/听力继续统一走 active 词书。默认内置词书仍作为兜底，不会在 seed 时覆盖已下载词书。
+
+### 改动
+
+- [`ProfileViewModel.kt`](../../app/src/main/java/com/example/seedie/ui/screens/profile/ProfileViewModel.kt)、[`ProfileScreen.kt`](../../app/src/main/java/com/example/seedie/ui/screens/profile/ProfileScreen.kt)、[`IdentitySection.kt`](../../app/src/main/java/com/example/seedie/ui/screens/profile/IdentitySection.kt)：新增“学习目标”浮层、词书列表、下载状态、切换当前词书和反馈文案。
+- [`WordBookRepository.kt`](../../app/src/main/java/com/example/seedie/domain/repository/WordBookRepository.kt)、[`WordBookRepositoryImpl.kt`](../../app/src/main/java/com/example/seedie/data/repository/WordBookRepositoryImpl.kt)、[`WordBookRemoteDataSource.kt`](../../app/src/main/java/com/example/seedie/data/remote/WordBookRemoteDataSource.kt)：新增远端词书目录读取、本地下载入库、下载状态维护与 active 词书切换。
+- [`WordBookSeeder.kt`](../../app/src/main/java/com/example/seedie/data/repository/WordBookSeeder.kt)、[`WordBookDao.kt`](../../app/src/main/java/com/example/seedie/data/local/dao/WordBookDao.kt)：补齐默认词书兜底与本地词书状态读写。
+- [`016_seed_word_book_catalog.sql`](../../supabase/migrations/016_seed_word_book_catalog.sql)：补齐远端词书目录与词条数据，新增 `Seedie 成长阅读词书` 供客户端下载。
+
+---
+
+## Android：修复外研社词书下载时的 JSON null 报错
+
+外研社词书远端数据中存在 `phonetic: null` 等字段，客户端此前按非空 `String` 解码，导致 `Unexpected JSON token ... at path: $[0].phonetic`，下载在解码阶段直接失败。本轮改为先兼容远端 `null`，再在入库前统一回落为空字符串或默认值。
+
+### 改动
+
+- [`Models.kt`](../../app/src/main/java/com/example/seedie/data/remote/Models.kt)：将 `phonetic`、`part_of_speech`、`translation`、`example_sentence`、`difficulty_level` 改为可空，兼容 Supabase 返回 `null`。
+- [`WordBookRepositoryImpl.kt`](../../app/src/main/java/com/example/seedie/data/repository/WordBookRepositoryImpl.kt)：映射到 Room 实体前统一使用 `orEmpty()` / `?: "mixed"` 做回落，避免下载链路因空值中断。
+
+---
+
+## Android：补回 Gradle settings 并修复插件解析失败
+
+根工程缺少 `settings.gradle.kts` 时，Gradle 只会去 Plugin Portal 查找插件，拿不到 Android 插件所在的 `google()` 仓库，导致 `Plugin [id: 'com.android.application' ...] was not found`。本轮补回标准 settings 配置，并在根构建脚本补齐序列化插件声明。
+
+### 改动
+
+- [`settings.gradle.kts`](../../settings.gradle.kts)：新增 `pluginManagement` / `dependencyResolutionManagement`，显式配置 `google()`、`mavenCentral()`、`gradlePluginPortal()`，并恢复 `include(":app")`。
+- [`build.gradle.kts`](../../build.gradle.kts)：补上 `kotlin.serialization` 的 `apply false` 声明，和 `app` 模块插件使用保持一致。
+
+---
+
 ## 机构表单改用 useActionState，消除 Webpack 模块错误
 
 `__webpack_modules__[moduleId] is not a function`：`startTransition` + 客户端调用大包 `agency/actions` 在 revalidate/HMR 后易损坏模块图。改为各路由 colocated `actions.ts` + React `useActionState` / 原生 `form action`；删除 [`agency/actions.ts`](../../web/src/app/agency/actions.ts)。
