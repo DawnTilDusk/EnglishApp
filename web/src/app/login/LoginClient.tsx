@@ -42,12 +42,16 @@ export default function LoginClient() {
 
     if (profile?.role === "agency_admin") {
       router.replace("/agency");
-    } else if (profile?.role === "teacher") {
-      router.replace("/teacher");
-    } else {
-      await supabase.auth.signOut();
-      setError("学生账号请使用 Seedie App 登录。");
+      router.refresh();
+      return;
     }
+    if (profile?.role === "teacher") {
+      router.replace("/teacher");
+      router.refresh();
+      return;
+    }
+    await supabase.auth.signOut();
+    setError("学生账号请使用 Seedie App 登录。");
     setLoading(false);
   }
 

@@ -1,8 +1,8 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
-import { bindStudentAction } from "../actions";
 import { BindStudentForm } from "./BindStudentForm";
+import { CreateStudentForm } from "./CreateStudentForm";
 
 export default async function AgencyStudentsPage() {
   const profile = await requireAgencyAdmin();
@@ -37,9 +37,15 @@ export default async function AgencyStudentsPage() {
     >
       <div className="stack">
         <div className="card">
-          <h2 style={{ marginTop: 0 }}>绑定学生到教师</h2>
+          <h2 style={{ marginTop: 0 }}>创建学生</h2>
+          <p className="muted" style={{ marginTop: 0 }}>
+            创建后学生可用该邮箱密码登录 App；须同时绑定本机构教师。
+          </p>
+          <CreateStudentForm teachers={teachers ?? []} />
+        </div>
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>换绑教师</h2>
           <BindStudentForm
-            action={bindStudentAction}
             students={students ?? []}
             teachers={teachers ?? []}
           />
@@ -51,6 +57,7 @@ export default async function AgencyStudentsPage() {
               <tr>
                 <th>姓名</th>
                 <th>学号</th>
+                <th>班级</th>
                 <th>教师</th>
               </tr>
             </thead>
@@ -59,11 +66,19 @@ export default async function AgencyStudentsPage() {
                 <tr key={s.id}>
                   <td>{s.name}</td>
                   <td>{s.student_no || "—"}</td>
-                  <td>{s.teacher_id ? teacherName.get(s.teacher_id) || s.teacher_id : "未绑定"}</td>
+                  <td>{s.class_id || "—"}</td>
+                  <td>
+                    {s.teacher_id
+                      ? teacherName.get(s.teacher_id) || s.teacher_id
+                      : "未绑定"}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          {(students ?? []).length === 0 && (
+            <p className="muted">暂无学生，请先创建。</p>
+          )}
         </div>
       </div>
     </ConsoleShell>

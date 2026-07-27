@@ -1,35 +1,32 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import type { StudentRow, TeacherRow } from "@/lib/types";
-
-type ActionResult = { error: string | null };
+import { initialActionState } from "@/lib/action-state";
+import { bindStudentAction } from "./actions";
 
 export function BindStudentForm({
-  action,
   students,
   teachers,
 }: {
-  action: (formData: FormData) => Promise<ActionResult>;
   students: Pick<StudentRow, "id" | "name">[];
   teachers: Pick<TeacherRow, "id" | "display_name">[];
 }) {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [state, formAction, pending] = useActionState(
+    bindStudentAction,
+    initialActionState
+  );
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    if (state.ok) {
+      formRef.current?.reset();
+    }
+  }, [state]);
 
   return (
-    <form
-      className="stack"
-      onSubmit={(e) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        startTransition(async () => {
-          const result = await action(formData);
-          setError(result.error);
-        });
-      }}
-    >
-      {error && <p className="error">{error}</p>}
+    <form ref={formRef} className="stack" action={formAction}>
+      {state.error && <p className="error">{state.error}</p>}
       <label>
         学生
         <select name="student_id" required defaultValue="">

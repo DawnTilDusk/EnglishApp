@@ -1,8 +1,7 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
-import { createTeacherAction } from "../actions";
-import { CreateTeacherForm } from "../CreateTeacherForm";
+import { CreateTeacherForm } from "./CreateTeacherForm";
 
 export default async function AgencyTeachersPage() {
   const profile = await requireAgencyAdmin();
@@ -28,7 +27,7 @@ export default async function AgencyTeachersPage() {
       <div className="stack">
         <div className="card">
           <h2 style={{ marginTop: 0 }}>创建教师账号</h2>
-          <CreateTeacherForm action={createTeacherAction} />
+          <CreateTeacherForm />
         </div>
         <div className="card">
           <h2 style={{ marginTop: 0 }}>本机构教师</h2>
