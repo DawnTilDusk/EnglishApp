@@ -3,15 +3,28 @@ import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 
-export default async function TeacherHomePage() {
+export default async function TeacherHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const { q } = await searchParams;
+  const query = (q ?? "").trim();
   const profile = await requireTeacher();
   const supabase = await createClient();
 
-  const { data: students } = await supabase
+  let studentsQuery = supabase
     .from("students")
     .select("id, name, student_no, class_id")
     .eq("teacher_id", profile.id)
     .order("name");
+
+  if (query) {
+    studentsQuery = studentsQuery.ilike("name", `%${query}%`);
+  }
+
+  const { data: students } = await studentsQuery;
+  const list = students ?? [];
 
   return (
     <ConsoleShell
@@ -23,8 +36,27 @@ export default async function TeacherHomePage() {
         { href: "/teacher/orders", label: "订单（只读）" },
       ]}
     >
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>我的学生</h2>
+      <div className="card stack">
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <h2 style={{ margin: 0 }}>我的学生</h2>
+          <form method="get" action="/teacher" className="row">
+            <input
+              type="search"
+              name="q"
+              defaultValue={query}
+              placeholder="按姓名筛选"
+              aria-label="按姓名筛选"
+            />
+            <button className="btn secondary" type="submit">
+              筛选
+            </button>
+            {query && (
+              <Link className="btn secondary" href="/teacher">
+                清除
+              </Link>
+            )}
+          </form>
+        </div>
         <table>
           <thead>
             <tr>
@@ -35,7 +67,7 @@ export default async function TeacherHomePage() {
             </tr>
           </thead>
           <tbody>
-            {(students ?? []).map((s) => (
+            {list.map((s) => (
               <tr key={s.id}>
                 <td>{s.name}</td>
                 <td>{s.student_no || "—"}</td>
@@ -47,8 +79,12 @@ export default async function TeacherHomePage() {
             ))}
           </tbody>
         </table>
-        {(students ?? []).length === 0 && (
-          <p className="muted">暂无绑定学生，请联系机构管理员。</p>
+        {list.length === 0 && (
+          <p className="muted">
+            {query
+              ? `没有姓名匹配「${query}」的学生。`
+              : "暂无绑定学生，请联系机构管理员。"}
+          </p>
         )}
       </div>
     </ConsoleShell>

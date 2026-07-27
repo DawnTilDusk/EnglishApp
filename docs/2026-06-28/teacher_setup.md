@@ -92,6 +92,27 @@ npm install
 npm run dev
 ```
 
+## 6.1 教师 Web 能力（`/teacher`）
+
+教师邮箱密码登录后进入 `/teacher`。学生账号登录 Web 会被拒绝并提示使用 App。
+
+| 页面 | 能力 |
+|------|------|
+| `/teacher` | 名下学生列表；`?q=` 按姓名 `ilike` 筛选 |
+| `/teacher/students/[id]` | 概览：档案 + `get_teacher_student_stats` KPI（签到天数、学习分钟、已学词、代币余额） |
+| 同上 `?section=checkins` | 只读 `user_check_ins`（最近 90 条） |
+| 同上 `?section=vocab` | 只读词书进度 + 学习轮次（各最近 50 条） |
+| 同上 `?section=economy` | 余额（RPC）+ 只读 `user_economy_transactions`（最近 100 条） |
+| `/teacher/shop`、`/teacher/orders` | 本机构商城商品 / 订单只读 |
+
+约束：
+
+- 仅能看 `students.teacher_id = 自己` 的学生；非名下 id → 404。
+- **只读已同步到云端的数据**（App 本地未 sync 的进度/流水在 Web 不可见）。
+- 教师不能改学生进度、补代币或建账号（机构管理员 / `service_role` 负责）。
+
+实现入口：`web/src/lib/teacher-student.ts`（归属校验）、`web/src/app/teacher/`。
+
 ## 7. App 联调
 
 | 步骤 | 操作 | 预期 |

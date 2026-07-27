@@ -1,0 +1,35 @@
+---
+description: After each change set, update the matching docs under docs/
+alwaysApply: true
+---
+
+# Update docs after changes (this repo only)
+
+This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
+
+## When to update
+
+After finishing a change set that alters **product behavior, architecture, schema, permissions, ops steps, or development conventions**, update the matching docs under `docs/` **before** telling the user you are done.
+
+## How to find the matching file
+
+Follow existing repo conventions (`docs/YYYY-MM-DD/`, topic docs, daily changelog):
+
+1. **Search existing topic docs first** (e.g. `economy_token_system.md`, `permission_model.md`, `supabase_table_map.md`, `teacher_setup.md`, `project_overview.md`, dedicated cleanup docs). If the change touches that topic, **revise in place**—do not duplicate the same explanation elsewhere.
+2. **Then append to the day’s changelog**: `docs/YYYY-MM-DD/changelog.md` (use today’s date; create the folder/file if missing). Each entry should state what changed, key paths/migrations, and which docs were updated.
+3. **No matching topic doc and the change is large enough** (new subsystem, new permission model, major schema change, etc.): create a topic `.md` under that day’s folder and link it from the changelog.
+4. **Do not** create a new topic doc for typos, unrelated renames, or change sets that only touch `.cursor/rules/` or `docs/` itself.
+
+## When not to update
+
+Skip docs updates when the change set is **only**:
+
+- Edits under `docs/` itself (avoid recursion)
+- `.cursor/rules/`, `.env*` examples, or other non-product documentation assets
+- Pure formatting or comments with no behavior/contract change
+
+## Notes
+
+- Docs must reflect **current facts**, not design drafts; correct stale paragraphs in place—do not only append contradictory notes.
+- In the final reply, name the docs paths you updated (same habit as the changelog「文档」section).
+- Do not skip this because the change “looks small” if behavior or contracts changed.
