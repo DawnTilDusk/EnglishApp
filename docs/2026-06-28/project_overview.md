@@ -60,16 +60,16 @@ EnglishApp/
 ├── settings.gradle.kts           # 仅 include(":app")
 ├── build.gradle.kts              # 根构建插件
 ├── gradle.properties
-└── README.md                     # Git 工作流说明
+└── README.md                     # 仓库简介与技术栈
 ```
 
 ### 1.3 文档说明
 
-根目录 [`README.md`](../README.md) 中的文档链接（如 `docs/changelog.md`）**已过期**，实际不存在于仓库根目录。开发状态请以日期文件夹中的文档为准：
+根目录 [`README.md`](../../README.md) 为仓库简介与技术栈速查；详细功能与架构以本文档为准。开发状态请以日期文件夹中的 changelog 为准（另有 `web/` B 端控制台）：
 
-- 最新进度：[`docs/2026-05-27/changelog.md`](2026-05-27/changelog.md)
-- 待办事项：[`docs/2026-05-27/todo_list.md`](2026-05-27/todo_list.md)
-- 原始设计 spec：[`docs/2026-03-28/spec/spec.md`](2026-03-28/spec/spec.md)
+- 较新进度示例：[`docs/2026-07-27/changelog.md`](../2026-07-27/changelog.md)
+- Phase 3 待办（历史）：[`docs/2026-05-27/todo_list.md`](../2026-05-27/todo_list.md)
+- 原始设计 spec：[`docs/2026-03-28/spec/spec.md`](../2026-03-28/spec/spec.md)
 
 ### 1.4 应用包结构
 
@@ -1090,7 +1090,7 @@ gradlew.bat assembleDebug
 | 下一步待办 | [`docs/2026-05-27/todo_list.md`](2026-05-27/todo_list.md) |
 | Phase 3 设计决策 | [`docs/2026-05-27/phase3_context.md`](2026-05-27/phase3_context.md) |
 | 原始功能 spec | [`docs/2026-03-28/spec/spec.md`](2026-03-28/spec/spec.md) |
-| Git 分支策略 | [`README.md`](../README.md) |
+| 仓库简介 / 技术栈 | [`README.md`](../../README.md) |
 
 ### 10.5 业务闭环一览
 
