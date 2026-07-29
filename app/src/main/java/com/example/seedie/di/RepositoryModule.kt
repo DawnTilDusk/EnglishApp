@@ -6,6 +6,7 @@ import com.example.seedie.data.repository.ActivityTrackingRepositoryImpl
 import com.example.seedie.data.repository.EconomyManagerImpl
 import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.ProfileRepositoryImpl
+import com.example.seedie.data.repository.ReadingPracticeRepositoryImpl
 import com.example.seedie.data.repository.ShopRepositoryImpl
 import com.example.seedie.data.repository.TeacherRepositoryImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
@@ -16,6 +17,7 @@ import com.example.seedie.domain.repository.ActivityTrackingRepository
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
 import com.example.seedie.domain.repository.ProfileRepository
+import com.example.seedie.domain.repository.ReadingPracticeRepository
 import com.example.seedie.domain.repository.ShopRepository
 import com.example.seedie.domain.repository.TeacherRepository
 import com.example.seedie.domain.repository.UserSessionRepository
@@ -73,6 +75,12 @@ abstract class RepositoryModule {
     abstract fun bindListeningPracticeRepository(
         listeningPracticeRepositoryImpl: ListeningPracticeRepositoryImpl
     ): ListeningPracticeRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindReadingPracticeRepository(
+        readingPracticeRepositoryImpl: ReadingPracticeRepositoryImpl
+    ): ReadingPracticeRepository
 
     @Binds
     @Singleton

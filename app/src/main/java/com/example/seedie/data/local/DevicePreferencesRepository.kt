@@ -17,7 +17,7 @@ private val Context.deviceDataStore: DataStore<Preferences> by preferencesDataSt
 
 @Singleton
 class DevicePreferencesRepository @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val DEVICE_ID_KEY = stringPreferencesKey("device_id")
 

@@ -17,7 +17,8 @@
 | 商城 | `shop_products`、`shop_orders` | 在用 |
 | 经济（云） | `user_economy_transactions` | 在用（权威账本） |
 | 学习同步 | `user_check_ins`、词汇进度三表 | 在用 |
-| 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 下载未接完 |
+| 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
+| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；App 会话拉取 |
 | Legacy | `content_*`、`study_events`、`points_ledger`、`rewards`、`redemptions` | **已由 015 从远端删除** |
 
 原则：
@@ -131,6 +132,20 @@ flowchart TB
 | `vocabulary_words` | 词条 | 同上 |
 
 与「学习进度」三表不同：这里是**内容**，进度在 `user_vocabulary_*`。
+
+---
+
+## 6.1 阅读理解内容
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `reading_sets` | 短文套卷（passage、年级、难度、排序） | 远端 SSOT；公开 SELECT |
+| `reading_questions` | 套内题目（题干、解析、`reward_token`、可选 `highlight_word`） | 同上 |
+| `reading_options` | 选项 A–D | 同上 |
+
+- 迁移：[`020_reading_comprehension_catalog.sql`](../../supabase/migrations/020_reading_comprehension_catalog.sql)
+- App：学习中心「阅读训练」→ `ReadingRemoteDataSource` 三次 bulk 拉取组装会话；**无**本地 assets / Room 题包
+- 无 `user_reading_*` 进度表（本阶段会话内结算代币即可）
 
 ---
 

@@ -5,10 +5,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 object SeedieDatabaseMigrations {
     val MIGRATION_3_4 = object : Migration(3, 4) {
-        override fun migrate(database: SupportSQLiteDatabase) {
+        override fun migrate(db: SupportSQLiteDatabase) {
             // check_ins: PK (date) → (userId, date)
-            database.execSQL("ALTER TABLE check_ins RENAME TO check_ins_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE check_ins RENAME TO check_ins_old")
+            db.execSQL("""
                 CREATE TABLE check_ins (
                     userId TEXT NOT NULL,
                     date TEXT NOT NULL,
@@ -19,12 +19,12 @@ object SeedieDatabaseMigrations {
                     PRIMARY KEY(userId, date)
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO check_ins SELECT '', date, isCheckedIn, studyTimeMinutes, 'PENDING', NULL FROM check_ins_old")
-            database.execSQL("DROP TABLE check_ins_old")
+            db.execSQL("INSERT INTO check_ins SELECT '', date, isCheckedIn, studyTimeMinutes, 'PENDING', NULL FROM check_ins_old")
+            db.execSQL("DROP TABLE check_ins_old")
 
             // economy_transactions: PK Int (autoGenerate) → String UUID
-            database.execSQL("ALTER TABLE economy_transactions RENAME TO economy_transactions_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE economy_transactions RENAME TO economy_transactions_old")
+            db.execSQL("""
                 CREATE TABLE economy_transactions (
                     id TEXT NOT NULL PRIMARY KEY,
                     userId TEXT NOT NULL,
@@ -35,12 +35,12 @@ object SeedieDatabaseMigrations {
                     syncedAt INTEGER
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO economy_transactions SELECT CAST(id AS TEXT), '', timestamp, amount, reason, 'PENDING', NULL FROM economy_transactions_old")
-            database.execSQL("DROP TABLE economy_transactions_old")
+            db.execSQL("INSERT INTO economy_transactions SELECT CAST(id AS TEXT), '', timestamp, amount, reason, 'PENDING', NULL FROM economy_transactions_old")
+            db.execSQL("DROP TABLE economy_transactions_old")
 
             // garden_plots: PK (plotIndex) → (userId, plotIndex)
-            database.execSQL("ALTER TABLE garden_plots RENAME TO garden_plots_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE garden_plots RENAME TO garden_plots_old")
+            db.execSQL("""
                 CREATE TABLE garden_plots (
                     userId TEXT NOT NULL,
                     plotIndex INTEGER NOT NULL,
@@ -51,12 +51,12 @@ object SeedieDatabaseMigrations {
                     PRIMARY KEY(userId, plotIndex)
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO garden_plots SELECT '', plotIndex, plantType, level, 'PENDING', NULL FROM garden_plots_old")
-            database.execSQL("DROP TABLE garden_plots_old")
+            db.execSQL("INSERT INTO garden_plots SELECT '', plotIndex, plantType, level, 'PENDING', NULL FROM garden_plots_old")
+            db.execSQL("DROP TABLE garden_plots_old")
 
             // vocabulary_word_learning_progress: PK (bookId, wordId) → (userId, bookId, wordId)
-            database.execSQL("ALTER TABLE vocabulary_word_learning_progress RENAME TO vocabulary_word_learning_progress_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE vocabulary_word_learning_progress RENAME TO vocabulary_word_learning_progress_old")
+            db.execSQL("""
                 CREATE TABLE vocabulary_word_learning_progress (
                     userId TEXT NOT NULL,
                     bookId TEXT NOT NULL,
@@ -69,14 +69,14 @@ object SeedieDatabaseMigrations {
                     PRIMARY KEY(userId, bookId, wordId)
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO vocabulary_word_learning_progress SELECT '', bookId, wordId, status, lastStudiedAt, learnedAt, 'PENDING', NULL FROM vocabulary_word_learning_progress_old")
-            database.execSQL("DROP TABLE vocabulary_word_learning_progress_old")
-            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId ON vocabulary_word_learning_progress(userId, bookId)")
-            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId_status ON vocabulary_word_learning_progress(userId, bookId, status)")
+            db.execSQL("INSERT INTO vocabulary_word_learning_progress SELECT '', bookId, wordId, status, lastStudiedAt, learnedAt, 'PENDING', NULL FROM vocabulary_word_learning_progress_old")
+            db.execSQL("DROP TABLE vocabulary_word_learning_progress_old")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId ON vocabulary_word_learning_progress(userId, bookId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_userId_bookId_status ON vocabulary_word_learning_progress(userId, bookId, status)")
 
             // vocabulary_book_progress: PK (bookId) → (userId, bookId)
-            database.execSQL("ALTER TABLE vocabulary_book_progress RENAME TO vocabulary_book_progress_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE vocabulary_book_progress RENAME TO vocabulary_book_progress_old")
+            db.execSQL("""
                 CREATE TABLE vocabulary_book_progress (
                     userId TEXT NOT NULL,
                     bookId TEXT NOT NULL,
@@ -89,13 +89,13 @@ object SeedieDatabaseMigrations {
                     PRIMARY KEY(userId, bookId)
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO vocabulary_book_progress SELECT '', bookId, nextWordSortOrderCursor, activeRoundId, learnedWordCount, updatedAt, 'PENDING', NULL FROM vocabulary_book_progress_old")
-            database.execSQL("DROP TABLE vocabulary_book_progress_old")
-            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_book_progress_activeRoundId ON vocabulary_book_progress(activeRoundId)")
+            db.execSQL("INSERT INTO vocabulary_book_progress SELECT '', bookId, nextWordSortOrderCursor, activeRoundId, learnedWordCount, updatedAt, 'PENDING', NULL FROM vocabulary_book_progress_old")
+            db.execSQL("DROP TABLE vocabulary_book_progress_old")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_book_progress_activeRoundId ON vocabulary_book_progress(activeRoundId)")
 
             // vocabulary_study_rounds: full recreation to update indices (bookId → userId+bookId)
-            database.execSQL("ALTER TABLE vocabulary_study_rounds RENAME TO vocabulary_study_rounds_old")
-            database.execSQL("""
+            db.execSQL("ALTER TABLE vocabulary_study_rounds RENAME TO vocabulary_study_rounds_old")
+            db.execSQL("""
                 CREATE TABLE vocabulary_study_rounds (
                     roundId TEXT NOT NULL PRIMARY KEY,
                     userId TEXT NOT NULL,
@@ -112,16 +112,16 @@ object SeedieDatabaseMigrations {
                     syncedAt INTEGER
                 )
             """.trimIndent())
-            database.execSQL("INSERT INTO vocabulary_study_rounds SELECT roundId, '', bookId, status, targetWordCount, introducedWordCount, masteredWordCount, activeQueueSize, nextWordSortOrderCursor, createdAt, updatedAt, 'PENDING', NULL FROM vocabulary_study_rounds_old")
-            database.execSQL("DROP TABLE vocabulary_study_rounds_old")
-            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId ON vocabulary_study_rounds(userId, bookId)")
-            database.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId_status ON vocabulary_study_rounds(userId, bookId, status)")
+            db.execSQL("INSERT INTO vocabulary_study_rounds SELECT roundId, '', bookId, status, targetWordCount, introducedWordCount, masteredWordCount, activeQueueSize, nextWordSortOrderCursor, createdAt, updatedAt, 'PENDING', NULL FROM vocabulary_study_rounds_old")
+            db.execSQL("DROP TABLE vocabulary_study_rounds_old")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId ON vocabulary_study_rounds(userId, bookId)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_userId_bookId_status ON vocabulary_study_rounds(userId, bookId, status)")
         }
     }
 
     val MIGRATION_4_5 = object : Migration(4, 5) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("""
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
                 CREATE TABLE IF NOT EXISTS sync_operations (
                     operationId TEXT NOT NULL PRIMARY KEY,
                     userId TEXT NOT NULL,
@@ -137,19 +137,19 @@ object SeedieDatabaseMigrations {
     }
 
     val MIGRATION_5_6 = object : Migration(5, 6) {
-        override fun migrate(database: SupportSQLiteDatabase) {
+        override fun migrate(db: SupportSQLiteDatabase) {
             // word_books: add coverUrl column
-            database.execSQL("ALTER TABLE word_books ADD COLUMN coverUrl TEXT")
+            db.execSQL("ALTER TABLE word_books ADD COLUMN coverUrl TEXT")
 
             // vocabulary_words: add moduleId and audioUrl columns
-            database.execSQL("ALTER TABLE vocabulary_words ADD COLUMN moduleId TEXT")
-            database.execSQL("ALTER TABLE vocabulary_words ADD COLUMN audioUrl TEXT")
-            database.execSQL(
+            db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN moduleId TEXT")
+            db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN audioUrl TEXT")
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_words_moduleId ON vocabulary_words(moduleId)"
             )
 
             // new table: word_book_modules
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS word_book_modules (
                     moduleId TEXT NOT NULL PRIMARY KEY,
@@ -161,18 +161,18 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_word_book_modules_bookId ON word_book_modules(bookId)"
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_word_book_modules_bookId_sortOrder ON word_book_modules(bookId, sortOrder)"
             )
         }
     }
 
     val MIGRATION_6_7 = object : Migration(6, 7) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL(
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS activity_durations (
                     userId TEXT NOT NULL,
@@ -184,7 +184,7 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE INDEX IF NOT EXISTS index_activity_durations_userId_date
                 ON activity_durations(userId, date)
@@ -194,17 +194,17 @@ object SeedieDatabaseMigrations {
     }
 
     val MIGRATION_7_8 = object : Migration(7, 8) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL("ALTER TABLE economy_transactions ADD COLUMN refId TEXT")
-            database.execSQL(
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE economy_transactions ADD COLUMN refId TEXT")
+            db.execSQL(
                 """
                 CREATE UNIQUE INDEX IF NOT EXISTS index_economy_transactions_userId_refId
                 ON economy_transactions(userId, refId)
                 """.trimIndent()
             )
 
-            database.execSQL("ALTER TABLE daily_tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
-            database.execSQL(
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN userId TEXT NOT NULL DEFAULT ''")
+            db.execSQL(
                 """
                 CREATE INDEX IF NOT EXISTS index_daily_tasks_userId_date
                 ON daily_tasks(userId, date)
@@ -214,8 +214,8 @@ object SeedieDatabaseMigrations {
     }
 
     val MIGRATION_1_2 = object : Migration(1, 2) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL(
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS word_books (
                     bookId TEXT NOT NULL PRIMARY KEY,
@@ -233,7 +233,7 @@ object SeedieDatabaseMigrations {
                 """.trimIndent()
             )
 
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS vocabulary_words (
                     wordId TEXT NOT NULL PRIMARY KEY,
@@ -251,18 +251,18 @@ object SeedieDatabaseMigrations {
                 """.trimIndent()
             )
 
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_· ·   1vocabulary_words_bookId ON vocabulary_words(bookId)"
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_vocabulary_words_bookId ON vocabulary_words(bookId)"
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_words_bookId_difficultyLevel ON vocabulary_words(bookId, difficultyLevel)"
             )
         }
     }
 
     val MIGRATION_2_3 = object : Migration(2, 3) {
-        override fun migrate(database: SupportSQLiteDatabase) {
-            database.execSQL(
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS vocabulary_book_progress (
                     bookId TEXT NOT NULL PRIMARY KEY,
@@ -273,11 +273,11 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_book_progress_activeRoundId ON vocabulary_book_progress(activeRoundId)"
             )
 
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS vocabulary_word_learning_progress (
                     bookId TEXT NOT NULL,
@@ -289,14 +289,14 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_bookId ON vocabulary_word_learning_progress(bookId)"
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_word_learning_progress_bookId_status ON vocabulary_word_learning_progress(bookId, status)"
             )
 
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS vocabulary_study_rounds (
                     roundId TEXT NOT NULL PRIMARY KEY,
@@ -312,14 +312,14 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_bookId ON vocabulary_study_rounds(bookId)"
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_study_rounds_bookId_status ON vocabulary_study_rounds(bookId, status)"
             )
 
-            database.execSQL(
+            db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS vocabulary_study_round_words (
                     roundId TEXT NOT NULL,
@@ -335,10 +335,10 @@ object SeedieDatabaseMigrations {
                 )
                 """.trimIndent()
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_study_round_words_roundId ON vocabulary_study_round_words(roundId)"
             )
-            database.execSQL(
+            db.execSQL(
                 "CREATE INDEX IF NOT EXISTS index_vocabulary_study_round_words_roundId_queueOrder ON vocabulary_study_round_words(roundId, queueOrder)"
             )
         }

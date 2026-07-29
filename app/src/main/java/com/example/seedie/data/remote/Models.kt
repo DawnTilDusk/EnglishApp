@@ -106,3 +106,40 @@ data class SupabaseVocabularyWord(
     @SerialName("sort_order") val sort_order: Int = 0,
     @SerialName("audio_url") val audio_url: String? = null
 )
+
+@Serializable
+data class SupabaseReadingSet(
+    @SerialName("set_id") val set_id: String,
+    val title: String,
+    @SerialName("title_zh") val title_zh: String? = null,
+    val grade: Int = 8,
+    val difficulty: String = "medium",
+    val topic: String? = null,
+    val passage: String,
+    @SerialName("word_count") val word_count: Int = 0,
+    @SerialName("estimated_minutes") val estimated_minutes: Int = 8,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    val version: Int = 1,
+    @SerialName("updated_at") val updated_at: Long = 0L
+)
+
+@Serializable
+data class SupabaseReadingQuestion(
+    @SerialName("question_id") val question_id: String,
+    @SerialName("set_id") val set_id: String,
+    @SerialName("question_type") val question_type: String? = null,
+    val stem: String,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    @SerialName("correct_option_id") val correct_option_id: String,
+    val explanation: String,
+    @SerialName("highlight_word") val highlight_word: String? = null,
+    @SerialName("reward_token") val reward_token: Int = 2
+)
+
+@Serializable
+data class SupabaseReadingOption(
+    @SerialName("question_id") val question_id: String,
+    @SerialName("option_id") val option_id: String,
+    @SerialName("option_text") val option_text: String,
+    @SerialName("sort_order") val sort_order: Int = 0
+)

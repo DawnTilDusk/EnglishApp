@@ -19,7 +19,7 @@ interface NetworkConnectivityObserver {
 
 @Singleton
 class NetworkConnectivityObserverImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : NetworkConnectivityObserver {
 
     override fun observe(): Flow<Boolean> = callbackFlow {

@@ -62,7 +62,6 @@ class EconomyRemoteDataSource @Inject constructor(
                 ?: 0
             is JsonArray -> element.firstOrNull()?.let { decodeRpcInt(it) } ?: 0
             JsonNull -> 0
-            else -> 0
         }
     }
 

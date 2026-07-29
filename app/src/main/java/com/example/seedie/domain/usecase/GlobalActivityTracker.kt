@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 @Singleton
 class GlobalActivityTracker @Inject constructor(
     private val activityTrackingRepository: ActivityTrackingRepository,
-    @ApplicationScope private val applicationScope: CoroutineScope
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) {
 
     private val clock: Clock = Clock.systemDefaultZone()

@@ -18,6 +18,7 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
+import com.example.seedie.ui.screens.learning.reading.ReadingPracticeRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.shop.MyOrdersScreen
 import com.example.seedie.ui.screens.shop.StudentShopScreen
@@ -38,6 +39,7 @@ fun SeedieNavHost(
         val module = when (currentRoute) {
             Screen.VocabularyPractice.route -> ActivityModule.fromPracticeSource(currentVocabularyArgs.sourceModuleId)
             Screen.ListeningPractice.route -> ActivityModule.ListeningPractice
+            Screen.ReadingPractice.route -> ActivityModule.ReadingPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
             Screen.StudentShop.route,
             Screen.MyOrders.route -> ActivityModule.Shop
@@ -75,6 +77,9 @@ fun SeedieNavHost(
                 onOpenListeningPractice = {
                     navController.navigate(Screen.ListeningPractice.route)
                 },
+                onOpenReadingPractice = {
+                    navController.navigate(Screen.ReadingPractice.route)
+                },
                 onOpenVocabularyQuiz = {
                     navController.navigate(Screen.VocabularyQuiz.route)
                 },
@@ -102,6 +107,17 @@ fun SeedieNavHost(
         }
         composable(route = Screen.ListeningPractice.route) {
             ListeningPracticeRoute(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onFinishSession = { result ->
+                    pendingStudyResult = result
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable(route = Screen.ReadingPractice.route) {
+            ReadingPracticeRoute(
                 onNavigateBack = {
                     navController.popBackStack()
                 },

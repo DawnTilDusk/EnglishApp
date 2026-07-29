@@ -18,7 +18,7 @@ class SyncManagerImpl @Inject constructor(
     private val economyTransactionSyncer: EconomyTransactionSyncer,
     private val networkObserver: NetworkConnectivityObserver,
     private val authService: AuthService,
-    @ApplicationScope private val appScope: CoroutineScope
+    @param:ApplicationScope private val appScope: CoroutineScope
 ) : SyncManager {
 
     init {

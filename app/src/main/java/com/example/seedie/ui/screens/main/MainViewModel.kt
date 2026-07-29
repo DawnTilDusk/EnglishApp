@@ -58,6 +58,7 @@ class MainViewModel @Inject constructor(
             if (result.earnedTokens > 0) {
                 val reason = when (result.moduleId) {
                     "listening" -> "Listening Practice"
+                    "reading" -> "Reading Practice"
                     "vocabulary_review" -> "Vocabulary Review"
                     "quiz" -> "Vocabulary Quiz"
                     else -> "Vocabulary Practice"
@@ -72,7 +73,7 @@ class MainViewModel @Inject constructor(
             if (result.isCompleted) {
                 when (result.moduleId) {
                     "listening" -> completeTodayListeningTask()
-                    "quiz" -> Unit
+                    "reading", "quiz" -> Unit
                     else -> completeTodayVocabularyTask()
                 }
             }

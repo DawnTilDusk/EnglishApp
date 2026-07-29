@@ -86,6 +86,7 @@ private val preferredDistributionOrder = listOf(
     ActivityModuleIds.VOCABULARY_STUDY,
     ActivityModuleIds.VOCABULARY_REVIEW,
     ActivityModuleIds.LISTENING,
+    ActivityModuleIds.READING,
     ActivityModuleIds.QUIZ,
     ActivityModuleIds.LEARNING_HUB
 )
@@ -94,11 +95,12 @@ private val learningDistributionLabels = mapOf(
     ActivityModuleIds.VOCABULARY_STUDY to "背单词",
     ActivityModuleIds.VOCABULARY_REVIEW to "单词复习",
     ActivityModuleIds.LISTENING to "听力训练",
+    ActivityModuleIds.READING to "阅读训练",
     ActivityModuleIds.QUIZ to "词汇测验",
     ActivityModuleIds.LEARNING_HUB to "学习中心"
 )
 
-private fun toGardenStatsUiState(
+internal fun toGardenStatsUiState(
     summaries: List<ActivityModuleSummary>
 ): GardenStatsUiState {
     val items = summaries

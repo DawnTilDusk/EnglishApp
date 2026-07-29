@@ -445,10 +445,10 @@ DailyTaskEntity(date = today, title = "听力训练 10 分钟", rewardAmount = 2
 | `vocabulary_review` | 单词复习 | **已实现** | 进入词汇练习 Review 模式 |
 | `grammar` | 语法 | **未实现** | Snackbar："正在 Garden 中萌芽…" |
 | `speaking` | 口语跟读 | **未实现** | 同上 |
-| `quiz` | 词汇测验 | **未实现** | 同上 |
-| `textbook` | 教材训练 | **未实现** | 同上 |
-| `listening` | 听力训练 | **未实现** | 同上 |
-| `writing` | 写作/专项 | **未实现** | 同上 |
+| `quiz` | 词汇测验 | **已实现** | 进入词汇测验 |
+| `reading` | 阅读训练 | **已实现** | 拉 Supabase 题库：左文右题，整套提交后解析 |
+| `listening` | 听力训练 | **已实现** | 进入听力练习 |
+| `writing` | 写作/专项 | **未实现** | Snackbar："正在 Garden 中萌芽…" |
 
 **背单词入口交互逻辑：**
 
@@ -940,7 +940,7 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 
 | 功能 | Spec 位置 | 当前状态 |
 |------|-----------|----------|
-| 语法/口语/听力/写作/测验/教材模块 | Tab 2 模块 grid | UI 占位，Snackbar 提示 |
+| 语法/口语/写作模块 | Tab 2 模块 grid | UI 占位，Snackbar 提示 |
 | 热力图真实数据 | Tab 1 HeatmapSection | Mock 数据 |
 | 花园词汇量自动升级 | GardenEngine | 手动浇水替代 |
 | 成就持久化 | Profile 成就墙 | 内存计算，无 Room 表 |

@@ -11,6 +11,7 @@ enum class ActivityModule(
     VocabularyStudy("vocabulary", "背单词"),
     VocabularyReview("vocabulary_review", "单词复习"),
     ListeningPractice("listening", "听力训练"),
+    ReadingPractice("reading", "阅读训练"),
     VocabularyQuiz("vocabulary_quiz", "词汇测验"),
     Shop("shop", "商店");
 

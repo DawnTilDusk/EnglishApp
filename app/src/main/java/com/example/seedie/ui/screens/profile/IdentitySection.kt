@@ -20,7 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Phone
@@ -32,6 +32,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -94,7 +95,7 @@ fun IdentitySection(
             ProfileActionEntry("编辑资料", "更新头像、昵称和年级信息", Icons.Default.Edit),
             ProfileActionEntry("学习目标", "查看并调整你的学习计划", Icons.Default.Flag),
             ProfileActionEntry("账号安全", "管理登录方式与账号保护", Icons.Default.Lock),
-            ProfileActionEntry("帮助与反馈", "获取使用帮助或提交问题反馈", Icons.Default.HelpOutline),
+            ProfileActionEntry("帮助与反馈", "获取使用帮助或提交问题反馈", Icons.AutoMirrored.Filled.HelpOutline),
             ProfileActionEntry("关于 Seedie", "了解版本信息与产品介绍", Icons.Default.Info)
         )
     }
@@ -188,7 +189,7 @@ fun IdentitySection(
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
                 ),
-                border = ButtonDefaults.outlinedButtonBorder.copy(
+                border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(
                     brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.error)
                 )
             ) {
@@ -296,7 +297,7 @@ fun ProfileEditOverlay(
                         onValueChange = {},
                         readOnly = true,
                         modifier = Modifier
-                            .menuAnchor()
+                            .menuAnchor(type = MenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth(),
                         label = { Text("年级") },
                         singleLine = true,
