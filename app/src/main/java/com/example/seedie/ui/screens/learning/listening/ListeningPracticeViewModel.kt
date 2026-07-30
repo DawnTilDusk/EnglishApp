@@ -34,7 +34,8 @@ class ListeningPracticeViewModel @Inject constructor(
     private var session: ListeningPracticeSession? = null
     private var sessionFinished = false
     private var timerJob: Job? = null
-    private val wrongWordIds = linkedSetOf<String>()
+    private val wrongQuestionIds = linkedSetOf<String>()
+    private var requestedSessionId: String? = null
 
     fun initialize(sessionId: String = UUID.randomUUID().toString()) {
         if (session?.sessionId == sessionId && _uiState.value.stage != ListeningPracticeStage.Error) return
@@ -90,12 +91,16 @@ class ListeningPracticeViewModel @Inject constructor(
                 )
             }
         } else {
-            wrongWordIds += question.wordId
+            val correctAnswer = question.options
+                .firstOrNull { option -> option.optionId == question.correctOptionId }
+                ?.label
+                ?: question.correctOptionId
+            wrongQuestionIds += question.questionId
             _uiState.update {
                 it.copy(
                     stage = ListeningPracticeStage.AnswerEvaluated,
                     answerStatus = AnswerStatus.Wrong,
-                    feedbackMessage = "正确答案：${question.english}",
+                    feedbackMessage = "正确答案：$correctAnswer",
                     wrongCount = it.wrongCount + 1,
                     canSubmitAnswer = false
                 )
@@ -106,29 +111,45 @@ class ListeningPracticeViewModel @Inject constructor(
     fun onNextQuestion() {
         if (_uiState.value.stage != ListeningPracticeStage.AnswerEvaluated) return
         val currentSession = session ?: return
-        val nextIndex = _uiState.value.currentIndex + 1
-        if (nextIndex >= currentSession.questions.size) {
-            stopTimer()
-            _uiState.update {
-                it.copy(
-                    stage = ListeningPracticeStage.Completed,
-                    currentQuestion = null,
-                    selectedOptionId = null,
-                    canSubmitAnswer = false
+        val nextIndex = _uiState.value.currentQuestionIndexInMaterial + 1
+        val currentMaterial = _uiState.value.currentMaterial ?: return
+        if (nextIndex >= currentMaterial.questions.size) {
+            val nextMaterialIndex = _uiState.value.currentMaterialIndex + 1
+            if (nextMaterialIndex >= currentSession.materials.size) {
+                stopTimer()
+                _uiState.update {
+                    it.copy(
+                        stage = ListeningPracticeStage.Completed,
+                        currentQuestion = null,
+                        selectedOptionId = null,
+                        canSubmitAnswer = false,
+                        currentQuestionOrdinal = it.totalQuestionCount
+                    )
+                }
+            } else {
+                showQuestion(
+                    session = currentSession,
+                    materialIndex = nextMaterialIndex,
+                    questionIndex = 0
                 )
             }
             return
         }
-        showQuestion(currentSession, nextIndex)
+        showQuestion(
+            session = currentSession,
+            materialIndex = _uiState.value.currentMaterialIndex,
+            questionIndex = nextIndex
+        )
     }
 
     fun onReplayAudio() {
+        val material = _uiState.value.currentMaterial ?: return
         val question = _uiState.value.currentQuestion ?: return
-        emitPlayEvent(question)
+        emitPlayEvent(material, question)
     }
 
     fun onRetryLoad() {
-        session?.sessionId?.let(::loadSession)
+        requestedSessionId?.let(::loadSession)
     }
 
     fun onFinishSession() {
@@ -137,41 +158,67 @@ class ListeningPracticeViewModel @Inject constructor(
 
     private fun loadSession(sessionId: String) {
         resetSession()
+        requestedSessionId = sessionId
         _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
         viewModelScope.launch {
             runCatching {
                 repository.createSession(sessionId = sessionId)
             }.onSuccess { loadedSession ->
-                if (loadedSession.questions.isEmpty()) {
+                if (loadedSession.materials.isEmpty() || loadedSession.materials.all { it.questions.isEmpty() }) {
                     _uiState.value = ListeningPracticeUiState(
                         stage = ListeningPracticeStage.Error,
-                        errorMessage = "没有可用的听力题目"
+                        errorMessage = "暂无可用的短文或对话听力材料"
                     )
                 } else {
+                    val firstMaterial = loadedSession.materials.first()
+                    val totalQuestionCount = loadedSession.materials.sumOf { it.questions.size }
                     session = loadedSession
                     _uiState.value = ListeningPracticeUiState(
                         stage = ListeningPracticeStage.Ready,
                         sessionId = loadedSession.sessionId,
-                        totalCount = loadedSession.questions.size
+                        currentMaterialIndex = 0,
+                        totalMaterialCount = loadedSession.materials.size,
+                        currentMaterial = firstMaterial,
+                        currentQuestionCountInMaterial = firstMaterial.questions.size,
+                        totalQuestionCount = totalQuestionCount
                     )
                     startTimer()
-                    showQuestion(loadedSession, questionIndex = 0)
+                    showQuestion(
+                        session = loadedSession,
+                        materialIndex = 0,
+                        questionIndex = 0
+                    )
                 }
             }.onFailure { throwable ->
                 _uiState.value = ListeningPracticeUiState(
                     stage = ListeningPracticeStage.Error,
-                    errorMessage = throwable.message ?: "听力练习加载失败"
+                    errorMessage = throwable.message?.takeIf { it.isNotBlank() }
+                        ?: "听力内容加载失败，请检查网络后重试"
                 )
             }
         }
     }
 
-    private fun showQuestion(session: ListeningPracticeSession, questionIndex: Int) {
-        val question = session.questions[questionIndex]
+    private fun showQuestion(
+        session: ListeningPracticeSession,
+        materialIndex: Int,
+        questionIndex: Int
+    ) {
+        val material = session.materials[materialIndex]
+        val question = material.questions[questionIndex]
+        val questionOrdinal = session.materials
+            .take(materialIndex)
+            .sumOf { it.questions.size } + questionIndex + 1
         _uiState.update {
             it.copy(
                 stage = ListeningPracticeStage.Ready,
-                currentIndex = questionIndex,
+                currentMaterialIndex = materialIndex,
+                totalMaterialCount = session.materials.size,
+                currentMaterial = material,
+                currentQuestionIndexInMaterial = questionIndex,
+                currentQuestionCountInMaterial = material.questions.size,
+                currentQuestionOrdinal = questionOrdinal,
+                totalQuestionCount = session.materials.sumOf { currentMaterial -> currentMaterial.questions.size },
                 currentQuestion = question,
                 selectedOptionId = null,
                 canSubmitAnswer = false,
@@ -179,26 +226,33 @@ class ListeningPracticeViewModel @Inject constructor(
                 feedbackMessage = ""
             )
         }
-        emitPlayEvent(question)
+        emitPlayEvent(material, question)
     }
 
-    private fun emitPlayEvent(question: ListeningQuestion) {
+    private fun emitPlayEvent(
+        material: ListeningMaterialItem,
+        question: ListeningQuestionItem
+    ) {
         viewModelScope.launch {
             _playAudioEvents.emit(
                 PlayAudioEvent(
-                    rawResId = question.audioRawResId,
-                    fallbackEnglish = question.english
+                    audioUrl = material.audioUrl,
+                    fallbackText = material.transcript
+                        ?.takeIf { it.isNotBlank() }
+                        ?: material.promptText
+                        ?.takeIf { it.isNotBlank() }
+                        ?: question.stem
                 )
             )
         }
     }
 
     private fun finishSession(isCompleted: Boolean) {
+        val state = _uiState.value
+        val sessionId = state.sessionId ?: session?.sessionId ?: return
         if (sessionFinished) return
         sessionFinished = true
         stopTimer()
-        val state = _uiState.value
-        val sessionId = state.sessionId ?: session?.sessionId ?: return
         val answeredCount = state.correctCount + state.wrongCount
         val result = StudyResult(
             sessionId = sessionId,
@@ -212,7 +266,7 @@ class ListeningPracticeViewModel @Inject constructor(
             earnedTokens = state.earnedTokens,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
-            wrongWordIds = wrongWordIds.toList()
+            wrongWordIds = wrongQuestionIds.toList()
         )
         viewModelScope.launch {
             _studyResults.emit(result)
@@ -238,7 +292,7 @@ class ListeningPracticeViewModel @Inject constructor(
         stopTimer()
         session = null
         sessionFinished = false
-        wrongWordIds.clear()
+        wrongQuestionIds.clear()
     }
 
     override fun onCleared() {
@@ -248,6 +302,6 @@ class ListeningPracticeViewModel @Inject constructor(
 }
 
 data class PlayAudioEvent(
-    val rawResId: Int,
-    val fallbackEnglish: String
+    val audioUrl: String?,
+    val fallbackText: String
 )

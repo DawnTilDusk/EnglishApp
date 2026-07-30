@@ -15,6 +15,7 @@
 local.properties
 /.trae
 /.kotlin
+/.vscode
 .env
 .env.local
 .env.*.local

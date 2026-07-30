@@ -143,3 +143,38 @@ data class SupabaseReadingOption(
     @SerialName("option_text") val option_text: String,
     @SerialName("sort_order") val sort_order: Int = 0
 )
+
+@Serializable
+data class SupabaseListeningMaterial(
+    @SerialName("material_id") val material_id: String,
+    val title: String? = null,
+    @SerialName("title_zh") val title_zh: String? = null,
+    @SerialName("material_type") val material_type: String? = null,
+    @SerialName("prompt_text") val prompt_text: String? = null,
+    val transcript: String? = null,
+    @SerialName("audio_url") val audio_url: String? = null,
+    @SerialName("estimated_seconds") val estimated_seconds: Int = 0,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    val version: Int = 1,
+    @SerialName("updated_at") val updated_at: Long = 0L
+)
+
+@Serializable
+data class SupabaseListeningQuestion(
+    @SerialName("question_id") val question_id: String,
+    @SerialName("material_id") val material_id: String,
+    @SerialName("question_type") val question_type: String? = null,
+    val stem: String? = null,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    @SerialName("correct_option_id") val correct_option_id: String? = null,
+    val explanation: String? = null,
+    @SerialName("reward_token") val reward_token: Int = 2
+)
+
+@Serializable
+data class SupabaseListeningOption(
+    @SerialName("question_id") val question_id: String,
+    @SerialName("option_id") val option_id: String,
+    @SerialName("option_text") val option_text: String? = null,
+    @SerialName("sort_order") val sort_order: Int = 0
+)

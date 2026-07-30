@@ -60,6 +60,7 @@ fun ListeningPracticeRoute(
     var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
     var speakerReady by remember { mutableStateOf(false) }
     var pendingSpeech by remember { mutableStateOf<String?>(null) }
+    var audioFeedbackMessage by remember { mutableStateOf<String?>(null) }
 
     fun logAudioDebug(message: String) {
         if (BuildConfig.DEBUG) {
@@ -67,34 +68,38 @@ fun ListeningPracticeRoute(
         }
     }
 
-    fun speakFallback(english: String) {
+    fun speakFallback(text: String) {
         if (speakerReady) {
             audioPlayer.stop()
-            logAudioDebug("TTS speak: $english")
+            logAudioDebug("TTS speak: $text")
             speaker?.speak(
-                english,
+                text,
                 TextToSpeech.QUEUE_FLUSH,
                 null,
-                english
+                text
             )
             pendingSpeech = null
         } else {
-            logAudioDebug("TTS not ready, queue pending: $english")
-            pendingSpeech = english
+            logAudioDebug("TTS not ready, queue pending: $text")
+            pendingSpeech = text
         }
     }
 
-    fun playWordAudio(rawResId: Int, fallbackEnglish: String) {
+    fun playWordAudio(audioUrl: String?, fallbackText: String) {
         speaker?.stop()
-        if (rawResId != 0) {
-            logAudioDebug("playWordAudio MediaPlayer rawResId=$rawResId fallback=$fallbackEnglish")
-            audioPlayer.playRaw(rawResId) {
-                logAudioDebug("MediaPlayer failed, fallback to TTS: $fallbackEnglish")
-                speakFallback(fallbackEnglish)
+        val resolvedUrl = audioUrl?.takeIf { it.isNotBlank() }
+        if (resolvedUrl != null) {
+            logAudioDebug("playWordAudio ExoPlayer url=$resolvedUrl")
+            audioFeedbackMessage = null
+            audioPlayer.playUrl(resolvedUrl) {
+                logAudioDebug("playWordAudio remote audio failed, fallback to TTS")
+                audioFeedbackMessage = "远端音频播放失败，已改用文本播报，请稍后重试。"
+                speakFallback(fallbackText)
             }
         } else {
-            logAudioDebug("playWordAudio no raw resource, TTS: $fallbackEnglish")
-            speakFallback(fallbackEnglish)
+            logAudioDebug("playWordAudio no remote audio, TTS: $fallbackText")
+            audioFeedbackMessage = "远端音频当前不可用，已改用文本播报。"
+            speakFallback(fallbackText)
         }
     }
 
@@ -139,12 +144,13 @@ fun ListeningPracticeRoute(
 
     LaunchedEffect(Unit) {
         viewModel.playAudioEvents.collect { event ->
-            playWordAudio(event.rawResId, event.fallbackEnglish)
+            playWordAudio(event.audioUrl, event.fallbackText)
         }
     }
 
     ListeningPracticeScreen(
         uiState = uiState,
+        audioFeedbackMessage = audioFeedbackMessage,
         onNavigateBack = onNavigateBack,
         onBackClick = viewModel::onBackClick,
         onConfirmExit = viewModel::onConfirmExit,
@@ -161,6 +167,7 @@ fun ListeningPracticeRoute(
 @Composable
 private fun ListeningPracticeScreen(
     uiState: ListeningPracticeUiState,
+    audioFeedbackMessage: String?,
     onNavigateBack: () -> Unit,
     onBackClick: () -> Unit,
     onConfirmExit: () -> Unit,
@@ -230,9 +237,14 @@ private fun ListeningPracticeScreen(
             ) {
                 Text("听力训练完成", style = MaterialTheme.typography.headlineMedium)
                 Text(
-                    text = "正确 ${uiState.correctCount} / ${uiState.totalCount}，获得 ${uiState.earnedTokens} 代币",
+                    text = "共完成 ${uiState.totalQuestionCount} 题，正确 ${uiState.correctCount}，错误 ${uiState.wrongCount}",
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(top = 12.dp, bottom = 24.dp)
+                    modifier = Modifier.padding(top = 12.dp)
+                )
+                Text(
+                    text = "获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                 )
                 Button(onClick = onFinishSession) {
                     Text("完成")
@@ -242,6 +254,7 @@ private fun ListeningPracticeScreen(
 
         ListeningPracticeStage.Ready,
         ListeningPracticeStage.AnswerEvaluated -> {
+            val material = uiState.currentMaterial ?: return
             val question = uiState.currentQuestion ?: return
             Column(
                 modifier = Modifier
@@ -282,7 +295,13 @@ private fun ListeningPracticeScreen(
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("第 ${uiState.currentIndex + 1} / ${uiState.totalCount} 题")
+                                if (uiState.totalMaterialCount > 1) {
+                                    Text("材料 ${uiState.currentMaterialIndex + 1} / ${uiState.totalMaterialCount}")
+                                }
+                                Text(
+                                    "材料内第 ${uiState.currentQuestionIndexInMaterial + 1} / ${uiState.currentQuestionCountInMaterial} 题"
+                                )
+                                Text("总进度 ${uiState.currentQuestionOrdinal} / ${uiState.totalQuestionCount}")
                                 Text("用时 ${uiState.elapsedSeconds}s")
                             }
                         }
@@ -293,10 +312,17 @@ private fun ListeningPracticeScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             Text(
-                                text = "听音频，选择正确的英文单词",
+                                text = material.titleZh ?: material.title,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.secondary
                             )
+                            if (!material.promptText.isNullOrBlank()) {
+                                Text(
+                                    text = material.promptText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                             IconButton(
                                 onClick = onReplayAudio,
                                 modifier = Modifier
@@ -308,11 +334,35 @@ private fun ListeningPracticeScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "播放单词发音",
+                                    contentDescription = "播放听力材料",
                                     modifier = Modifier.size(40.dp),
                                     tint = MaterialTheme.colorScheme.primary
                                 )
                             }
+                            Text(
+                                text = "播放听力材料",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            if (!audioFeedbackMessage.isNullOrBlank()) {
+                                Surface(
+                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
+                                    shape = MaterialTheme.shapes.medium
+                                ) {
+                                    Text(
+                                        text = audioFeedbackMessage,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                            Text(
+                                text = question.stem,
+                                style = MaterialTheme.typography.titleMedium,
+                                textAlign = TextAlign.Center
+                            )
                             if (uiState.stage == ListeningPracticeStage.AnswerEvaluated) {
                                 Surface(
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
@@ -325,22 +375,20 @@ private fun ListeningPracticeScreen(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         Text(
-                                            text = question.english,
-                                            style = MaterialTheme.typography.headlineSmall,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = "${question.phonetic}  ${question.translation}",
+                                            text = uiState.feedbackMessage,
                                             style = MaterialTheme.typography.bodyLarge
                                         )
-                                        Text(
-                                            text = uiState.feedbackMessage,
-                                            color = if (uiState.answerStatus == AnswerStatus.Correct) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.error
+                                        if (!question.explanation.isNullOrBlank()) {
+                                            Text(
+                                                text = question.explanation,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = if (uiState.answerStatus == AnswerStatus.Correct) {
+                                                    MaterialTheme.colorScheme.primary
+                                                } else {
+                                                    MaterialTheme.colorScheme.error
+                                                }
                                             }
-                                        )
+                                        }
                                     }
                                 }
                             }
@@ -374,8 +422,13 @@ private fun ListeningPracticeScreen(
                                 ListeningPracticeStage.AnswerEvaluated -> {
                                     Button(onClick = onNextQuestion) {
                                         Text(
-                                            if (uiState.currentIndex + 1 >= uiState.totalCount) {
+                                            if (uiState.currentQuestionOrdinal >= uiState.totalQuestionCount) {
                                                 "查看结果"
+                                            } else if (
+                                                uiState.currentQuestionIndexInMaterial + 1 >=
+                                                uiState.currentQuestionCountInMaterial
+                                            ) {
+                                                "下一篇材料"
                                             } else {
                                                 "下一题"
                                             }
