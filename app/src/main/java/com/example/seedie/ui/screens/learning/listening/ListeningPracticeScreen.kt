@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -311,109 +310,118 @@ private fun ListeningPracticeScreen(
                             }
                         }
 
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f)
                         ) {
-                            Text(
-                                text = material.titleZh ?: material.title,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.secondary
-                            )
-                            if (!material.promptText.isNullOrBlank()) {
-                                Text(
-                                    text = material.promptText,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            IconButton(
-                                onClick = onReplayAudio,
+                            Column(
                                 modifier = Modifier
-                                    .size(88.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                        shape = CircleShape
-                                    )
+                                    .fillMaxWidth()
+                                    .align(Alignment.TopCenter),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.PlayArrow,
-                                    contentDescription = "播放听力材料",
-                                    modifier = Modifier.size(40.dp),
-                                    tint = MaterialTheme.colorScheme.primary
+                                Text(
+                                    text = material.titleZh ?: material.title,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.secondary
                                 )
-                            }
-                            Text(
-                                text = "播放听力材料",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            if (!audioFeedbackMessage.isNullOrBlank()) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
+                                if (!material.promptText.isNullOrBlank()) {
                                     Text(
-                                        text = audioFeedbackMessage,
-                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.error,
+                                        text = material.promptText,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         textAlign = TextAlign.Center
                                     )
                                 }
-                            }
-                            Text(
-                                text = question.stem,
-                                style = MaterialTheme.typography.titleMedium,
-                                textAlign = TextAlign.Center
-                            )
-                            if (uiState.stage == ListeningPracticeStage.AnswerEvaluated) {
-                                Surface(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                    shape = MaterialTheme.shapes.medium
+                                IconButton(
+                                    onClick = onReplayAudio,
+                                    modifier = Modifier
+                                        .size(88.dp)
+                                        .background(
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                            shape = CircleShape
+                                        )
                                 ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    Icon(
+                                        imageVector = Icons.Default.PlayArrow,
+                                        contentDescription = "播放听力材料",
+                                        modifier = Modifier.size(40.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Text(
+                                    text = "播放听力材料",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                if (!audioFeedbackMessage.isNullOrBlank()) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
+                                        shape = MaterialTheme.shapes.medium
                                     ) {
                                         Text(
-                                            text = uiState.feedbackMessage,
-                                            style = MaterialTheme.typography.bodyLarge
+                                            text = audioFeedbackMessage,
+                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error,
+                                            textAlign = TextAlign.Center
                                         )
-                                        if (!question.explanation.isNullOrBlank()) {
+                                    }
+                                }
+                                Text(
+                                    text = question.stem,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center
+                                )
+                                if (uiState.stage == ListeningPracticeStage.AnswerEvaluated) {
+                                    Surface(
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                        shape = MaterialTheme.shapes.medium
+                                    ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
                                             Text(
-                                                text = question.explanation,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = if (uiState.answerStatus == AnswerStatus.Correct) {
-                                                    MaterialTheme.colorScheme.primary
-                                                } else {
-                                                    MaterialTheme.colorScheme.error
-                                                })
+                                                text = uiState.feedbackMessage,
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                            if (!question.explanation.isNullOrBlank()) {
+                                                Text(
+                                                    text = question.explanation,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = if (uiState.answerStatus == AnswerStatus.Correct) {
+                                                        MaterialTheme.colorScheme.primary
+                                                    } else {
+                                                        MaterialTheme.colorScheme.error
+                                                    }
+                                                )
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            question.options.forEach { option ->
-                                PracticeOptionCard(
-                                    option = option,
-                                    selectedOptionId = uiState.selectedOptionId,
-                                    answerStatus = uiState.answerStatus,
-                                    interactionEnabled = uiState.stage == ListeningPracticeStage.Ready,
-                                    feedbackVisible = uiState.stage == ListeningPracticeStage.AnswerEvaluated,
-                                    onOptionSelected = onOptionSelected
-                                )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .align(Alignment.BottomCenter),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                question.options.forEach { option ->
+                                    PracticeOptionCard(
+                                        option = option,
+                                        selectedOptionId = uiState.selectedOptionId,
+                                        answerStatus = uiState.answerStatus,
+                                        interactionEnabled = uiState.stage == ListeningPracticeStage.Ready,
+                                        feedbackVisible = uiState.stage == ListeningPracticeStage.AnswerEvaluated,
+                                        onOptionSelected = onOptionSelected
+                                    )
+                                }
                             }
                         }
 
@@ -456,4 +464,6 @@ private fun ListeningPracticeScreen(
             }
         }
     }
+}
+
 private const val AUDIO_LOG_TAG = "SeedieAudio"
