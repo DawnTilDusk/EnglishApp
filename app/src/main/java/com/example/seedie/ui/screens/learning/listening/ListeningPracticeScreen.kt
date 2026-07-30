@@ -386,7 +386,7 @@ private fun ListeningPracticeScreen(
                                                     MaterialTheme.colorScheme.primary
                                                 } else {
                                                     MaterialTheme.colorScheme.error
-                                                }
+                                                })
                                             }
                                         }
                                     }
@@ -444,6 +444,4 @@ private fun ListeningPracticeScreen(
             }
         }
     }
-}
-
 private const val AUDIO_LOG_TAG = "SeedieAudio"
