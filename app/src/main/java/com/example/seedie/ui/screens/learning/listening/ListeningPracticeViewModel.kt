@@ -2,10 +2,13 @@ package com.example.seedie.ui.screens.learning.listening
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.domain.model.PracticeAssignmentMode
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.ListeningPracticeRepository
+import com.example.seedie.domain.repository.PracticeAssignmentRepository
+import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.practice.AnswerStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,11 +19,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import com.example.seedie.ui.screens.learning.practice.AnswerStatus
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 @HiltViewModel
 class ListeningPracticeViewModel @Inject constructor(
-    private val repository: ListeningPracticeRepository
+    private val repository: ListeningPracticeRepository,
+    private val assignmentRepository: PracticeAssignmentRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ListeningPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -35,16 +43,30 @@ class ListeningPracticeViewModel @Inject constructor(
     private var sessionFinished = false
     private var timerJob: Job? = null
     private val wrongQuestionIds = linkedSetOf<String>()
-    private var requestedSessionId: String? = null
+    private val allAnswers = linkedMapOf<String, String>()
+    private var assignmentArgs: PracticeAssignmentArgs? = null
+    private var isReviewMode = false
+    private var submittedSuccessfully = false
 
-    fun initialize(sessionId: String = UUID.randomUUID().toString()) {
-        if (session?.sessionId == sessionId && _uiState.value.stage != ListeningPracticeStage.Error) return
-        loadSession(sessionId)
+    fun initialize(args: PracticeAssignmentArgs) {
+        if (assignmentArgs?.submissionId == args.submissionId &&
+            assignmentArgs?.mode == args.mode &&
+            _uiState.value.stage != ListeningPracticeStage.Error
+        ) {
+            return
+        }
+        assignmentArgs = args
+        isReviewMode = args.mode == PracticeAssignmentMode.Review
+        loadAssignment(args)
     }
 
     fun onBackClick() {
         if (_uiState.value.stage == ListeningPracticeStage.Completed) {
-            finishSession(isCompleted = true)
+            finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
+            return
+        }
+        if (isReviewMode) {
+            finishSession(isCompleted = true, awardTokens = false)
             return
         }
         _uiState.update { it.copy(showExitConfirmDialog = true) }
@@ -52,7 +74,7 @@ class ListeningPracticeViewModel @Inject constructor(
 
     fun onConfirmExit() {
         _uiState.update { it.copy(showExitConfirmDialog = false) }
-        finishSession(isCompleted = false)
+        finishSession(isCompleted = false, awardTokens = false)
     }
 
     fun onDismissExitDialog() {
@@ -60,6 +82,7 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onOptionSelected(optionId: String) {
+        if (isReviewMode) return
         _uiState.update { state ->
             if (state.stage != ListeningPracticeStage.Ready) {
                 state
@@ -73,11 +96,13 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onSubmitAnswer() {
+        if (isReviewMode) return
         val state = _uiState.value
         val question = state.currentQuestion ?: return
         if (state.stage != ListeningPracticeStage.Ready) return
         val selectedOptionId = state.selectedOptionId ?: return
         val selectedOption = question.options.firstOrNull { it.optionId == selectedOptionId } ?: return
+        allAnswers[question.questionId] = selectedOptionId
 
         if (selectedOption.isCorrect) {
             _uiState.update {
@@ -117,14 +142,18 @@ class ListeningPracticeViewModel @Inject constructor(
             val nextMaterialIndex = _uiState.value.currentMaterialIndex + 1
             if (nextMaterialIndex >= currentSession.materials.size) {
                 stopTimer()
-                _uiState.update {
-                    it.copy(
-                        stage = ListeningPracticeStage.Completed,
-                        currentQuestion = null,
-                        selectedOptionId = null,
-                        canSubmitAnswer = false,
-                        currentQuestionOrdinal = it.totalQuestionCount
-                    )
+                if (isReviewMode) {
+                    _uiState.update {
+                        it.copy(
+                            stage = ListeningPracticeStage.Completed,
+                            currentQuestion = null,
+                            selectedOptionId = null,
+                            canSubmitAnswer = false,
+                            currentQuestionOrdinal = it.totalQuestionCount
+                        )
+                    }
+                } else {
+                    submitAssignmentAndComplete()
                 }
             } else {
                 showQuestion(
@@ -149,52 +178,153 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onRetryLoad() {
-        requestedSessionId?.let(::loadSession)
+        assignmentArgs?.let(::loadAssignment)
     }
 
     fun onFinishSession() {
-        finishSession(isCompleted = true)
+        finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
     }
 
-    private fun loadSession(sessionId: String) {
+    private fun loadAssignment(args: PracticeAssignmentArgs) {
         resetSession()
-        requestedSessionId = sessionId
         _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
         viewModelScope.launch {
             runCatching {
-                repository.createSession(sessionId = sessionId)
-            }.onSuccess { loadedSession ->
-                if (loadedSession.materials.isEmpty() || loadedSession.materials.all { it.questions.isEmpty() }) {
+                val detail = assignmentRepository.getDetail(args.submissionId)
+                if (detail.moduleId != "listening") {
+                    error("作业模块不匹配")
+                }
+                if (args.mode == PracticeAssignmentMode.Answer) {
+                    if (detail.status == "submitted") {
+                        error("作业已提交，请从已完成列表查看")
+                    }
+                    val now = System.currentTimeMillis()
+                    if (now > detail.dueAtEpochMs && !detail.allowLate) {
+                        error("作业已过截止时间，无法作答")
+                    }
+                    assignmentRepository.start(args.submissionId)
+                } else if (detail.status != "submitted") {
+                    error("作业尚未提交，无法回顾")
+                }
+
+                val payloadAnswers = detail.answerPayload
+                    ?.get("answers")
+                    ?.jsonObject
+                    ?.mapValues { (_, value) -> value.jsonPrimitive.contentOrNull.orEmpty() }
+                    ?.filterValues { it.isNotEmpty() }
+                    .orEmpty()
+
+                if (args.mode == PracticeAssignmentMode.Review) {
+                    allAnswers.clear()
+                    allAnswers.putAll(payloadAnswers)
+                }
+
+                val loadedSession = repository.createSession(
+                    sessionId = args.submissionId,
+                    itemRefs = detail.itemRefs
+                )
+                detail to loadedSession
+            }.onSuccess { (detail, loadedSession) ->
+                if (loadedSession.materials.isEmpty() ||
+                    loadedSession.materials.all { it.questions.isEmpty() }
+                ) {
                     _uiState.value = ListeningPracticeUiState(
                         stage = ListeningPracticeStage.Error,
-                        errorMessage = "暂无可用的短文或对话听力材料"
+                        errorMessage = "作业题目为空"
                     )
                 } else {
-                    val firstMaterial = loadedSession.materials.first()
-                    val totalQuestionCount = loadedSession.materials.sumOf { it.questions.size }
                     session = loadedSession
-                    _uiState.value = ListeningPracticeUiState(
-                        stage = ListeningPracticeStage.Ready,
-                        sessionId = loadedSession.sessionId,
-                        currentMaterialIndex = 0,
-                        totalMaterialCount = loadedSession.materials.size,
-                        currentMaterial = firstMaterial,
-                        currentQuestionCountInMaterial = firstMaterial.questions.size,
-                        totalQuestionCount = totalQuestionCount
-                    )
-                    startTimer()
-                    showQuestion(
-                        session = loadedSession,
-                        materialIndex = 0,
-                        questionIndex = 0
-                    )
+                    val totalQuestionCount = loadedSession.materials.sumOf { it.questions.size }
+                    if (isReviewMode) {
+                        var correct = 0
+                        var wrong = 0
+                        var tokens = 0
+                        loadedSession.materials.forEach { material ->
+                            material.questions.forEach { question ->
+                                val selected = allAnswers[question.questionId]
+                                if (selected == null) return@forEach
+                                if (selected == question.correctOptionId) {
+                                    correct += 1
+                                    tokens += question.rewardToken
+                                } else {
+                                    wrong += 1
+                                    wrongQuestionIds += question.questionId
+                                }
+                            }
+                        }
+                        _uiState.value = ListeningPracticeUiState(
+                            stage = ListeningPracticeStage.AnswerEvaluated,
+                            sessionId = loadedSession.sessionId,
+                            totalMaterialCount = loadedSession.materials.size,
+                            totalQuestionCount = totalQuestionCount,
+                            correctCount = detail.correctCount.takeIf { it > 0 } ?: correct,
+                            wrongCount = wrong,
+                            earnedTokens = detail.earnedTokens.takeIf { it > 0 } ?: tokens,
+                            isReviewMode = true
+                        )
+                        showQuestion(loadedSession, 0, 0, forceReview = true)
+                    } else {
+                        _uiState.value = ListeningPracticeUiState(
+                            stage = ListeningPracticeStage.Ready,
+                            sessionId = loadedSession.sessionId,
+                            totalMaterialCount = loadedSession.materials.size,
+                            totalQuestionCount = totalQuestionCount,
+                            isReviewMode = false
+                        )
+                        startTimer()
+                        showQuestion(loadedSession, 0, 0)
+                    }
                 }
             }.onFailure { throwable ->
                 _uiState.value = ListeningPracticeUiState(
                     stage = ListeningPracticeStage.Error,
                     errorMessage = throwable.message?.takeIf { it.isNotBlank() }
-                        ?: "听力内容加载失败，请检查网络后重试"
+                        ?: "听力作业加载失败"
                 )
+            }
+        }
+    }
+
+    private fun submitAssignmentAndComplete() {
+        val args = assignmentArgs ?: return
+        val state = _uiState.value
+        _uiState.update { it.copy(stage = ListeningPracticeStage.Loading) }
+        viewModelScope.launch {
+            runCatching {
+                val payload = buildJsonObject {
+                    put(
+                        "answers",
+                        buildJsonObject {
+                            allAnswers.forEach { (qid, oid) -> put(qid, oid) }
+                        }
+                    )
+                }
+                val total = state.correctCount + state.wrongCount
+                assignmentRepository.submit(
+                    submissionId = args.submissionId,
+                    correctCount = state.correctCount,
+                    totalCount = total,
+                    earnedTokens = state.earnedTokens,
+                    answerPayload = payload
+                )
+            }.onSuccess {
+                submittedSuccessfully = true
+                _uiState.update {
+                    it.copy(
+                        stage = ListeningPracticeStage.Completed,
+                        currentQuestion = null,
+                        selectedOptionId = null,
+                        canSubmitAnswer = false,
+                        currentQuestionOrdinal = it.totalQuestionCount
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        stage = ListeningPracticeStage.Error,
+                        errorMessage = error.message ?: "提交失败"
+                    )
+                }
             }
         }
     }
@@ -202,31 +332,69 @@ class ListeningPracticeViewModel @Inject constructor(
     private fun showQuestion(
         session: ListeningPracticeSession,
         materialIndex: Int,
-        questionIndex: Int
+        questionIndex: Int,
+        forceReview: Boolean = false
     ) {
         val material = session.materials[materialIndex]
         val question = material.questions[questionIndex]
         val questionOrdinal = session.materials
             .take(materialIndex)
             .sumOf { it.questions.size } + questionIndex + 1
-        _uiState.update {
-            it.copy(
-                stage = ListeningPracticeStage.Ready,
-                currentMaterialIndex = materialIndex,
-                totalMaterialCount = session.materials.size,
-                currentMaterial = material,
-                currentQuestionIndexInMaterial = questionIndex,
-                currentQuestionCountInMaterial = material.questions.size,
-                currentQuestionOrdinal = questionOrdinal,
-                totalQuestionCount = session.materials.sumOf { currentMaterial -> currentMaterial.questions.size },
-                currentQuestion = question,
-                selectedOptionId = null,
-                canSubmitAnswer = false,
-                answerStatus = AnswerStatus.Unanswered,
-                feedbackMessage = ""
-            )
+
+        if (isReviewMode || forceReview) {
+            val selected = allAnswers[question.questionId]
+            val isCorrect = selected == question.correctOptionId
+            val correctAnswer = question.options
+                .firstOrNull { it.optionId == question.correctOptionId }
+                ?.label
+                ?: question.correctOptionId
+            _uiState.update {
+                it.copy(
+                    stage = ListeningPracticeStage.AnswerEvaluated,
+                    currentMaterialIndex = materialIndex,
+                    totalMaterialCount = session.materials.size,
+                    currentMaterial = material,
+                    currentQuestionIndexInMaterial = questionIndex,
+                    currentQuestionCountInMaterial = material.questions.size,
+                    currentQuestionOrdinal = questionOrdinal,
+                    totalQuestionCount = session.materials.sumOf { m -> m.questions.size },
+                    currentQuestion = question,
+                    selectedOptionId = selected,
+                    canSubmitAnswer = false,
+                    answerStatus = when {
+                        selected == null -> AnswerStatus.Unanswered
+                        isCorrect -> AnswerStatus.Correct
+                        else -> AnswerStatus.Wrong
+                    },
+                    feedbackMessage = when {
+                        selected == null -> "未作答"
+                        isCorrect -> "回答正确"
+                        else -> "正确答案：$correctAnswer"
+                    },
+                    isReviewMode = true
+                )
+            }
+            emitPlayEvent(material, question)
+        } else {
+            _uiState.update {
+                it.copy(
+                    stage = ListeningPracticeStage.Ready,
+                    currentMaterialIndex = materialIndex,
+                    totalMaterialCount = session.materials.size,
+                    currentMaterial = material,
+                    currentQuestionIndexInMaterial = questionIndex,
+                    currentQuestionCountInMaterial = material.questions.size,
+                    currentQuestionOrdinal = questionOrdinal,
+                    totalQuestionCount = session.materials.sumOf { m -> m.questions.size },
+                    currentQuestion = question,
+                    selectedOptionId = null,
+                    canSubmitAnswer = false,
+                    answerStatus = AnswerStatus.Unanswered,
+                    feedbackMessage = ""
+                )
+            }
+            emitPlayEvent(material, question)
         }
-        emitPlayEvent(material, question)
     }
 
     private fun emitPlayEvent(
@@ -247,7 +415,7 @@ class ListeningPracticeViewModel @Inject constructor(
         }
     }
 
-    private fun finishSession(isCompleted: Boolean) {
+    private fun finishSession(isCompleted: Boolean, awardTokens: Boolean) {
         val state = _uiState.value
         val sessionId = state.sessionId ?: session?.sessionId ?: return
         if (sessionFinished) return
@@ -263,7 +431,7 @@ class ListeningPracticeViewModel @Inject constructor(
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
-            earnedTokens = state.earnedTokens,
+            earnedTokens = if (awardTokens) state.earnedTokens else 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongQuestionIds.toList()
@@ -292,7 +460,9 @@ class ListeningPracticeViewModel @Inject constructor(
         stopTimer()
         session = null
         sessionFinished = false
+        submittedSuccessfully = false
         wrongQuestionIds.clear()
+        allAnswers.clear()
     }
 
     override fun onCleared() {

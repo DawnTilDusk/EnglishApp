@@ -39,18 +39,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.theme.gardenShadow
 
 @Composable
 fun ReadingPracticeRoute(
+    assignmentArgs: PracticeAssignmentArgs,
     onFinishSession: (StudyResult) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ReadingPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
+    LaunchedEffect(assignmentArgs.submissionId, assignmentArgs.mode) {
+        viewModel.initialize(assignmentArgs)
     }
 
     LaunchedEffect(Unit) {
@@ -99,8 +101,17 @@ private fun ReadingPracticeScreen(
                     Text("继续作答")
                 }
             },
-            title = { Text("退出后将结束本次阅读训练") },
-            text = { Text("已获得的代币仍会结算。") }
+            title = {
+                Text(
+                    if (uiState.isReviewMode) "退出回顾？" else "退出后将结束本次作业"
+                )
+            },
+            text = {
+                Text(
+                    if (uiState.isReviewMode) "进度不会改变。"
+                    else "未提交的作业不会记入已完成。"
+                )
+            }
         )
     }
 
@@ -139,10 +150,15 @@ private fun ReadingPracticeScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("阅读训练完成", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    if (uiState.isReviewMode) "作业回顾完成" else "作业已提交",
+                    style = MaterialTheme.typography.headlineMedium
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("正确 ${uiState.correctCount} / 错误 ${uiState.wrongCount}")
-                Text("获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s")
+                if (!uiState.isReviewMode) {
+                    Text("获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s")
+                }
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(onClick = onFinishSession) { Text("完成") }
             }
@@ -293,7 +309,13 @@ private fun ReadingPracticeScreen(
                                     onClick = onNextSet,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(if (isLast) "查看结果" else "下一篇")
+                                    Text(
+                                        when {
+                                            isLast && uiState.isReviewMode -> "完成回顾"
+                                            isLast -> "提交作业"
+                                            else -> "下一篇"
+                                        }
+                                    )
                                 }
                             }
                         }

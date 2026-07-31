@@ -2,12 +2,14 @@ package com.example.seedie.ui.screens.learning.reading
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.domain.model.PracticeAssignmentMode
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.reading.ReadingPracticeConstants
 import com.example.seedie.domain.reading.ReadingPracticeScorer
+import com.example.seedie.domain.repository.PracticeAssignmentRepository
 import com.example.seedie.domain.repository.ReadingPracticeRepository
+import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,10 +20,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 @HiltViewModel
 class ReadingPracticeViewModel @Inject constructor(
-    private val repository: ReadingPracticeRepository
+    private val repository: ReadingPracticeRepository,
+    private val assignmentRepository: PracticeAssignmentRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReadingPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -32,16 +40,29 @@ class ReadingPracticeViewModel @Inject constructor(
     private var session: ReadingPracticeSession? = null
     private var sessionFinished = false
     private var timerJob: Job? = null
-    private var completionBonusApplied = false
+    private var assignmentArgs: PracticeAssignmentArgs? = null
+    private var isReviewMode = false
+    private val allAnswers = linkedMapOf<String, String>()
 
-    fun initialize(sessionId: String = UUID.randomUUID().toString()) {
-        if (session?.sessionId == sessionId && _uiState.value.stage != ReadingPracticeStage.Error) return
-        loadSession(sessionId)
+    fun initialize(args: PracticeAssignmentArgs) {
+        if (assignmentArgs?.submissionId == args.submissionId &&
+            assignmentArgs?.mode == args.mode &&
+            _uiState.value.stage != ReadingPracticeStage.Error
+        ) {
+            return
+        }
+        assignmentArgs = args
+        isReviewMode = args.mode == PracticeAssignmentMode.Review
+        loadAssignment(args)
     }
 
     fun onBackClick() {
         if (_uiState.value.stage == ReadingPracticeStage.Completed) {
-            finishSession(isCompleted = true)
+            finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
+            return
+        }
+        if (isReviewMode) {
+            finishSession(isCompleted = true, awardTokens = false)
             return
         }
         _uiState.update { it.copy(showExitConfirmDialog = true) }
@@ -49,7 +70,7 @@ class ReadingPracticeViewModel @Inject constructor(
 
     fun onConfirmExit() {
         _uiState.update { it.copy(showExitConfirmDialog = false) }
-        finishSession(isCompleted = false)
+        finishSession(isCompleted = false, awardTokens = false)
     }
 
     fun onDismissExitDialog() {
@@ -57,6 +78,7 @@ class ReadingPracticeViewModel @Inject constructor(
     }
 
     fun onOptionSelected(questionId: String, optionId: String) {
+        if (isReviewMode) return
         _uiState.update { state ->
             if (state.stage != ReadingPracticeStage.Answering) {
                 state
@@ -74,6 +96,7 @@ class ReadingPracticeViewModel @Inject constructor(
     }
 
     fun onSubmitSet() {
+        if (isReviewMode) return
         val state = _uiState.value
         val currentSet = state.currentSet ?: return
         if (state.stage != ReadingPracticeStage.Answering) return
@@ -81,6 +104,7 @@ class ReadingPracticeViewModel @Inject constructor(
             _uiState.update { it.copy(submitHint = "请答完所有题目", canSubmitSet = false) }
             return
         }
+        allAnswers.putAll(state.answers)
         val score = ReadingPracticeScorer.scoreSet(currentSet, state.answers)
         _uiState.update {
             it.copy(
@@ -100,19 +124,17 @@ class ReadingPracticeViewModel @Inject constructor(
         val nextIndex = _uiState.value.currentSetIndex + 1
         if (nextIndex >= currentSession.sets.size) {
             stopTimer()
-            if (!completionBonusApplied) {
-                completionBonusApplied = true
+            if (isReviewMode) {
                 _uiState.update {
-                    it.copy(earnedTokens = it.earnedTokens + ReadingPracticeConstants.COMPLETION_BONUS)
+                    it.copy(
+                        stage = ReadingPracticeStage.Completed,
+                        currentSet = null,
+                        answers = emptyMap(),
+                        canSubmitSet = false
+                    )
                 }
-            }
-            _uiState.update {
-                it.copy(
-                    stage = ReadingPracticeStage.Completed,
-                    currentSet = null,
-                    answers = emptyMap(),
-                    canSubmitSet = false
-                )
+            } else {
+                submitAssignmentAndComplete()
             }
             return
         }
@@ -120,60 +142,186 @@ class ReadingPracticeViewModel @Inject constructor(
     }
 
     fun onRetryLoad() {
-        session?.sessionId?.let(::loadSession) ?: initialize()
+        assignmentArgs?.let(::loadAssignment)
     }
 
     fun onFinishSession() {
-        finishSession(isCompleted = true)
+        finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
     }
 
-    private fun loadSession(sessionId: String) {
+    private var submittedSuccessfully = false
+
+    private fun loadAssignment(args: PracticeAssignmentArgs) {
         resetSession()
         _uiState.value = ReadingPracticeUiState(stage = ReadingPracticeStage.Loading)
         viewModelScope.launch {
             runCatching {
-                repository.createSession(sessionId = sessionId)
-            }.onSuccess { loadedSession ->
+                val detail = assignmentRepository.getDetail(args.submissionId)
+                if (detail.moduleId != "reading") {
+                    error("作业模块不匹配")
+                }
+                if (args.mode == PracticeAssignmentMode.Answer) {
+                    if (detail.status == "submitted") {
+                        error("作业已提交，请从已完成列表查看")
+                    }
+                    val now = System.currentTimeMillis()
+                    if (now > detail.dueAtEpochMs && !detail.allowLate) {
+                        error("作业已过截止时间，无法作答")
+                    }
+                    assignmentRepository.start(args.submissionId)
+                } else if (detail.status != "submitted") {
+                    error("作业尚未提交，无法回顾")
+                }
+
+                val payloadAnswers = detail.answerPayload
+                    ?.get("answers")
+                    ?.jsonObject
+                    ?.mapValues { (_, value) -> value.jsonPrimitive.contentOrNull.orEmpty() }
+                    ?.filterValues { it.isNotEmpty() }
+                    .orEmpty()
+
+                if (args.mode == PracticeAssignmentMode.Review) {
+                    allAnswers.clear()
+                    allAnswers.putAll(payloadAnswers)
+                }
+
+                val loadedSession = repository.createSession(
+                    sessionId = args.submissionId,
+                    itemRefs = detail.itemRefs
+                )
+                Triple(detail, loadedSession, payloadAnswers)
+            }.onSuccess { (detail, loadedSession, payloadAnswers) ->
                 if (loadedSession.sets.isEmpty()) {
                     _uiState.value = ReadingPracticeUiState(
                         stage = ReadingPracticeStage.Error,
-                        errorMessage = "阅读题库为空"
+                        errorMessage = "作业题目为空"
                     )
                 } else {
                     session = loadedSession
-                    _uiState.value = ReadingPracticeUiState(
-                        stage = ReadingPracticeStage.Answering,
-                        sessionId = loadedSession.sessionId,
-                        totalSetCount = loadedSession.sets.size
-                    )
-                    startTimer()
-                    showSet(loadedSession, setIndex = 0)
+                    if (isReviewMode) {
+                        var correct = 0
+                        var wrong = 0
+                        var tokens = 0
+                        loadedSession.sets.forEach { set ->
+                            val score = ReadingPracticeScorer.scoreSet(set, allAnswers)
+                            correct += score.correctCount
+                            wrong += score.wrongCount
+                            tokens += score.earnedTokens
+                        }
+                        _uiState.value = ReadingPracticeUiState(
+                            stage = ReadingPracticeStage.Reviewing,
+                            sessionId = loadedSession.sessionId,
+                            totalSetCount = loadedSession.sets.size,
+                            correctCount = detail.correctCount.takeIf { it > 0 } ?: correct,
+                            wrongCount = wrong,
+                            earnedTokens = detail.earnedTokens.takeIf { it > 0 } ?: tokens,
+                            isReviewMode = true
+                        )
+                        showSet(loadedSession, setIndex = 0, forceReview = true)
+                    } else {
+                        _uiState.value = ReadingPracticeUiState(
+                            stage = ReadingPracticeStage.Answering,
+                            sessionId = loadedSession.sessionId,
+                            totalSetCount = loadedSession.sets.size,
+                            isReviewMode = false
+                        )
+                        startTimer()
+                        showSet(loadedSession, setIndex = 0)
+                    }
                 }
             }.onFailure { throwable ->
                 _uiState.value = ReadingPracticeUiState(
                     stage = ReadingPracticeStage.Error,
-                    errorMessage = throwable.message ?: "阅读练习加载失败"
+                    errorMessage = throwable.message ?: "阅读作业加载失败"
                 )
             }
         }
     }
 
-    private fun showSet(session: ReadingPracticeSession, setIndex: Int) {
-        val set = session.sets[setIndex]
-        _uiState.update {
-            it.copy(
-                stage = ReadingPracticeStage.Answering,
-                currentSetIndex = setIndex,
-                totalSetCount = session.sets.size,
-                currentSet = set,
-                answers = emptyMap(),
-                canSubmitSet = false,
-                submitHint = ""
-            )
+    private fun submitAssignmentAndComplete() {
+        val args = assignmentArgs ?: return
+        val state = _uiState.value
+        _uiState.update { it.copy(stage = ReadingPracticeStage.Loading, submitHint = "正在提交…") }
+        viewModelScope.launch {
+            runCatching {
+                val payload = buildJsonObject {
+                    put(
+                        "answers",
+                        buildJsonObject {
+                            allAnswers.forEach { (qid, oid) ->
+                                put(qid, oid)
+                            }
+                        }
+                    )
+                }
+                val total = state.correctCount + state.wrongCount
+                assignmentRepository.submit(
+                    submissionId = args.submissionId,
+                    correctCount = state.correctCount,
+                    totalCount = total,
+                    earnedTokens = state.earnedTokens,
+                    answerPayload = payload
+                )
+            }.onSuccess {
+                submittedSuccessfully = true
+                _uiState.update {
+                    it.copy(
+                        stage = ReadingPracticeStage.Completed,
+                        currentSet = null,
+                        answers = emptyMap(),
+                        canSubmitSet = false,
+                        submitHint = ""
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        stage = ReadingPracticeStage.Error,
+                        errorMessage = error.message ?: "提交失败"
+                    )
+                }
+            }
         }
     }
 
-    private fun finishSession(isCompleted: Boolean) {
+    private fun showSet(
+        session: ReadingPracticeSession,
+        setIndex: Int,
+        forceReview: Boolean = false
+    ) {
+        val set = session.sets[setIndex]
+        if (isReviewMode || forceReview) {
+            val answersForSet = set.questions.associate { q ->
+                q.questionId to (allAnswers[q.questionId] ?: "")
+            }.filterValues { it.isNotEmpty() }
+            _uiState.update {
+                it.copy(
+                    stage = ReadingPracticeStage.Reviewing,
+                    currentSetIndex = setIndex,
+                    totalSetCount = session.sets.size,
+                    currentSet = set,
+                    answers = answersForSet,
+                    canSubmitSet = false,
+                    submitHint = "",
+                    isReviewMode = true
+                )
+            }
+        } else {
+            _uiState.update {
+                it.copy(
+                    stage = ReadingPracticeStage.Answering,
+                    currentSetIndex = setIndex,
+                    totalSetCount = session.sets.size,
+                    currentSet = set,
+                    answers = emptyMap(),
+                    canSubmitSet = false,
+                    submitHint = ""
+                )
+            }
+        }
+    }
+
+    private fun finishSession(isCompleted: Boolean, awardTokens: Boolean) {
         if (sessionFinished) return
         sessionFinished = true
         stopTimer()
@@ -189,7 +337,7 @@ class ReadingPracticeViewModel @Inject constructor(
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
-            earnedTokens = state.earnedTokens,
+            earnedTokens = if (awardTokens) state.earnedTokens else 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = emptyList()
@@ -218,7 +366,8 @@ class ReadingPracticeViewModel @Inject constructor(
         stopTimer()
         session = null
         sessionFinished = false
-        completionBonusApplied = false
+        submittedSuccessfully = false
+        allAnswers.clear()
     }
 
     override fun onCleared() {

@@ -49,7 +49,8 @@ data class ReadingPracticeUiState(
     val earnedTokens: Int = 0,
     val elapsedSeconds: Int = 0,
     val showExitConfirmDialog: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isReviewMode: Boolean = false
 ) {
     fun answerStatusFor(question: ReadingQuestionItem): AnswerStatus {
         if (stage != ReadingPracticeStage.Reviewing) return AnswerStatus.Unanswered

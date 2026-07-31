@@ -9,4 +9,6 @@ sealed class Screen(val route: String) {
     object VocabularyQuiz : Screen("vocabulary_quiz")
     object StudentShop : Screen("student_shop")
     object MyOrders : Screen("my_orders")
+    object ReadingAssignments : Screen("reading_assignments")
+    object ListeningAssignments : Screen("listening_assignments")
 }

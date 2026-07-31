@@ -446,8 +446,8 @@ DailyTaskEntity(date = today, title = "听力训练 10 分钟", rewardAmount = 2
 | `grammar` | 语法 | **未实现** | Snackbar："正在 Garden 中萌芽…" |
 | `speaking` | 口语跟读 | **未实现** | 同上 |
 | `quiz` | 词汇测验 | **已实现** | 进入词汇测验 |
-| `reading` | 阅读训练 | **已实现** | 拉 Supabase 题库：左文右题，整套提交后解析 |
-| `listening` | 听力训练 | **已实现** | 进入听力练习 |
+| `reading` | 阅读训练 | **已实现** | 作业列表 → 答题/只读回顾（教师选题下发） |
+| `listening` | 听力训练 | **已实现** | 作业列表 → 答题/只读回顾（教师选题下发） |
 | `writing` | 写作/专项 | **未实现** | Snackbar："正在 Garden 中萌芽…" |
 
 **背单词入口交互逻辑：**

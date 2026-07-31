@@ -1,6 +1,6 @@
 # Supabase 表地图（用途与交互）
 
-更新日期：2026-07-24
+更新日期：2026-07-31
 
 配套：
 
@@ -18,7 +18,9 @@
 | 经济（云） | `user_economy_transactions` | 在用（权威账本） |
 | 学习同步 | `user_check_ins`、词汇进度三表 | 在用 |
 | 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
-| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；App 会话拉取 |
+| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；作业选题 |
+| 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；作业选题 |
+| 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力下发 |
 | Legacy | `content_*`、`study_events`、`points_ledger`、`rewards`、`redemptions` | **已由 015 从远端删除** |
 
 原则：
@@ -144,8 +146,23 @@ flowchart TB
 | `reading_options` | 选项 A–D | 同上 |
 
 - 迁移：[`020_reading_comprehension_catalog.sql`](../../supabase/migrations/020_reading_comprehension_catalog.sql)
-- App：学习中心「阅读训练」→ `ReadingRemoteDataSource` 三次 bulk 拉取组装会话；**无**本地 assets / Room 题包
-- 无 `user_reading_*` 进度表（本阶段会话内结算代币即可）
+- App：学习中心「阅读训练」→ 作业列表 → 按 assignment items 过滤拉取；**无**全库自刷；**无**本地 assets / Room 题包
+- 进度与提交见 §6.2 练习作业表（`practice_assignment_*`）
+
+---
+
+## 6.2 练习作业（阅读 / 听力）
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `practice_assignments` | 教师布置：module、标题、`due_at`、`allow_late` | 在用；教师/学员 SELECT via RLS |
+| `practice_assignment_items` | 作业内套题引用（`item_ref` = set_id / material_id） | 同上 |
+| `practice_assignment_recipients` | 下发学员快照 | 同上 |
+| `practice_assignment_submissions` | 每学员一行；`answer_payload` 供只读回顾；仅一次 `submitted` | 同上 |
+
+- 迁移：[`022_practice_assignments.sql`](../../supabase/migrations/022_practice_assignments.sql)；[`023` GRANT SELECT](../../supabase/migrations/023_practice_assignments_grants.sql)；[`024` RLS 去递归](../../supabase/migrations/024_practice_assignments_rls_no_recursion.sql)（`private.is_practice_assignment_teacher` / `recipient`）
+- 写入 RPC：`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`（已提交再交会拒绝）
+- Web：`/teacher/assignments`；App：阅读/听力入口为作业列表
 
 ---
 

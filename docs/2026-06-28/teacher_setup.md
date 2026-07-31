@@ -133,6 +133,9 @@ npm run dev
 | 同上 `?section=checkins` | 只读 `user_check_ins`（最近 90 条） |
 | 同上 `?section=vocab` | 只读词书进度 + 学习轮次（各最近 50 条） |
 | 同上 `?section=economy` | 余额（RPC）+ 只读 `user_economy_transactions`（最近 100 条） |
+| `/teacher/assignments` | 作业列表（已交/应交） |
+| `/teacher/assignments/new` | 布置作业：选模块、按套选题、截止时间、学员全选/筛选 |
+| `/teacher/assignments/[id]` | 作业详情与学员提交表 |
 | `/teacher/shop`、`/teacher/orders` | 本机构商城商品 / 订单只读 |
 
 约束：
@@ -140,8 +143,9 @@ npm run dev
 - 仅能看 `students.teacher_id = 自己` 的学生；非名下 id → 404。
 - **只读已同步到云端的数据**（App 本地未 sync 的进度/流水在 Web 不可见）。
 - 教师不能改学生进度、补代币或建账号（机构管理员 / `service_role` 负责）。
+- 作业写入走 `create_practice_assignment`；学员范围须为名下学生。
 
-实现入口：`web/src/lib/teacher-student.ts`（归属校验）、`web/src/app/teacher/`。
+实现入口：`web/src/lib/teacher-student.ts`（归属校验）、`web/src/lib/teacher-assignments.ts`、`web/src/app/teacher/`。
 
 ## 7. App 联调
 

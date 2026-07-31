@@ -1,5 +1,6 @@
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { requireAssignedStudent } from "@/lib/teacher-student";
+import { teacherTabs } from "@/lib/teacher-assignments";
 import Link from "next/link";
 
 type Section = "overview" | "checkins" | "vocab" | "economy";
@@ -138,11 +139,7 @@ export default async function TeacherStudentDetailPage({
     <ConsoleShell
       profile={profile}
       title={`学生 · ${student.name}`}
-      tabs={[
-        { href: "/teacher", label: "学生", active: true },
-        { href: "/teacher/shop", label: "商城（只读）" },
-        { href: "/teacher/orders", label: "订单（只读）" },
-      ]}
+      tabs={teacherTabs("students")}
     >
       <div className="stack">
         <div className="tabs">

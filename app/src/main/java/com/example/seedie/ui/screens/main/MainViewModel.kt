@@ -66,7 +66,10 @@ class MainViewModel @Inject constructor(
                 economyManager.addTokens(
                     amount = result.earnedTokens,
                     reason = reason,
-                    refId = "study:${result.sessionId}"
+                    refId = when (result.moduleId) {
+                        "reading", "listening" -> "assignment:${result.sessionId}"
+                        else -> "study:${result.sessionId}"
+                    }
                 )
                 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
             }

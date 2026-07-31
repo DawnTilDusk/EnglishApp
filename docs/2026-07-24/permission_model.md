@@ -1,6 +1,6 @@
 # 权限模型与客户端边界
 
-更新日期：2026-07-24
+更新日期：2026-07-31
 
 ## 身份分层
 
@@ -20,8 +20,8 @@ service_role → agency_admin → teacher → student
 ```
 
 - 机构管理员：本机构教师账号、学生绑定、**机构店**商品读写、本机构订单与学习数据只读汇总。
-- 教师：绑定学生的学习数据；对本机构店商品/订单**只读**。
-- 学生：本人学习数据；浏览本机构上架商品并下单。
+- 教师：绑定学生的学习数据；对本机构店商品/订单**只读**；可布置阅读/听力作业（`create_practice_assignment`）。
+- 学生：本人学习数据；浏览本机构上架商品并下单；接收并提交名下作业（`start` / `submit_practice_assignment`）。
 
 ## 商城模型（机构一店）
 
@@ -40,6 +40,8 @@ service_role → agency_admin → teacher → student
 | 订单查看（机构维度） | 学生看自己的 | 机构全部；教师本机构只读 |
 | 教师账号 / 绑定学生 | — | 机构 |
 | 学生进度（教师视角） | — | 教师 |
+| 阅读/听力作业布置 | — | 教师 `/teacher/assignments` |
+| 阅读/听力作业作答与回顾 | 学生 App | — |
 
 学生账号登录 Web → 拒绝并提示使用 App。  
 教师 / 机构账号登录 App → 拒绝并提示使用网页端。
@@ -53,6 +55,6 @@ Migrations：[`016_security_definer_hardening.sql`](../../supabase/migrations/01
 - **016**：固定 `search_path`；`REVOKE` `anon`/`PUBLIC`；触发器与内部函数不对客户端开放；去掉 `word-audio` listing SELECT。
 - **017**（清 lint 0029）：真正的 `SECURITY DEFINER` 实现放在未暴露的 `private` schema；`public` 上同名产品 RPC 仅为 `SECURITY INVOKER` 薄包装（客户端仍调 `/rest/v1/rpc/...`）。
 - **RLS 助手**仅存在于 `private`：`get_auth_role`、`get_auth_agency_id`、`is_agency_admin_of`、`is_teacher_in_agency`（policy 已改为 `private.*`）。
-- **产品 RPC**（`public` INVOKER → `private` DEFINER）：`create_teacher_account`、`create_student_account`、`bind_student_to_teacher`、`submit_shop_order`、`sync_my_economy_transactions`、`get_my_token_balance`、`get_teacher_student_stats`、`set_my_profile` / `set_my_phone` / `set_my_device_id`。
+- **产品 RPC**（`public` INVOKER → `private` DEFINER）：`create_teacher_account`、`create_student_account`、`bind_student_to_teacher`、`submit_shop_order`、`sync_my_economy_transactions`、`get_my_token_balance`、`get_teacher_student_stats`、`set_my_profile` / `set_my_phone` / `set_my_device_id`、`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`。
 - **内部**：`private.get_user_token_balance`；`reconcile_my_token_balance` / `create_agency_admin` 仅 `service_role`。
 - Auth：**Leaked password protection**（HIBP）需 Pro 及以上；Free 计划 API 返回 402，无法开启。

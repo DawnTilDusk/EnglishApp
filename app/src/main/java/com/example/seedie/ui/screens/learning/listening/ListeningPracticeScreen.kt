@@ -45,12 +45,14 @@ import com.example.seedie.BuildConfig
 import com.example.seedie.data.audio.WordAudioPlayer
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
 @Composable
 fun ListeningPracticeRoute(
+    assignmentArgs: PracticeAssignmentArgs,
     onFinishSession: (StudyResult) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ListeningPracticeViewModel = hiltViewModel()
@@ -104,8 +106,8 @@ fun ListeningPracticeRoute(
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
+    LaunchedEffect(assignmentArgs.submissionId, assignmentArgs.mode) {
+        viewModel.initialize(assignmentArgs)
     }
 
     DisposableEffect(Unit) {
@@ -193,8 +195,15 @@ private fun ListeningPracticeScreen(
                     Text("继续练习")
                 }
             },
-            title = { Text("退出后将结束本次听力训练") },
-            text = { Text("已完成的作答会被记录，但你将离开当前练习。") }
+            title = {
+                Text(if (uiState.isReviewMode) "退出回顾？" else "退出后将结束本次作业")
+            },
+            text = {
+                Text(
+                    if (uiState.isReviewMode) "进度不会改变。"
+                    else "未提交的作业不会记入已完成。"
+                )
+            }
         )
     }
 
@@ -236,18 +245,26 @@ private fun ListeningPracticeScreen(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("听力训练完成", style = MaterialTheme.typography.headlineMedium)
+                Text(
+                    if (uiState.isReviewMode) "作业回顾完成" else "作业已提交",
+                    style = MaterialTheme.typography.headlineMedium
+                )
                 Text(
                     text = "共完成 ${uiState.totalQuestionCount} 题，正确 ${uiState.correctCount}，错误 ${uiState.wrongCount}",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(top = 12.dp)
                 )
-                Text(
-                    text = "获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s",
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
-                )
-                Button(onClick = onFinishSession) {
+                if (!uiState.isReviewMode) {
+                    Text(
+                        text = "获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
+                    )
+                }
+                Button(
+                    onClick = onFinishSession,
+                    modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp)
+                ) {
                     Text("完成")
                 }
             }
@@ -440,17 +457,16 @@ private fun ListeningPracticeScreen(
                                 }
 
                                 ListeningPracticeStage.AnswerEvaluated -> {
+                                    val isLast =
+                                        uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
                                     Button(onClick = onNextQuestion) {
                                         Text(
-                                            if (uiState.currentQuestionOrdinal >= uiState.totalQuestionCount) {
-                                                "查看结果"
-                                            } else if (
+                                            when {
+                                                isLast && uiState.isReviewMode -> "完成回顾"
+                                                isLast -> "提交作业"
                                                 uiState.currentQuestionIndexInMaterial + 1 >=
-                                                uiState.currentQuestionCountInMaterial
-                                            ) {
-                                                "下一篇材料"
-                                            } else {
-                                                "下一题"
+                                                    uiState.currentQuestionCountInMaterial -> "下一篇材料"
+                                                else -> "下一题"
                                             }
                                         )
                                     }

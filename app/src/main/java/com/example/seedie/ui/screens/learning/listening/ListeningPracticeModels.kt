@@ -58,5 +58,6 @@ data class ListeningPracticeUiState(
     val earnedTokens: Int = 0,
     val elapsedSeconds: Int = 0,
     val showExitConfirmDialog: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isReviewMode: Boolean = false
 )

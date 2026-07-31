@@ -1,6 +1,7 @@
 import { requireTeacher } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { teacherTabs } from "@/lib/teacher-assignments";
 import Link from "next/link";
 
 export default async function TeacherHomePage({
@@ -30,11 +31,7 @@ export default async function TeacherHomePage({
     <ConsoleShell
       profile={profile}
       title="教师控制台"
-      tabs={[
-        { href: "/teacher", label: "学生", active: true },
-        { href: "/teacher/shop", label: "商城（只读）" },
-        { href: "/teacher/orders", label: "订单（只读）" },
-      ]}
+      tabs={teacherTabs("students")}
     >
       <div className="card stack">
         <div className="row" style={{ justifyContent: "space-between" }}>

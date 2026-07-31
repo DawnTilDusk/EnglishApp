@@ -1,6 +1,7 @@
 import { requireTeacher } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { teacherTabs } from "@/lib/teacher-assignments";
 
 export default async function TeacherOrdersPage() {
   const profile = await requireTeacher();
@@ -31,11 +32,7 @@ export default async function TeacherOrdersPage() {
     <ConsoleShell
       profile={profile}
       title="机构订单（只读）"
-      tabs={[
-        { href: "/teacher", label: "学生" },
-        { href: "/teacher/shop", label: "商城（只读）" },
-        { href: "/teacher/orders", label: "订单（只读）", active: true },
-      ]}
+      tabs={teacherTabs("orders")}
     >
       <div className="card">
         <table>

@@ -178,3 +178,36 @@ data class SupabaseListeningOption(
     @SerialName("option_text") val option_text: String? = null,
     @SerialName("sort_order") val sort_order: Int = 0
 )
+
+@Serializable
+data class SupabasePracticeAssignment(
+    val id: String,
+    @SerialName("teacher_id") val teacher_id: String,
+    @SerialName("agency_id") val agency_id: String,
+    @SerialName("module_id") val module_id: String,
+    val title: String,
+    @SerialName("due_at") val due_at: String,
+    @SerialName("allow_late") val allow_late: Boolean = false,
+    @SerialName("created_at") val created_at: String? = null
+)
+
+@Serializable
+data class SupabasePracticeAssignmentItem(
+    @SerialName("assignment_id") val assignment_id: String,
+    @SerialName("item_ref") val item_ref: String,
+    @SerialName("sort_order") val sort_order: Int = 0
+)
+
+@Serializable
+data class SupabasePracticeAssignmentSubmission(
+    val id: String,
+    @SerialName("assignment_id") val assignment_id: String,
+    @SerialName("student_id") val student_id: String,
+    val status: String,
+    @SerialName("started_at") val started_at: String? = null,
+    @SerialName("submitted_at") val submitted_at: String? = null,
+    @SerialName("correct_count") val correct_count: Int = 0,
+    @SerialName("total_count") val total_count: Int = 0,
+    @SerialName("earned_tokens") val earned_tokens: Int = 0,
+    @SerialName("answer_payload") val answer_payload: kotlinx.serialization.json.JsonElement? = null
+)

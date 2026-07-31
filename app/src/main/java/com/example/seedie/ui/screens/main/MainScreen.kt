@@ -52,8 +52,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     onOpenVocabularyStudy: (VocabularyPracticeArgs) -> Unit,
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
-    onOpenListeningPractice: () -> Unit,
-    onOpenReadingPractice: () -> Unit,
+    onOpenListeningAssignments: () -> Unit,
+    onOpenReadingAssignments: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
     onVisibleModuleChanged: (ActivityModule) -> Unit,
@@ -133,11 +133,11 @@ fun MainScreen(
         ModuleConfig(
             "reading",
             "阅读训练",
-            "短文理解与解析",
+            "老师布置的阅读作业",
             Icons.Default.Book,
             isAvailable = true
         ),
-        ModuleConfig("listening", "听力训练", "磨耳朵", Icons.Default.Headphones, isAvailable = true),
+        ModuleConfig("listening", "听力训练", "老师布置的听力作业", Icons.Default.Headphones, isAvailable = true),
         ModuleConfig("writing", "写作/专项", "句型实战", Icons.Default.Create)
     )
 
@@ -238,9 +238,9 @@ fun MainScreen(
                                 }
                             }
 
-                            "listening" -> onOpenListeningPractice()
+                            "listening" -> onOpenListeningAssignments()
 
-                            "reading" -> onOpenReadingPractice()
+                            "reading" -> onOpenReadingAssignments()
 
                             "quiz" -> onOpenVocabularyQuiz()
                         }

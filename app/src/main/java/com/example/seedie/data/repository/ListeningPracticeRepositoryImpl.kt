@@ -12,13 +12,20 @@ class ListeningPracticeRepositoryImpl @Inject constructor(
 ) : ListeningPracticeRepository {
 
     override suspend fun createSession(
-        questionCount: Int,
-        difficulty: String,
-        sessionId: String
+        sessionId: String,
+        itemRefs: List<String>?
     ): ListeningPracticeSession {
-        val materials = remoteDataSource.fetchAllMaterials()
+        val allMaterials = remoteDataSource.fetchAllMaterials()
         val questions = remoteDataSource.fetchAllQuestions()
         val options = remoteDataSource.fetchAllOptions()
+        val materials = if (itemRefs == null) {
+            allMaterials
+        } else {
+            val order = itemRefs.withIndex().associate { it.value to it.index }
+            allMaterials
+                .filter { it.material_id in order }
+                .sortedBy { order[it.material_id] ?: Int.MAX_VALUE }
+        }
         return ListeningSessionAssembler.assemble(
             sessionId = sessionId,
             materials = materials,
