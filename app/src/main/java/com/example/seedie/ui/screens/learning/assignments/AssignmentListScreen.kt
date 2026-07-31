@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,10 +75,11 @@ fun AssignmentListRoute(
         onTabSelected = viewModel::onTabSelected,
         onRetry = viewModel::onRetry,
         onOpenItem = { item ->
-            val mode = if (item.status == "submitted") {
-                PracticeAssignmentMode.Review
-            } else {
-                PracticeAssignmentMode.Answer
+            val mode = when {
+                item.moduleId == "writing" -> PracticeAssignmentMode.Answer
+                item.status == "submitted" || item.status == "returned" ->
+                    PracticeAssignmentMode.Review
+                else -> PracticeAssignmentMode.Answer
             }
             onOpenAssignment(
                 PracticeAssignmentArgs(
@@ -103,6 +103,7 @@ private fun AssignmentListScreen(
 ) {
     val visible = when (uiState.selectedTab) {
         AssignmentListTab.Incomplete -> uiState.incomplete
+        AssignmentListTab.Grading -> uiState.grading
         AssignmentListTab.Completed -> uiState.completed
     }
 
@@ -125,6 +126,14 @@ private fun AssignmentListScreen(
                     icon = {},
                     label = { Text("未完成 (${uiState.incomplete.size})") }
                 )
+                if (uiState.showGradingTab) {
+                    NavigationBarItem(
+                        selected = uiState.selectedTab == AssignmentListTab.Grading,
+                        onClick = { onTabSelected(AssignmentListTab.Grading) },
+                        icon = {},
+                        label = { Text("批改中 (${uiState.grading.size})") }
+                    )
+                }
                 NavigationBarItem(
                     selected = uiState.selectedTab == AssignmentListTab.Completed,
                     onClick = { onTabSelected(AssignmentListTab.Completed) },
@@ -158,6 +167,7 @@ private fun AssignmentListScreen(
                         text = when (uiState.selectedTab) {
                             AssignmentListTab.Incomplete ->
                                 "老师还没有布置${uiState.moduleTitle}作业"
+                            AssignmentListTab.Grading -> "暂无批改中的作业"
                             AssignmentListTab.Completed -> "暂无已完成的作业"
                         },
                         modifier = Modifier
@@ -172,7 +182,11 @@ private fun AssignmentListScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(visible, key = { it.submissionId }) { item ->
-                            AssignmentCard(item = item, onClick = { onOpenItem(item) })
+                            AssignmentCard(
+                                item = item,
+                                isWriting = uiState.moduleId == "writing",
+                                onClick = { onOpenItem(item) }
+                            )
                         }
                     }
                 }
@@ -184,6 +198,7 @@ private fun AssignmentListScreen(
 @Composable
 private fun AssignmentCard(
     item: PracticeAssignmentListItem,
+    isWriting: Boolean,
     onClick: () -> Unit
 ) {
     Column(
@@ -195,25 +210,44 @@ private fun AssignmentCard(
         Text(item.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            "${item.itemCount} 套 · 截止 ${formatTime(item.dueAtEpochMs)}",
+            if (isWriting) {
+                "截止 ${formatTime(item.dueAtEpochMs)}"
+            } else {
+                "${item.itemCount} 套 · 截止 ${formatTime(item.dueAtEpochMs)}"
+            },
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        if (item.status == "submitted") {
-            val score = if (item.totalCount > 0) {
-                "正确 ${item.correctCount}/${item.totalCount}"
-            } else {
-                "已提交"
+        when {
+            isWriting && item.status == "returned" -> {
+                val scoreText = if (item.score != null && item.maxScore != null) {
+                    "得分 ${item.score}/${item.maxScore}"
+                } else {
+                    "已返还"
+                }
+                Text(scoreText, style = MaterialTheme.typography.bodySmall)
             }
-            Text(score, style = MaterialTheme.typography.bodySmall)
-        } else if (item.isOverdue) {
-            Text("已逾期", color = Color(0xFFB91C1C), style = MaterialTheme.typography.bodySmall)
-        } else {
-            Text(
-                "剩余 ${formatRemaining(item.dueAtEpochMs)}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
+            isWriting && item.status == "submitted" -> {
+                Text("等待老师批改", style = MaterialTheme.typography.bodySmall)
+            }
+            item.status == "submitted" || item.status == "returned" -> {
+                val score = if (item.totalCount > 0) {
+                    "正确 ${item.correctCount}/${item.totalCount}"
+                } else {
+                    "已提交"
+                }
+                Text(score, style = MaterialTheme.typography.bodySmall)
+            }
+            item.isOverdue -> {
+                Text("已逾期", color = Color(0xFFB91C1C), style = MaterialTheme.typography.bodySmall)
+            }
+            else -> {
+                Text(
+                    "剩余 ${formatRemaining(item.dueAtEpochMs)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

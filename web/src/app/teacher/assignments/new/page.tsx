@@ -9,22 +9,30 @@ export default async function NewAssignmentPage() {
   const profile = await requireTeacher();
   const supabase = await createClient();
 
-  const [{ data: readingSets }, { data: listeningMaterials }, { data: students }] =
-    await Promise.all([
-      supabase
-        .from("reading_sets")
-        .select("set_id, title, title_zh, topic")
-        .order("sort_order"),
-      supabase
-        .from("listening_materials")
-        .select("material_id, title, title_zh, material_type")
-        .order("sort_order"),
-      supabase
-        .from("students")
-        .select("id, name, student_no, class_id")
-        .eq("teacher_id", profile.id)
-        .order("name"),
-    ]);
+  const [
+    { data: readingSets },
+    { data: listeningMaterials },
+    { data: writingPrompts },
+    { data: students },
+  ] = await Promise.all([
+    supabase
+      .from("reading_sets")
+      .select("set_id, title, title_zh, topic")
+      .order("sort_order"),
+    supabase
+      .from("listening_materials")
+      .select("material_id, title, title_zh, material_type")
+      .order("sort_order"),
+    supabase
+      .from("writing_prompts")
+      .select("prompt_id, title, title_zh, topic, max_score")
+      .order("sort_order"),
+    supabase
+      .from("students")
+      .select("id, name, student_no, class_id")
+      .eq("teacher_id", profile.id)
+      .order("name"),
+  ]);
 
   return (
     <ConsoleShell
@@ -52,6 +60,13 @@ export default async function NewAssignmentPage() {
               (m.title as string) ||
               (m.material_id as string),
             subtitle: m.material_type as string | null,
+          }))}
+          writingItems={(writingPrompts ?? []).map((p) => ({
+            id: p.prompt_id as string,
+            title: (p.title_zh as string) || (p.title as string),
+            subtitle: p.topic
+              ? `${p.topic} · 满分 ${p.max_score as number}`
+              : `满分 ${p.max_score as number}`,
           }))}
           students={(students ?? []).map((s) => ({
             id: s.id as string,

@@ -20,7 +20,9 @@
 | 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
 | 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；作业选题 |
 | 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；作业选题 |
-| 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力下发 |
+| 写作内容 | `writing_prompts` | 远端 SSOT；作文题目 |
+| 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力/写作下发 |
+| Storage | `writing-submissions`（私有 bucket） | 作文原件/批改件 |
 | Legacy | `content_*`、`study_events`、`points_ledger`、`rewards`、`redemptions` | **已由 015 从远端删除** |
 
 原则：
@@ -151,18 +153,30 @@ flowchart TB
 
 ---
 
-## 6.2 练习作业（阅读 / 听力）
+## 6.2 练习作业（阅读 / 听力 / 写作）
 
 | 表 | 用途 | 状态 |
 |----|------|------|
-| `practice_assignments` | 教师布置：module、标题、`due_at`、`allow_late` | 在用；教师/学员 SELECT via RLS |
-| `practice_assignment_items` | 作业内套题引用（`item_ref` = set_id / material_id） | 同上 |
+| `practice_assignments` | 教师布置：`module_id` ∈ reading/listening/writing、标题、`due_at`、`allow_late` | 在用；教师/学员 SELECT via RLS |
+| `practice_assignment_items` | 作业内引用（`item_ref` = set_id / material_id / prompt_id） | 同上 |
 | `practice_assignment_recipients` | 下发学员快照 | 同上 |
-| `practice_assignment_submissions` | 每学员一行；`answer_payload` 供只读回顾；仅一次 `submitted` | 同上 |
+| `practice_assignment_submissions` | 每学员一行；读写：`answer_payload` 回顾；写作：`original_path` / `annotated_path` / `score` / `feedback_text`；状态 `pending`→`in_progress`→`submitted`（写作再→`returned`） | 同上 |
 
-- 迁移：[`022_practice_assignments.sql`](../../supabase/migrations/022_practice_assignments.sql)；[`023` GRANT SELECT](../../supabase/migrations/023_practice_assignments_grants.sql)；[`024` RLS 去递归](../../supabase/migrations/024_practice_assignments_rls_no_recursion.sql)（`private.is_practice_assignment_teacher` / `recipient`）
-- 写入 RPC：`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`（已提交再交会拒绝）
-- Web：`/teacher/assignments`；App：阅读/听力入口为作业列表
+- 迁移：[`022`](../../supabase/migrations/022_practice_assignments.sql)、[`023`](../../supabase/migrations/023_practice_assignments_grants.sql)、[`024`](../../supabase/migrations/024_practice_assignments_rls_no_recursion.sql)、[`026_writing_assignments.sql`](../../supabase/migrations/026_writing_assignments.sql)
+- 写入 RPC：`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`（读写）；`submit_writing_assignment` / `return_writing_assignment`（写作）
+- Web：`/teacher/assignments`；写作批改 `/teacher/assignments/[id]/submissions/[submissionId]`
+- App：阅读/听力两列；写作三列（未完成 / 批改中 / 已完成）
+- Storage：私有 bucket `writing-submissions`，路径 `{assignment_id}/{submission_id}/original.*` 与 `annotated.*`
+
+---
+
+## 6.3 写作题目目录
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `writing_prompts` | 中考风格作文题（题干、词数、满分、`reward_token`） | 远端 SSOT；公开 SELECT |
+
+- 迁移：[`025_writing_prompts_catalog.sql`](../../supabase/migrations/025_writing_prompts_catalog.sql)（种子 8 题 `w09-01`…`w09-08`）
 
 ---
 

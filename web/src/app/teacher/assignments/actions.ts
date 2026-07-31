@@ -23,8 +23,12 @@ export async function createPracticeAssignmentAction(
     .map((v) => String(v).trim())
     .filter(Boolean);
 
-  if (moduleId !== "reading" && moduleId !== "listening") {
-    return { error: "请选择阅读或听力模块。", ok: false };
+  if (
+    moduleId !== "reading" &&
+    moduleId !== "listening" &&
+    moduleId !== "writing"
+  ) {
+    return { error: "请选择阅读、听力或写作模块。", ok: false };
   }
   if (!title) {
     return { error: "请填写作业标题。", ok: false };
@@ -95,4 +99,49 @@ export async function createPracticeAssignmentAction(
   }
 
   redirect("/teacher/assignments?created=1");
+}
+
+export async function returnWritingAssignmentAction(
+  _prev: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const submissionId = String(formData.get("submission_id") || "").trim();
+  const assignmentId = String(formData.get("assignment_id") || "").trim();
+  const annotatedPath = String(formData.get("annotated_path") || "").trim();
+  const scoreRaw = String(formData.get("score") || "").trim();
+  const feedbackText = String(formData.get("feedback_text") || "").trim();
+
+  if (!submissionId || !assignmentId) {
+    return { error: "缺少提交信息。", ok: false };
+  }
+  if (!annotatedPath) {
+    return { error: "请先上传批改后的图片或 PDF。", ok: false };
+  }
+  const score = Number.parseInt(scoreRaw, 10);
+  if (!Number.isFinite(score)) {
+    return { error: "请填写有效分数。", ok: false };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return { error: "Not authenticated", ok: false };
+  }
+
+  const { error } = await supabase.rpc("return_writing_assignment", {
+    p_submission_id: submissionId,
+    p_annotated_path: annotatedPath,
+    p_score: score,
+    p_feedback_text: feedbackText || null,
+  });
+
+  if (error) {
+    return { error: error.message, ok: false };
+  }
+
+  revalidatePath(`/teacher/assignments/${assignmentId}`);
+  revalidatePath("/teacher/assignments");
+  redirect(`/teacher/assignments/${assignmentId}`);
 }

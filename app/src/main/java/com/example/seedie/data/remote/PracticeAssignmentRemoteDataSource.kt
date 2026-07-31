@@ -3,8 +3,10 @@ package com.example.seedie.data.remote
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.storage.storage
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.time.Duration.Companion.hours
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
@@ -38,6 +40,13 @@ class PracticeAssignmentRemoteDataSource @Inject constructor(
         }.decodeSingle()
     }
 
+    suspend fun fetchWritingPrompts(promptIds: List<String>): List<SupabaseWritingPrompt> {
+        if (promptIds.isEmpty()) return emptyList()
+        return client.postgrest["writing_prompts"].select {
+            filter { isIn("prompt_id", promptIds) }
+        }.decodeList()
+    }
+
     suspend fun startAssignment(submissionId: String): JsonElement {
         return client.postgrest.rpc(
             "start_practice_assignment",
@@ -62,5 +71,35 @@ class PracticeAssignmentRemoteDataSource @Inject constructor(
                 put("p_answer_payload", answerPayload)
             }
         ).decodeAs()
+    }
+
+    suspend fun submitWritingAssignment(
+        submissionId: String,
+        originalPath: String
+    ): JsonElement {
+        return client.postgrest.rpc(
+            "submit_writing_assignment",
+            buildJsonObject {
+                put("p_submission_id", submissionId)
+                put("p_original_path", originalPath)
+            }
+        ).decodeAs()
+    }
+
+    suspend fun uploadWritingOriginal(
+        path: String,
+        bytes: ByteArray
+    ) {
+        client.storage.from(WRITING_BUCKET).upload(path, bytes) {
+            upsert = true
+        }
+    }
+
+    suspend fun createWritingSignedUrl(path: String): String {
+        return client.storage.from(WRITING_BUCKET).createSignedUrl(path, 1.hours)
+    }
+
+    companion object {
+        const val WRITING_BUCKET = "writing-submissions"
     }
 }

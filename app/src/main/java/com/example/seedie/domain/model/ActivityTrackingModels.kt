@@ -24,6 +24,7 @@ object ActivityModuleIds {
     val VOCABULARY_REVIEW = ActivityModule.VocabularyReview.id
     val LISTENING = ActivityModule.ListeningPractice.id
     val READING = ActivityModule.ReadingPractice.id
+    val WRITING = ActivityModule.WritingPractice.id
     val QUIZ = ActivityModule.VocabularyQuiz.id
     val SHOP = ActivityModule.Shop.id
 }

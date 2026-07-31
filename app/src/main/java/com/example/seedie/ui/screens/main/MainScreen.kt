@@ -54,6 +54,7 @@ fun MainScreen(
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
     onOpenListeningAssignments: () -> Unit,
     onOpenReadingAssignments: () -> Unit,
+    onOpenWritingAssignments: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
     onVisibleModuleChanged: (ActivityModule) -> Unit,
@@ -138,7 +139,13 @@ fun MainScreen(
             isAvailable = true
         ),
         ModuleConfig("listening", "听力训练", "老师布置的听力作业", Icons.Default.Headphones, isAvailable = true),
-        ModuleConfig("writing", "写作/专项", "句型实战", Icons.Default.Create)
+        ModuleConfig(
+            "writing",
+            "写作训练",
+            "老师布置的作文作业",
+            Icons.Default.Create,
+            isAvailable = true
+        )
     )
 
     if (showReviewChoiceDialog) {
@@ -241,6 +248,8 @@ fun MainScreen(
                             "listening" -> onOpenListeningAssignments()
 
                             "reading" -> onOpenReadingAssignments()
+
+                            "writing" -> onOpenWritingAssignments()
 
                             "quiz" -> onOpenVocabularyQuiz()
                         }

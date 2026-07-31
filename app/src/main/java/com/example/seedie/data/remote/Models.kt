@@ -209,5 +209,27 @@ data class SupabasePracticeAssignmentSubmission(
     @SerialName("correct_count") val correct_count: Int = 0,
     @SerialName("total_count") val total_count: Int = 0,
     @SerialName("earned_tokens") val earned_tokens: Int = 0,
-    @SerialName("answer_payload") val answer_payload: kotlinx.serialization.json.JsonElement? = null
+    @SerialName("answer_payload") val answer_payload: kotlinx.serialization.json.JsonElement? = null,
+    val score: Int? = null,
+    @SerialName("max_score") val max_score: Int? = null,
+    @SerialName("feedback_text") val feedback_text: String? = null,
+    @SerialName("returned_at") val returned_at: String? = null,
+    @SerialName("original_path") val original_path: String? = null,
+    @SerialName("annotated_path") val annotated_path: String? = null
+)
+
+@Serializable
+data class SupabaseWritingPrompt(
+    @SerialName("prompt_id") val prompt_id: String,
+    val title: String,
+    @SerialName("title_zh") val title_zh: String? = null,
+    val grade: Int = 9,
+    val topic: String? = null,
+    @SerialName("prompt_text") val prompt_text: String,
+    @SerialName("prompt_text_zh") val prompt_text_zh: String? = null,
+    @SerialName("word_count_min") val word_count_min: Int = 80,
+    @SerialName("word_count_hint") val word_count_hint: Int = 100,
+    @SerialName("max_score") val max_score: Int = 15,
+    @SerialName("reward_token") val reward_token: Int = 5,
+    @SerialName("sort_order") val sort_order: Int = 0
 )

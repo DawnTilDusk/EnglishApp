@@ -17,26 +17,35 @@ type StudentItem = {
   class_id: string | null;
 };
 
+type ModuleId = "reading" | "listening" | "writing";
+
 export function CreateAssignmentForm({
   readingItems,
   listeningItems,
+  writingItems,
   students,
 }: {
   readingItems: CatalogItem[];
   listeningItems: CatalogItem[];
+  writingItems: CatalogItem[];
   students: StudentItem[];
 }) {
   const [state, formAction, pending] = useActionState(
     createPracticeAssignmentAction,
     initialActionState
   );
-  const [moduleId, setModuleId] = useState<"reading" | "listening">("reading");
+  const [moduleId, setModuleId] = useState<ModuleId>("reading");
   const [classFilter, setClassFilter] = useState("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(
     () => new Set(students.map((s) => s.id))
   );
 
-  const catalog = moduleId === "reading" ? readingItems : listeningItems;
+  const catalog =
+    moduleId === "reading"
+      ? readingItems
+      : moduleId === "listening"
+        ? listeningItems
+        : writingItems;
 
   const classOptions = useMemo(() => {
     const set = new Set<string>();
@@ -93,18 +102,31 @@ export function CreateAssignmentForm({
         <select
           name="module_id"
           value={moduleId}
-          onChange={(e) =>
-            setModuleId(e.target.value === "listening" ? "listening" : "reading")
-          }
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === "listening" || v === "writing" || v === "reading") {
+              setModuleId(v);
+            }
+          }}
         >
           <option value="reading">阅读训练</option>
           <option value="listening">听力训练</option>
+          <option value="writing">写作训练</option>
         </select>
       </label>
 
       <label>
         标题
-        <input name="title" type="text" required placeholder="例如：阅读练习 7/31" />
+        <input
+          name="title"
+          type="text"
+          required
+          placeholder={
+            moduleId === "writing"
+              ? "例如：作文练习 7/31"
+              : "例如：阅读练习 7/31"
+          }
+        />
       </label>
 
       <label>
@@ -118,11 +140,16 @@ export function CreateAssignmentForm({
       </label>
 
       <fieldset className="stack" style={{ border: "1px solid var(--line)", borderRadius: 12, padding: 16 }}>
-        <legend>选题（按套）</legend>
+        <legend>{moduleId === "writing" ? "选题（作文题目）" : "选题（按套）"}</legend>
         {catalog.length === 0 && <p className="muted">题库为空。</p>}
         {catalog.map((item) => (
           <label key={item.id} className="row" style={{ gap: 8 }}>
-            <input type="checkbox" name="item_ref" value={item.id} />
+            <input
+              type={moduleId === "writing" ? "radio" : "checkbox"}
+              name="item_ref"
+              value={item.id}
+              required={moduleId === "writing"}
+            />
             <span>
               {item.title}
               {item.subtitle ? (

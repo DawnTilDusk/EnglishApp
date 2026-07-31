@@ -3,6 +3,7 @@ package com.example.seedie.data.repository
 import com.example.seedie.data.remote.PracticeAssignmentRemoteDataSource
 import com.example.seedie.domain.model.PracticeAssignmentDetail
 import com.example.seedie.domain.model.PracticeAssignmentListItem
+import com.example.seedie.domain.model.WritingPrompt
 import com.example.seedie.domain.repository.PracticeAssignmentRepository
 import java.time.Instant
 import java.time.format.DateTimeParseException
@@ -29,7 +30,8 @@ class PracticeAssignmentRepositoryImpl @Inject constructor(
             val assignment = assignments[submission.assignment_id] ?: return@mapNotNull null
             val dueMs = parseInstantMs(assignment.due_at) ?: return@mapNotNull null
             val submittedMs = submission.submitted_at?.let(::parseInstantMs)
-            val overdue = submission.status != "submitted" && now > dueMs && !assignment.allow_late
+            val turnedIn = submission.status == "submitted" || submission.status == "returned"
+            val overdue = !turnedIn && now > dueMs && !assignment.allow_late
             PracticeAssignmentListItem(
                 submissionId = submission.id,
                 assignmentId = assignment.id,
@@ -42,7 +44,10 @@ class PracticeAssignmentRepositoryImpl @Inject constructor(
                 submittedAtEpochMs = submittedMs,
                 correctCount = submission.correct_count,
                 totalCount = submission.total_count,
-                isOverdue = overdue
+                isOverdue = overdue,
+                score = submission.score,
+                maxScore = submission.max_score,
+                earnedTokens = submission.earned_tokens
             )
         }
     }
@@ -71,7 +76,12 @@ class PracticeAssignmentRepositoryImpl @Inject constructor(
             answerPayload = payload,
             correctCount = submission.correct_count,
             totalCount = submission.total_count,
-            earnedTokens = submission.earned_tokens
+            earnedTokens = submission.earned_tokens,
+            score = submission.score,
+            maxScore = submission.max_score,
+            feedbackText = submission.feedback_text,
+            originalPath = submission.original_path,
+            annotatedPath = submission.annotated_path
         )
     }
 
@@ -93,6 +103,33 @@ class PracticeAssignmentRepositoryImpl @Inject constructor(
             earnedTokens = earnedTokens,
             answerPayload = answerPayload
         )
+    }
+
+    override suspend fun fetchWritingPrompt(promptId: String): WritingPrompt? {
+        val row = remote.fetchWritingPrompts(listOf(promptId)).firstOrNull() ?: return null
+        return WritingPrompt(
+            promptId = row.prompt_id,
+            title = row.title,
+            titleZh = row.title_zh,
+            promptText = row.prompt_text,
+            promptTextZh = row.prompt_text_zh,
+            wordCountMin = row.word_count_min,
+            wordCountHint = row.word_count_hint,
+            maxScore = row.max_score,
+            rewardToken = row.reward_token
+        )
+    }
+
+    override suspend fun submitWriting(submissionId: String, originalPath: String) {
+        remote.submitWritingAssignment(submissionId, originalPath)
+    }
+
+    override suspend fun uploadWritingOriginal(path: String, bytes: ByteArray) {
+        remote.uploadWritingOriginal(path, bytes)
+    }
+
+    override suspend fun createWritingSignedUrl(path: String): String {
+        return remote.createWritingSignedUrl(path)
     }
 
     private fun parseInstantMs(raw: String): Long? {

@@ -59,6 +59,7 @@ class MainViewModel @Inject constructor(
                 val reason = when (result.moduleId) {
                     "listening" -> "Listening Practice"
                     "reading" -> "Reading Practice"
+                    "writing" -> "Writing Practice"
                     "vocabulary_review" -> "Vocabulary Review"
                     "quiz" -> "Vocabulary Quiz"
                     else -> "Vocabulary Practice"
@@ -67,7 +68,7 @@ class MainViewModel @Inject constructor(
                     amount = result.earnedTokens,
                     reason = reason,
                     refId = when (result.moduleId) {
-                        "reading", "listening" -> "assignment:${result.sessionId}"
+                        "reading", "listening", "writing" -> "assignment:${result.sessionId}"
                         else -> "study:${result.sessionId}"
                     }
                 )

@@ -9,6 +9,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.storage.Storage
 
 object SupabaseConfig {
     // Replace with your actual Supabase URL and Anon Key
@@ -48,6 +49,7 @@ fun createSeedieSupabaseClient(context: Context): SupabaseClient {
             // Let's stick to the simplest standard setup first.
         }
         install(Postgrest)
+        install(Storage)
     }
 }
 

@@ -448,7 +448,7 @@ DailyTaskEntity(date = today, title = "听力训练 10 分钟", rewardAmount = 2
 | `quiz` | 词汇测验 | **已实现** | 进入词汇测验 |
 | `reading` | 阅读训练 | **已实现** | 作业列表 → 答题/只读回顾（教师选题下发） |
 | `listening` | 听力训练 | **已实现** | 作业列表 → 答题/只读回顾（教师选题下发） |
-| `writing` | 写作/专项 | **未实现** | Snackbar："正在 Garden 中萌芽…" |
+| `writing` | 写作训练 | **已实现** | 作业三列（未完成/批改中/已完成）→ 拍照或选文件提交；已返还看批改图与分数 |
 
 **背单词入口交互逻辑：**
 
@@ -940,7 +940,7 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 
 | 功能 | Spec 位置 | 当前状态 |
 |------|-----------|----------|
-| 语法/口语/写作模块 | Tab 2 模块 grid | UI 占位，Snackbar 提示 |
+| 语法/口语模块 | Tab 2 模块 grid | UI 占位，Snackbar 提示 |
 | 热力图真实数据 | Tab 1 HeatmapSection | Mock 数据 |
 | 花园词汇量自动升级 | GardenEngine | 手动浇水替代 |
 | 成就持久化 | Profile 成就墙 | 内存计算，无 Room 表 |

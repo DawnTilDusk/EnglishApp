@@ -19,7 +19,10 @@ data class PracticeAssignmentListItem(
     val submittedAtEpochMs: Long?,
     val correctCount: Int,
     val totalCount: Int,
-    val isOverdue: Boolean
+    val isOverdue: Boolean,
+    val score: Int? = null,
+    val maxScore: Int? = null,
+    val earnedTokens: Int = 0
 )
 
 data class PracticeAssignmentDetail(
@@ -34,5 +37,22 @@ data class PracticeAssignmentDetail(
     val answerPayload: JsonObject?,
     val correctCount: Int,
     val totalCount: Int,
-    val earnedTokens: Int
+    val earnedTokens: Int,
+    val score: Int? = null,
+    val maxScore: Int? = null,
+    val feedbackText: String? = null,
+    val originalPath: String? = null,
+    val annotatedPath: String? = null
+)
+
+data class WritingPrompt(
+    val promptId: String,
+    val title: String,
+    val titleZh: String?,
+    val promptText: String,
+    val promptTextZh: String?,
+    val wordCountMin: Int,
+    val wordCountHint: Int,
+    val maxScore: Int,
+    val rewardToken: Int
 )

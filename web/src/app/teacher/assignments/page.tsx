@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
   formatDueAt,
+  isTurnedInStatus,
   moduleLabel,
   teacherTabs,
 } from "@/lib/teacher-assignments";
@@ -49,10 +50,10 @@ export default async function TeacherAssignmentsPage({
 
     const { data: submitted } = await supabase
       .from("practice_assignment_submissions")
-      .select("assignment_id")
-      .in("assignment_id", ids)
-      .eq("status", "submitted");
+      .select("assignment_id, status")
+      .in("assignment_id", ids);
     for (const row of submitted ?? []) {
+      if (!isTurnedInStatus(row.status as string)) continue;
       const id = row.assignment_id as string;
       submittedCounts.set(id, (submittedCounts.get(id) ?? 0) + 1);
     }

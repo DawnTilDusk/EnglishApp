@@ -133,9 +133,10 @@ npm run dev
 | 同上 `?section=checkins` | 只读 `user_check_ins`（最近 90 条） |
 | 同上 `?section=vocab` | 只读词书进度 + 学习轮次（各最近 50 条） |
 | 同上 `?section=economy` | 余额（RPC）+ 只读 `user_economy_transactions`（最近 100 条） |
-| `/teacher/assignments` | 作业列表（已交/应交） |
-| `/teacher/assignments/new` | 布置作业：选模块、按套选题、截止时间、学员全选/筛选 |
-| `/teacher/assignments/[id]` | 作业详情与学员提交表 |
+| `/teacher/assignments` | 作业列表（已交/应交；写作含已返还） |
+| `/teacher/assignments/new` | 布置作业：选阅读/听力/写作、选题、截止时间、学员全选/筛选 |
+| `/teacher/assignments/[id]` | 作业详情与学员提交表；写作可点「批改」 |
+| `/teacher/assignments/[id]/submissions/[submissionId]` | 写作批改：下载原件、页内圈画上传、打分返还（PDF 可打开/下载并补传） |
 | `/teacher/shop`、`/teacher/orders` | 本机构商城商品 / 订单只读 |
 
 约束：

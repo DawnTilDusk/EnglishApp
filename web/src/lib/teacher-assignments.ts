@@ -39,6 +39,8 @@ export function moduleLabel(moduleId: string): string {
       return "阅读训练";
     case "listening":
       return "听力训练";
+    case "writing":
+      return "写作训练";
     default:
       return moduleId;
   }
@@ -56,15 +58,22 @@ export function formatDueAt(iso: string): string {
   });
 }
 
-export function submissionStatusLabel(status: string): string {
+export function submissionStatusLabel(status: string, moduleId?: string): string {
   switch (status) {
     case "pending":
       return "未开始";
     case "in_progress":
       return "进行中";
     case "submitted":
-      return "已提交";
+      return moduleId === "writing" ? "批改中" : "已提交";
+    case "returned":
+      return "已返还";
     default:
       return status;
   }
+}
+
+/** Count as "已交" for list/detail: writing includes returned. */
+export function isTurnedInStatus(status: string): boolean {
+  return status === "submitted" || status === "returned";
 }

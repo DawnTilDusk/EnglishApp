@@ -21,6 +21,7 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
 import com.example.seedie.ui.screens.learning.reading.ReadingPracticeRoute
+import com.example.seedie.ui.screens.learning.writing.WritingPracticeRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.shop.MyOrdersScreen
 import com.example.seedie.ui.screens.shop.StudentShopScreen
@@ -36,6 +37,7 @@ fun SeedieNavHost(
     var currentVocabularyArgs by remember { mutableStateOf(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
     var currentReadingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
     var currentListeningArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentWritingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -46,6 +48,8 @@ fun SeedieNavHost(
             Screen.ListeningAssignments.route -> ActivityModule.ListeningPractice
             Screen.ReadingPractice.route,
             Screen.ReadingAssignments.route -> ActivityModule.ReadingPractice
+            Screen.WritingPractice.route,
+            Screen.WritingAssignments.route -> ActivityModule.WritingPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
             Screen.StudentShop.route,
             Screen.MyOrders.route -> ActivityModule.Shop
@@ -85,6 +89,9 @@ fun SeedieNavHost(
                 },
                 onOpenReadingAssignments = {
                     navController.navigate(Screen.ReadingAssignments.route)
+                },
+                onOpenWritingAssignments = {
+                    navController.navigate(Screen.WritingAssignments.route)
                 },
                 onOpenVocabularyQuiz = {
                     navController.navigate(Screen.VocabularyQuiz.route)
@@ -131,6 +138,16 @@ fun SeedieNavHost(
                 }
             )
         }
+        composable(route = Screen.WritingAssignments.route) {
+            AssignmentListRoute(
+                moduleId = "writing",
+                onNavigateBack = { navController.popBackStack() },
+                onOpenAssignment = { args ->
+                    currentWritingArgs = args
+                    navController.navigate(Screen.WritingPractice.route)
+                }
+            )
+        }
         composable(route = Screen.ListeningPractice.route) {
             val args = currentListeningArgs
             if (args == null) {
@@ -161,6 +178,22 @@ fun SeedieNavHost(
                     onFinishSession = { result ->
                         pendingStudyResult = result
                         navController.popBackStack()
+                    }
+                )
+            }
+        }
+        composable(route = Screen.WritingPractice.route) {
+            val args = currentWritingArgs
+            if (args == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                WritingPracticeRoute(
+                    assignmentArgs = args,
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    onAwardResult = { result ->
+                        pendingStudyResult = result
                     }
                 )
             }

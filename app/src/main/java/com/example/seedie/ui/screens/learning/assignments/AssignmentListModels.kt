@@ -11,15 +11,18 @@ data class PracticeAssignmentArgs(
 
 enum class AssignmentListTab {
     Incomplete,
+    Grading,
     Completed
 }
 
 data class AssignmentListUiState(
     val moduleId: String = "reading",
     val moduleTitle: String = "阅读训练",
+    val showGradingTab: Boolean = false,
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
     val selectedTab: AssignmentListTab = AssignmentListTab.Incomplete,
     val incomplete: List<PracticeAssignmentListItem> = emptyList(),
+    val grading: List<PracticeAssignmentListItem> = emptyList(),
     val completed: List<PracticeAssignmentListItem> = emptyList()
 )

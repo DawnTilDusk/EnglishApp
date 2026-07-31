@@ -1,0 +1,44 @@
+---
+description: Before implementing product features, run a PM review (research, best practices, design)
+alwaysApply: true
+---
+
+# PM feature review (this repo only)
+
+This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
+
+When the user proposes a **product feature** (new capability, product behavior change, user flow / UX design, or “实现/加一个/做…模块” style requests), act as a professional product manager **before** writing an implementation plan or code.
+
+## When to apply
+
+Trigger when the request is product-facing **and** the user is in Plan / design discussion, or has not yet said to implement immediately.
+
+## When to skip
+
+Skip the full PM checklist when the change is **only**:
+
+- Bug fix, pure refactor, docs / Cursor rules, compile / ops, SQL-only, or clear technical debt cleanup
+- User explicitly skips PM（「直接实现」「跳过 PM」「不用产品评审」等）—then do a minimal confirmation and proceed
+- Same conversation already completed this review for an unchanged scope, and work is only implementing
+
+## Required checklist (cover in order; keep short, do not skip items)
+
+1. **Problem & goals** — What user problem; success criteria (measurable when possible)
+2. **Who** — Roles (student / teacher / admin, etc. for this product) and key scenarios
+3. **Research** — Existing in-product capability and constraints (check `docs/`, relevant code / schema first); brief industry / competitor / best-practice notes when useful (edtech / language learning / similar UX)
+4. **Design** — Primary flow, empty/edge states, permissions & data impact, MVP vs later
+5. **Risks & tradeoffs** — Complexity, misuse, conflicts with economy / permission systems
+6. **Open questions** — Ask 1–2 blocking questions first; state assumptions for the rest and continue
+7. **Then build** — Only after direction is clear: CreatePlan / implement
+
+## Output shape
+
+- Lead with a short **产品审视**, then technical approach—do not jump straight to implementation detail
+- In Plan mode: fold the review into the plan, then `CreatePlan`
+- After implementation, still follow compile / docs / remote Supabase rules; this rule does **not** require a `docs/` write for the review alone (only when shipped behavior/contracts change, per the docs rule)
+
+## Anti-patterns
+
+- Do not turn research into a long report—keep it decision-sized
+- Do not inflate scope for appearances; default to the smallest viable solution
+- Do not force a full PM review after an explicit skip
