@@ -46,13 +46,15 @@ import com.example.seedie.data.audio.WordAudioPlayer
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
 @Composable
 fun ListeningPracticeRoute(
-    assignmentArgs: PracticeAssignmentArgs,
+    assignmentArgs: PracticeAssignmentArgs?,
+    freeArgs: FreePracticeArgs?,
     onFinishSession: (StudyResult) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ListeningPracticeViewModel = hiltViewModel()
@@ -106,8 +108,11 @@ fun ListeningPracticeRoute(
         }
     }
 
-    LaunchedEffect(assignmentArgs.submissionId, assignmentArgs.mode) {
-        viewModel.initialize(assignmentArgs)
+    LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef) {
+        when {
+            assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
+            freeArgs != null -> viewModel.initializeFree(freeArgs)
+        }
     }
 
     DisposableEffect(Unit) {

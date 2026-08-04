@@ -45,7 +45,7 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         VocabularyStudyRoundWordEntity::class,
         SyncOperationEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class SeedieDatabase : RoomDatabase() {

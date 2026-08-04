@@ -7,5 +7,9 @@ interface UserSessionRepository {
     val sessionState: StateFlow<UserSessionState>
 
     suspend fun addStudyTime(minutes: Int)
+
+    /** @deprecated Vocabulary size is quiz estimate only; prefer [setVocabularyEstimate]. */
     suspend fun addVocabulary(count: Int)
+
+    suspend fun setVocabularyEstimate(size: Int)
 }

@@ -1,6 +1,7 @@
 package com.example.seedie.data.repository
 
 import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.local.entity.senseDisplayLabel
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeOption
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeWord
 import javax.inject.Inject
@@ -19,6 +20,7 @@ class VocabularyOptionBuilder @Inject constructor() {
         val translationOptions = buildTranslationOptionsFromPool(entity, distractorPool, random)
         val englishOptions = buildEnglishOptionsFromPool(entity, distractorPool, random)
         val contextOptions = buildContextOptions(entity, distractorPool, random)
+        val label = entity.senseDisplayLabel()
 
         return VocabularyPracticeWord(
             wordId = entity.wordId,
@@ -27,6 +29,7 @@ class VocabularyOptionBuilder @Inject constructor() {
             phonetic = entity.phonetic,
             partOfSpeech = entity.partOfSpeech,
             translation = entity.translation,
+            senseDisplayLabel = label,
             exampleSentence = entity.exampleSentence,
             difficultyLevel = entity.difficultyLevel,
             rewardToken = entity.rewardToken,
@@ -65,9 +68,12 @@ class VocabularyOptionBuilder @Inject constructor() {
         allEntries: List<VocabularyWordEntity>,
         random: Random
     ): List<VocabularyWordEntity> {
+        val entityLabel = entity.senseDisplayLabel()
         return allEntries
             .asSequence()
-            .filter { it.wordId != entity.wordId && it.translation != entity.translation }
+            .filter {
+                it.wordId != entity.wordId && it.senseDisplayLabel() != entityLabel
+            }
             .sortedByDescending { candidate -> candidate.partOfSpeech == entity.partOfSpeech }
             .distinctBy { candidate -> candidate.english }
             .toList()
@@ -81,12 +87,12 @@ class VocabularyOptionBuilder @Inject constructor() {
         random: Random
     ): List<VocabularyPracticeOption> {
         val options = (distractorPool + entity)
-            .distinctBy { entry -> entry.translation }
+            .distinctBy { entry -> entry.senseDisplayLabel() }
             .shuffled(random)
             .mapIndexed { optionIndex, entry ->
                 VocabularyPracticeOption(
                     optionId = "translation_${entity.wordId}_${optionIndex + 1}",
-                    label = entry.translation,
+                    label = entry.senseDisplayLabel(),
                     isCorrect = entry.wordId == entity.wordId,
                     englishHint = entry.english
                 )
@@ -110,7 +116,7 @@ class VocabularyOptionBuilder @Inject constructor() {
                     optionId = "english_${entity.wordId}_${optionIndex + 1}",
                     label = entry.english,
                     isCorrect = entry.wordId == entity.wordId,
-                    englishHint = entry.translation
+                    englishHint = entry.senseDisplayLabel()
                 )
             }
         require(options.size == 4) {
@@ -132,7 +138,7 @@ class VocabularyOptionBuilder @Inject constructor() {
                     optionId = "context_${entity.wordId}_${optionIndex + 1}",
                     label = entry.english,
                     isCorrect = entry.wordId == entity.wordId,
-                    englishHint = entry.translation
+                    englishHint = entry.senseDisplayLabel()
                 )
             }
     }

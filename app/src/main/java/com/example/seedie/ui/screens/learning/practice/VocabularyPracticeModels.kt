@@ -57,6 +57,8 @@ data class VocabularyPracticeWord(
     val phonetic: String,
     val partOfSpeech: String,
     val translation: String,
+    /** Single-line POS+gloss label for UI/options, e.g. `n. 改变；v. 变化`. */
+    val senseDisplayLabel: String,
     val exampleSentence: String,
     val difficultyLevel: String,
     val rewardToken: Int,

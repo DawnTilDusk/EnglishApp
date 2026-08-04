@@ -1,61 +1,70 @@
 package com.example.seedie.data.repository
 
 import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.local.entity.senseDisplayLabel
 import com.example.seedie.domain.quiz.VocabularyQuizConstants
 import com.example.seedie.domain.quiz.VocabularyQuizWordSelector
+import com.example.seedie.domain.quiz.maybeReplaceFourthWithNoneOfAbove
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizQuestion
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizSession
 import kotlin.random.Random
 
 internal object VocabularyQuizSessionFactory {
-    fun create(
+    fun createBandQuestions(
         sessionId: String,
-        wordBank: List<VocabularyWordEntity>,
+        bandIndex: Int,
+        bookWords: List<VocabularyWordEntity>,
+        distractorPool: List<VocabularyWordEntity>,
         optionBuilder: VocabularyOptionBuilder,
-        questionCount: Int = VocabularyQuizConstants.QUESTION_COUNT,
-        difficulty: String = "mixed"
-    ): VocabularyQuizSession {
-        require(wordBank.size >= 4) { "词书词量不足，至少需要 4 个单词" }
-
-        val random = Random(sessionId.hashCode())
-        val normalizedDifficulty = difficulty.trim().lowercase()
-        val selected = when (normalizedDifficulty) {
-            "", "mixed", "all" -> {
-                val balanced = VocabularyQuizWordSelector.selectBalanced(
-                    wordBank = wordBank,
-                    random = random
-                )
-                require(balanced.size == questionCount) {
-                    "分层抽样不足 $questionCount 题，当前仅有 ${balanced.size} 题"
-                }
-                balanced
-            }
-            else -> VocabularyQuizWordSelector.selectRandom(
-                wordBank = wordBank,
-                random = random,
-                questionCount = questionCount
+        questionCount: Int = VocabularyQuizConstants.WORDS_PER_BAND
+    ): List<VocabularyQuizQuestion> {
+        val random = Random(sessionId.hashCode() * 31 + bandIndex)
+        val selected = VocabularyQuizWordSelector.selectFromBook(
+            wordBank = bookWords,
+            random = random,
+            count = questionCount
+        )
+        val optionsSource = distractorPool.ifEmpty { bookWords }
+        return selected.mapIndexed { index, word ->
+            val baseOptions = optionBuilder.buildTranslationOptions(
+                entity = word,
+                allEntries = optionsSource,
+                random = random
             )
-        }
-
-        val ordered = selected.shuffled(random)
-        val questions = ordered.mapIndexed { index, word ->
+            val optionRandom = Random(sessionId.hashCode() * 31 + bandIndex * 17 + index)
             VocabularyQuizQuestion(
-                questionId = "${sessionId}_q_${index + 1}",
+                questionId = "${sessionId}_b${bandIndex}_q${index + 1}",
                 wordId = word.wordId,
                 english = word.english,
                 phonetic = word.phonetic,
                 partOfSpeech = word.partOfSpeech,
-                translation = word.translation,
+                translation = word.senseDisplayLabel(),
                 difficultyLevel = word.difficultyLevel,
                 rewardToken = word.rewardToken,
-                options = optionBuilder.buildTranslationOptions(
-                    entity = word,
-                    allEntries = wordBank,
-                    random = random
+                options = maybeReplaceFourthWithNoneOfAbove(
+                    options = baseOptions,
+                    random = optionRandom
                 )
             )
         }
+    }
 
+    @Deprecated("Use createBandQuestions")
+    fun create(
+        sessionId: String,
+        wordBank: List<VocabularyWordEntity>,
+        optionBuilder: VocabularyOptionBuilder,
+        questionCount: Int = VocabularyQuizConstants.WORDS_PER_BAND,
+        difficulty: String = "mixed"
+    ): VocabularyQuizSession {
+        val questions = createBandQuestions(
+            sessionId = sessionId,
+            bandIndex = 0,
+            bookWords = wordBank,
+            distractorPool = wordBank,
+            optionBuilder = optionBuilder,
+            questionCount = questionCount.coerceAtMost(wordBank.size.coerceAtLeast(1))
+        )
         return VocabularyQuizSession(
             sessionId = sessionId,
             questions = questions

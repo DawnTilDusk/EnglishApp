@@ -63,6 +63,15 @@ class ProfileRepositoryImpl @Inject constructor(
         getMyProfile()
     }
 
+    override suspend fun setMyVocabularyEstimate(size: Int): Result<UserProfile> = runCatching {
+        require(size >= 0) { "词汇量不能为负数" }
+        client.postgrest.rpc(
+            "set_my_vocabulary_estimate",
+            buildJsonObject { put("p_size", size) }
+        )
+        getMyProfile()
+    }
+
     private suspend fun fetchProfile(userId: String): UserProfile {
         val profile = client.postgrest["profiles"]
             .select {
@@ -91,6 +100,8 @@ private fun Profile.toUserProfile(): UserProfile {
         grade = grade,
         email = email,
         phone = phone,
-        avatarToneIndex = avatar_tone
+        avatarToneIndex = avatar_tone,
+        vocabularySize = vocabulary_size,
+        hasVocabularyEstimate = vocabulary_estimated_at != null
     )
 }

@@ -1,0 +1,8 @@
+package com.example.seedie.domain.model
+
+data class PracticeCatalogItem(
+    val itemRef: String,
+    val title: String,
+    val subtitle: String? = null,
+    val completed: Boolean = false
+)

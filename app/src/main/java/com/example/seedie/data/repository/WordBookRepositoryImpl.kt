@@ -150,6 +150,17 @@ private fun SupabaseWordBookModule.toEntity(): WordBookModuleEntity {
 }
 
 private fun SupabaseVocabularyWord.toEntity(): VocabularyWordEntity {
+    val senseModels = senses.orEmpty().mapNotNull { sense ->
+        val pos = sense.part_of_speech?.trim().orEmpty()
+        val zh = sense.translation?.trim().orEmpty()
+        if (pos.isBlank() || zh.isBlank()) null
+        else com.example.seedie.domain.model.WordSense(partOfSpeech = pos, translation = zh)
+    }
+    val sensesJson = if (senseModels.isNotEmpty()) {
+        com.example.seedie.domain.model.WordSenseFormat.encodeSensesJson(senseModels)
+    } else {
+        "[]"
+    }
     return VocabularyWordEntity(
         wordId = word_id,
         bookId = book_id,
@@ -163,7 +174,8 @@ private fun SupabaseVocabularyWord.toEntity(): VocabularyWordEntity {
         estimatedDurationSec = estimated_duration_sec,
         sortOrder = sort_order,
         moduleId = module_id,
-        audioUrl = audio_url
+        audioUrl = audio_url,
+        sensesJson = sensesJson
     )
 }
 

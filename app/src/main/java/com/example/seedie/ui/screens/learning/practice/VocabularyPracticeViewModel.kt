@@ -770,9 +770,9 @@ class VocabularyPracticeViewModel @Inject constructor(
                     stageTitle = currentStageTitle,
                     promptTitle = word.english,
                     promptBody = "根据英文选择正确中文释义",
-                    helperText = "${word.phonetic}  ${word.partOfSpeech}",
+                    helperText = word.phonetic,
                     optionList = word.translationOptions,
-                    correctAnswerText = word.translation,
+                    correctAnswerText = word.senseDisplayLabel,
                     firstLetterHint = word.english.firstOrNull()?.uppercaseChar()?.toString()
                 )
 
@@ -782,9 +782,9 @@ class VocabularyPracticeViewModel @Inject constructor(
                     section = section,
                     questionType = VocabularyQuestionType.StudyChineseToEnglish,
                     stageTitle = currentStageTitle,
-                    promptTitle = word.translation,
+                    promptTitle = word.senseDisplayLabel,
                     promptBody = "根据中文选择正确英文单词",
-                    helperText = "${word.partOfSpeech}  ${word.phonetic}",
+                    helperText = word.phonetic,
                     optionList = maybeInjectNoneOfAboveOption(
                         questionType = VocabularyQuestionType.StudyChineseToEnglish,
                         baseOptions = word.englishOptions
@@ -800,7 +800,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     questionType = VocabularyQuestionType.StudyContextChoice,
                     stageTitle = currentStageTitle,
                     promptTitle = word.contextSentence,
-                    promptBody = "中文释义：${word.translation}",
+                    promptBody = "中文释义：${word.senseDisplayLabel}",
                     helperText = "",
                     optionList = maybeInjectNoneOfAboveOption(
                         questionType = VocabularyQuestionType.StudyContextChoice,
@@ -818,7 +818,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                 section = section,
                 questionType = VocabularyQuestionType.ReviewSpelling,
                 stageTitle = "复习拼写",
-                promptTitle = word.translation,
+                promptTitle = word.senseDisplayLabel,
                 promptBody = "根据中文词义和发音拼写英文单词",
                 helperText = "连续错误 ${progress.consecutiveReviewWrongCount}/4 · ${word.phonetic}",
                 correctAnswerText = word.english,
@@ -1059,7 +1059,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             accuracy = accuracy,
             earnedTokens = state.earnedTokens,
             studyDurationSec = state.elapsedSeconds,
-            vocabularyDelta = state.masteredStudyCount,
+            vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList()
         )
     }

@@ -4,6 +4,18 @@ import com.example.seedie.data.local.entity.VocabularyWordEntity
 import kotlin.random.Random
 
 object VocabularyQuizWordSelector {
+    fun selectFromBook(
+        wordBank: List<VocabularyWordEntity>,
+        random: Random,
+        count: Int = VocabularyQuizConstants.WORDS_PER_BAND
+    ): List<VocabularyWordEntity> {
+        require(wordBank.size >= count) {
+            "词书词量不足，需要至少 $count 个单词，当前 ${wordBank.size}"
+        }
+        return wordBank.shuffled(random).take(count)
+    }
+
+    @Deprecated("Use selectFromBook for grade-band quiz")
     fun selectBalanced(
         wordBank: List<VocabularyWordEntity>,
         random: Random,

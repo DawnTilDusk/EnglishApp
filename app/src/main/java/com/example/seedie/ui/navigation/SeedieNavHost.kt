@@ -16,6 +16,9 @@ import com.example.seedie.domain.usecase.GlobalActivityTracker
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.screens.learning.assignments.AssignmentListRoute
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
+import com.example.seedie.ui.screens.learning.catalog.PracticeCatalogRoute
+import com.example.seedie.ui.screens.learning.catalog.PracticeModeChooserRoute
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
@@ -35,8 +38,10 @@ fun SeedieNavHost(
 ) {
     var pendingStudyResult by remember { mutableStateOf<StudyResult?>(null) }
     var currentVocabularyArgs by remember { mutableStateOf(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
-    var currentReadingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
-    var currentListeningArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentReadingAssignmentArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentListeningAssignmentArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentReadingFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
+    var currentListeningFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
     var currentWritingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
@@ -45,9 +50,13 @@ fun SeedieNavHost(
         val module = when (currentRoute) {
             Screen.VocabularyPractice.route -> ActivityModule.fromPracticeSource(currentVocabularyArgs.sourceModuleId)
             Screen.ListeningPractice.route,
-            Screen.ListeningAssignments.route -> ActivityModule.ListeningPractice
+            Screen.ListeningAssignments.route,
+            Screen.ListeningMode.route,
+            Screen.ListeningCatalog.route -> ActivityModule.ListeningPractice
             Screen.ReadingPractice.route,
-            Screen.ReadingAssignments.route -> ActivityModule.ReadingPractice
+            Screen.ReadingAssignments.route,
+            Screen.ReadingMode.route,
+            Screen.ReadingCatalog.route -> ActivityModule.ReadingPractice
             Screen.WritingPractice.route,
             Screen.WritingAssignments.route -> ActivityModule.WritingPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
@@ -84,11 +93,11 @@ fun SeedieNavHost(
                     currentVocabularyArgs = args
                     navController.navigate(Screen.VocabularyPractice.route)
                 },
-                onOpenListeningAssignments = {
-                    navController.navigate(Screen.ListeningAssignments.route)
+                onOpenListeningMode = {
+                    navController.navigate(Screen.ListeningMode.route)
                 },
-                onOpenReadingAssignments = {
-                    navController.navigate(Screen.ReadingAssignments.route)
+                onOpenReadingMode = {
+                    navController.navigate(Screen.ReadingMode.route)
                 },
                 onOpenWritingAssignments = {
                     navController.navigate(Screen.WritingAssignments.route)
@@ -118,12 +127,51 @@ fun SeedieNavHost(
                 }
             )
         }
+        composable(route = Screen.ReadingMode.route) {
+            PracticeModeChooserRoute(
+                moduleId = "reading",
+                onNavigateBack = { navController.popBackStack() },
+                onSelectFree = { navController.navigate(Screen.ReadingCatalog.route) },
+                onSelectHomework = { navController.navigate(Screen.ReadingAssignments.route) }
+            )
+        }
+        composable(route = Screen.ListeningMode.route) {
+            PracticeModeChooserRoute(
+                moduleId = "listening",
+                onNavigateBack = { navController.popBackStack() },
+                onSelectFree = { navController.navigate(Screen.ListeningCatalog.route) },
+                onSelectHomework = { navController.navigate(Screen.ListeningAssignments.route) }
+            )
+        }
+        composable(route = Screen.ReadingCatalog.route) {
+            PracticeCatalogRoute(
+                moduleId = "reading",
+                onNavigateBack = { navController.popBackStack() },
+                onOpenItem = { args ->
+                    currentReadingFreeArgs = args
+                    currentReadingAssignmentArgs = null
+                    navController.navigate(Screen.ReadingPractice.route)
+                }
+            )
+        }
+        composable(route = Screen.ListeningCatalog.route) {
+            PracticeCatalogRoute(
+                moduleId = "listening",
+                onNavigateBack = { navController.popBackStack() },
+                onOpenItem = { args ->
+                    currentListeningFreeArgs = args
+                    currentListeningAssignmentArgs = null
+                    navController.navigate(Screen.ListeningPractice.route)
+                }
+            )
+        }
         composable(route = Screen.ReadingAssignments.route) {
             AssignmentListRoute(
                 moduleId = "reading",
                 onNavigateBack = { navController.popBackStack() },
                 onOpenAssignment = { args ->
-                    currentReadingArgs = args
+                    currentReadingAssignmentArgs = args
+                    currentReadingFreeArgs = null
                     navController.navigate(Screen.ReadingPractice.route)
                 }
             )
@@ -133,7 +181,8 @@ fun SeedieNavHost(
                 moduleId = "listening",
                 onNavigateBack = { navController.popBackStack() },
                 onOpenAssignment = { args ->
-                    currentListeningArgs = args
+                    currentListeningAssignmentArgs = args
+                    currentListeningFreeArgs = null
                     navController.navigate(Screen.ListeningPractice.route)
                 }
             )
@@ -149,37 +198,69 @@ fun SeedieNavHost(
             )
         }
         composable(route = Screen.ListeningPractice.route) {
-            val args = currentListeningArgs
-            if (args == null) {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            } else {
-                ListeningPracticeRoute(
-                    assignmentArgs = args,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onFinishSession = { result ->
-                        pendingStudyResult = result
-                        navController.popBackStack()
-                    }
-                )
+            val assignmentArgs = currentListeningAssignmentArgs
+            val freeArgs = currentListeningFreeArgs
+            when {
+                assignmentArgs != null -> {
+                    ListeningPracticeRoute(
+                        assignmentArgs = assignmentArgs,
+                        freeArgs = null,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onFinishSession = { result ->
+                            pendingStudyResult = result
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                freeArgs != null -> {
+                    ListeningPracticeRoute(
+                        assignmentArgs = null,
+                        freeArgs = freeArgs,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onFinishSession = { result ->
+                            pendingStudyResult = result
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                else -> LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
         composable(route = Screen.ReadingPractice.route) {
-            val args = currentReadingArgs
-            if (args == null) {
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            } else {
-                ReadingPracticeRoute(
-                    assignmentArgs = args,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onFinishSession = { result ->
-                        pendingStudyResult = result
-                        navController.popBackStack()
-                    }
-                )
+            val assignmentArgs = currentReadingAssignmentArgs
+            val freeArgs = currentReadingFreeArgs
+            when {
+                assignmentArgs != null -> {
+                    ReadingPracticeRoute(
+                        assignmentArgs = assignmentArgs,
+                        freeArgs = null,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onFinishSession = { result ->
+                            pendingStudyResult = result
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                freeArgs != null -> {
+                    ReadingPracticeRoute(
+                        assignmentArgs = null,
+                        freeArgs = freeArgs,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        },
+                        onFinishSession = { result ->
+                            pendingStudyResult = result
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                else -> LaunchedEffect(Unit) { navController.popBackStack() }
             }
         }
         composable(route = Screen.WritingPractice.route) {

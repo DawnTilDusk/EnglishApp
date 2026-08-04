@@ -52,8 +52,8 @@ import kotlinx.coroutines.launch
 fun MainScreen(
     onOpenVocabularyStudy: (VocabularyPracticeArgs) -> Unit,
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
-    onOpenListeningAssignments: () -> Unit,
-    onOpenReadingAssignments: () -> Unit,
+    onOpenListeningMode: () -> Unit,
+    onOpenReadingMode: () -> Unit,
     onOpenWritingAssignments: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
@@ -131,21 +131,27 @@ fun MainScreen(
             Icons.Default.Quiz,
             isAvailable = true
         ),
-        ModuleConfig(
-            "reading",
-            "阅读训练",
-            "老师布置的阅读作业",
-            Icons.Default.Book,
-            isAvailable = true
-        ),
-        ModuleConfig("listening", "听力训练", "老师布置的听力作业", Icons.Default.Headphones, isAvailable = true),
-        ModuleConfig(
-            "writing",
-            "写作训练",
-            "老师布置的作文作业",
-            Icons.Default.Create,
-            isAvailable = true
-        )
+                        ModuleConfig(
+                            "reading",
+                            "阅读训练",
+                            "自由练习或完成作业",
+                            Icons.Default.Book,
+                            isAvailable = true
+                        ),
+                        ModuleConfig(
+                            "listening",
+                            "听力训练",
+                            "自由练习或完成作业",
+                            Icons.Default.Headphones,
+                            isAvailable = true
+                        ),
+                        ModuleConfig(
+                            "writing",
+                            "写作训练",
+                            "老师布置的作文作业",
+                            Icons.Default.Create,
+                            isAvailable = true
+                        )
     )
 
     if (showReviewChoiceDialog) {
@@ -245,9 +251,9 @@ fun MainScreen(
                                 }
                             }
 
-                            "listening" -> onOpenListeningAssignments()
+                            "listening" -> onOpenListeningMode()
 
-                            "reading" -> onOpenReadingAssignments()
+                            "reading" -> onOpenReadingMode()
 
                             "writing" -> onOpenWritingAssignments()
 

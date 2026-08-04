@@ -16,7 +16,9 @@ data class Profile(
     @SerialName("phone_verified") val phone_verified: Boolean = false,
     @SerialName("phone_updated_at") val phone_updated_at: String? = null,
     @SerialName("current_device_id") val current_device_id: String? = null,
-    @SerialName("avatar_tone") val avatar_tone: Int = 0
+    @SerialName("avatar_tone") val avatar_tone: Int = 0,
+    @SerialName("vocabulary_size") val vocabulary_size: Int = 0,
+    @SerialName("vocabulary_estimated_at") val vocabulary_estimated_at: String? = null
 )
 
 @Serializable
@@ -104,7 +106,14 @@ data class SupabaseVocabularyWord(
     @SerialName("reward_token") val reward_token: Int = 0,
     @SerialName("estimated_duration_sec") val estimated_duration_sec: Int = 0,
     @SerialName("sort_order") val sort_order: Int = 0,
-    @SerialName("audio_url") val audio_url: String? = null
+    @SerialName("audio_url") val audio_url: String? = null,
+    val senses: List<SupabaseWordSense>? = null
+)
+
+@Serializable
+data class SupabaseWordSense(
+    @SerialName("part_of_speech") val part_of_speech: String? = null,
+    val translation: String? = null
 )
 
 @Serializable

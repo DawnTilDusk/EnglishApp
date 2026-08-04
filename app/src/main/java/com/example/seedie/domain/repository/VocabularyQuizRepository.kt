@@ -1,12 +1,16 @@
 package com.example.seedie.domain.repository
 
-import com.example.seedie.domain.quiz.VocabularyQuizConstants
-import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizSession
+import com.example.seedie.data.local.entity.VocabularyWordEntity
+
+data class VocabularyQuizWordPool(
+    val sessionId: String,
+    val wordsByBookId: Map<String, List<VocabularyWordEntity>>
+)
 
 interface VocabularyQuizRepository {
-    suspend fun createSession(
-        sessionId: String,
-        questionCount: Int = VocabularyQuizConstants.QUESTION_COUNT,
-        difficulty: String = "mixed"
-    ): VocabularyQuizSession
+    /**
+     * Loads all FLTRP junior books for grade-band quiz (Room first, remote fill).
+     * Throws if any required book cannot provide enough words.
+     */
+    suspend fun loadWordPool(sessionId: String): VocabularyQuizWordPool
 }

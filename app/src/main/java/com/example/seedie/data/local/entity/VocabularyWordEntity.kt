@@ -26,5 +26,7 @@ data class VocabularyWordEntity(
     val estimatedDurationSec: Int,
     val sortOrder: Int,
     val moduleId: String? = null,
-    val audioUrl: String? = null
+    val audioUrl: String? = null,
+    /** JSON array of {part_of_speech, translation}; empty → use legacy fields. */
+    val sensesJson: String = "[]"
 )

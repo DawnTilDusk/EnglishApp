@@ -86,6 +86,7 @@ fun IdentitySection(
         listOf(
             ProfileInfoItem("名称", profile.displayName),
             ProfileInfoItem("年级", profile.grade),
+            ProfileInfoItem("词汇量", profile.vocabularySizeLabel),
             ProfileInfoItem("注册手机号", profile.phone),
             ProfileInfoItem("注册邮箱", profile.email)
         )

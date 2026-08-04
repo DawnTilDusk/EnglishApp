@@ -20,7 +20,17 @@ class UserSessionRepositoryImpl @Inject constructor() : UserSessionRepository {
         _sessionState.update { it.copy(totalStudyTimeMinutes = it.totalStudyTimeMinutes + minutes) }
     }
 
+    @Deprecated("Vocabulary size is quiz estimate only")
     override suspend fun addVocabulary(count: Int) {
-        _sessionState.update { it.copy(vocabularySize = it.vocabularySize + count) }
+        // No-op: practice mastery must not inflate vocabulary size.
+    }
+
+    override suspend fun setVocabularyEstimate(size: Int) {
+        _sessionState.update {
+            it.copy(
+                vocabularySize = size.coerceAtLeast(0),
+                hasVocabularyEstimate = true
+            )
+        }
     }
 }

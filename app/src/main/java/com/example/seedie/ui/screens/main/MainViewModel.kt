@@ -7,6 +7,7 @@ import com.example.seedie.data.remote.AuthService
 import com.example.seedie.domain.model.RewardEvent
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.EconomyManager
+import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.UserSessionRepository
 import com.example.seedie.domain.usecase.RewardEventBus
@@ -34,7 +35,8 @@ class MainViewModel @Inject constructor(
     private val taskDao: DailyTaskDao,
     private val authService: AuthService,
     private val rewardEventBus: RewardEventBus,
-    private val vocabularyPracticeRepository: VocabularyPracticeRepository
+    private val vocabularyPracticeRepository: VocabularyPracticeRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val handledSessions = mutableSetOf<String>()
@@ -43,6 +45,7 @@ class MainViewModel @Inject constructor(
 
     init {
         refreshVocabularyEntryState()
+        hydrateVocabularyEstimate()
     }
 
     fun handleStudyResult(result: StudyResult) {
@@ -52,8 +55,10 @@ class MainViewModel @Inject constructor(
             if (result.studyTimeMinutes > 0) {
                 userSessionRepository.addStudyTime(result.studyTimeMinutes)
             }
-            if (result.vocabularyDelta > 0) {
-                userSessionRepository.addVocabulary(result.vocabularyDelta)
+            // vocabularyDelta from practice is ignored; quiz estimate updates vocabulary size.
+            result.estimatedVocabulary?.let { estimate ->
+                userSessionRepository.setVocabularyEstimate(estimate)
+                profileRepository.setMyVocabularyEstimate(estimate)
             }
             if (result.earnedTokens > 0) {
                 val reason = when (result.moduleId) {
@@ -68,7 +73,12 @@ class MainViewModel @Inject constructor(
                     amount = result.earnedTokens,
                     reason = reason,
                     refId = when (result.moduleId) {
-                        "reading", "listening", "writing" -> "assignment:${result.sessionId}"
+                        "reading", "listening", "writing" ->
+                            if (result.sessionId.startsWith("free_")) {
+                                result.sessionId
+                            } else {
+                                "assignment:${result.sessionId}"
+                            }
                         else -> "study:${result.sessionId}"
                     }
                 )
@@ -82,6 +92,17 @@ class MainViewModel @Inject constructor(
                 }
             }
             refreshVocabularyEntryState()
+        }
+    }
+
+    private fun hydrateVocabularyEstimate() {
+        viewModelScope.launch {
+            runCatching { profileRepository.getMyProfile() }
+                .onSuccess { profile ->
+                    if (profile.hasVocabularyEstimate) {
+                        userSessionRepository.setVocabularyEstimate(profile.vocabularySize)
+                    }
+                }
         }
     }
 

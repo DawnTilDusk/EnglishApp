@@ -6,7 +6,9 @@ import com.example.seedie.domain.model.PracticeAssignmentMode
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.ListeningPracticeRepository
 import com.example.seedie.domain.repository.PracticeAssignmentRepository
+import com.example.seedie.domain.repository.PracticeCatalogRepository
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -28,7 +30,8 @@ import kotlinx.serialization.json.put
 @HiltViewModel
 class ListeningPracticeViewModel @Inject constructor(
     private val repository: ListeningPracticeRepository,
-    private val assignmentRepository: PracticeAssignmentRepository
+    private val assignmentRepository: PracticeAssignmentRepository,
+    private val catalogRepository: PracticeCatalogRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ListeningPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -45,19 +48,38 @@ class ListeningPracticeViewModel @Inject constructor(
     private val wrongQuestionIds = linkedSetOf<String>()
     private val allAnswers = linkedMapOf<String, String>()
     private var assignmentArgs: PracticeAssignmentArgs? = null
+    private var freeArgs: FreePracticeArgs? = null
+    private var isFreePractice = false
     private var isReviewMode = false
     private var submittedSuccessfully = false
 
-    fun initialize(args: PracticeAssignmentArgs) {
-        if (assignmentArgs?.submissionId == args.submissionId &&
+    fun initializeAssignment(args: PracticeAssignmentArgs) {
+        if (!isFreePractice &&
+            assignmentArgs?.submissionId == args.submissionId &&
             assignmentArgs?.mode == args.mode &&
             _uiState.value.stage != ListeningPracticeStage.Error
         ) {
             return
         }
+        freeArgs = null
+        isFreePractice = false
         assignmentArgs = args
         isReviewMode = args.mode == PracticeAssignmentMode.Review
         loadAssignment(args)
+    }
+
+    fun initializeFree(args: FreePracticeArgs) {
+        if (isFreePractice &&
+            freeArgs?.itemRef == args.itemRef &&
+            _uiState.value.stage != ListeningPracticeStage.Error
+        ) {
+            return
+        }
+        assignmentArgs = null
+        isFreePractice = true
+        isReviewMode = false
+        freeArgs = args
+        loadFree(args)
     }
 
     fun onBackClick() {
@@ -152,6 +174,8 @@ class ListeningPracticeViewModel @Inject constructor(
                             currentQuestionOrdinal = it.totalQuestionCount
                         )
                     }
+                } else if (isFreePractice) {
+                    completeFreePractice()
                 } else {
                     submitAssignmentAndComplete()
                 }
@@ -178,11 +202,54 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onRetryLoad() {
-        assignmentArgs?.let(::loadAssignment)
+        when {
+            isFreePractice -> freeArgs?.let(::loadFree)
+            else -> assignmentArgs?.let(::loadAssignment)
+        }
     }
 
     fun onFinishSession() {
         finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
+    }
+
+    private fun loadFree(args: FreePracticeArgs) {
+        resetSession()
+        _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
+        viewModelScope.launch {
+            runCatching {
+                repository.createSession(
+                    sessionId = args.sessionId,
+                    itemRefs = listOf(args.itemRef)
+                )
+            }.onSuccess { loadedSession ->
+                if (loadedSession.materials.isEmpty() ||
+                    loadedSession.materials.all { it.questions.isEmpty() }
+                ) {
+                    _uiState.value = ListeningPracticeUiState(
+                        stage = ListeningPracticeStage.Error,
+                        errorMessage = "题目不存在或已下架"
+                    )
+                } else {
+                    session = loadedSession
+                    val totalQuestionCount = loadedSession.materials.sumOf { it.questions.size }
+                    _uiState.value = ListeningPracticeUiState(
+                        stage = ListeningPracticeStage.Ready,
+                        sessionId = loadedSession.sessionId,
+                        totalMaterialCount = loadedSession.materials.size,
+                        totalQuestionCount = totalQuestionCount,
+                        isReviewMode = false
+                    )
+                    startTimer()
+                    showQuestion(loadedSession, 0, 0)
+                }
+            }.onFailure { throwable ->
+                _uiState.value = ListeningPracticeUiState(
+                    stage = ListeningPracticeStage.Error,
+                    errorMessage = throwable.message?.takeIf { it.isNotBlank() }
+                        ?: "听力练习加载失败"
+                )
+            }
+        }
     }
 
     private fun loadAssignment(args: PracticeAssignmentArgs) {
@@ -281,6 +348,34 @@ class ListeningPracticeViewModel @Inject constructor(
                     errorMessage = throwable.message?.takeIf { it.isNotBlank() }
                         ?: "听力作业加载失败"
                 )
+            }
+        }
+    }
+
+    private fun completeFreePractice() {
+        val args = freeArgs ?: return
+        _uiState.update { it.copy(stage = ListeningPracticeStage.Loading) }
+        viewModelScope.launch {
+            runCatching {
+                catalogRepository.markCompleted(args.moduleId, listOf(args.itemRef))
+            }.onSuccess {
+                submittedSuccessfully = true
+                _uiState.update {
+                    it.copy(
+                        stage = ListeningPracticeStage.Completed,
+                        currentQuestion = null,
+                        selectedOptionId = null,
+                        canSubmitAnswer = false,
+                        currentQuestionOrdinal = it.totalQuestionCount
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        stage = ListeningPracticeStage.Error,
+                        errorMessage = error.message ?: "保存进度失败"
+                    )
+                }
             }
         }
     }

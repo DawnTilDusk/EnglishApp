@@ -1,33 +1,82 @@
 package com.example.seedie.data.repository
 
+import com.example.seedie.data.local.dao.VocabularyWordDao
+import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.remote.SupabaseVocabularyWord
+import com.example.seedie.data.remote.WordBookRemoteDataSource
+import com.example.seedie.domain.quiz.VocabularyQuizConstants
 import com.example.seedie.domain.repository.VocabularyQuizRepository
-import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizSession
+import com.example.seedie.domain.repository.VocabularyQuizWordPool
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class VocabularyQuizRepositoryImpl @Inject constructor(
-    private val wordBookSeeder: WordBookSeeder,
-    private val vocabularyOptionBuilder: VocabularyOptionBuilder
+    private val vocabularyWordDao: VocabularyWordDao,
+    private val remoteDataSource: WordBookRemoteDataSource,
+    private val wordBookSeeder: WordBookSeeder
 ) : VocabularyQuizRepository {
 
-    override suspend fun createSession(
-        sessionId: String,
-        questionCount: Int,
-        difficulty: String
-    ): VocabularyQuizSession {
-        val book = wordBookSeeder.loadActiveBook()
-        val wordBank = wordBookSeeder.loadWordsForBook(book.bookId)
-        val filtered = wordBookSeeder.filterByDifficulty(
-            wordBank = wordBank,
-            requestedDifficulty = difficulty
-        )
-        return VocabularyQuizSessionFactory.create(
+    override suspend fun loadWordPool(sessionId: String): VocabularyQuizWordPool {
+        wordBookSeeder.ensureSeeded()
+        val wordsByBookId = linkedMapOf<String, List<VocabularyWordEntity>>()
+        val missing = mutableListOf<String>()
+
+        for (bookId in VocabularyQuizConstants.QUIZ_BOOK_IDS) {
+            var local = vocabularyWordDao.getWordsByBook(bookId)
+            if (local.size < VocabularyQuizConstants.WORDS_PER_BAND) {
+                val remote = runCatching { remoteDataSource.fetchWordsByBook(bookId) }
+                    .getOrElse { emptyList() }
+                if (remote.isNotEmpty()) {
+                    local = remote.map { it.toQuizEntity() }
+                    // Cache into Room without flipping active book
+                    vocabularyWordDao.insertWords(local)
+                }
+            }
+            if (local.size < VocabularyQuizConstants.WORDS_PER_BAND) {
+                missing += bookId
+            } else {
+                wordsByBookId[bookId] = local
+            }
+        }
+
+        if (missing.isNotEmpty()) {
+            error("词汇检测词库未就绪，缺少：${missing.joinToString()}")
+        }
+
+        return VocabularyQuizWordPool(
             sessionId = sessionId,
-            wordBank = filtered,
-            optionBuilder = vocabularyOptionBuilder,
-            questionCount = questionCount,
-            difficulty = difficulty
+            wordsByBookId = wordsByBookId
         )
     }
+}
+
+private fun SupabaseVocabularyWord.toQuizEntity(): VocabularyWordEntity {
+    val senseModels = senses.orEmpty().mapNotNull { sense ->
+        val pos = sense.part_of_speech?.trim().orEmpty()
+        val zh = sense.translation?.trim().orEmpty()
+        if (pos.isBlank() || zh.isBlank()) null
+        else com.example.seedie.domain.model.WordSense(partOfSpeech = pos, translation = zh)
+    }
+    val sensesJson = if (senseModels.isNotEmpty()) {
+        com.example.seedie.domain.model.WordSenseFormat.encodeSensesJson(senseModels)
+    } else {
+        "[]"
+    }
+    return VocabularyWordEntity(
+        wordId = word_id,
+        bookId = book_id,
+        english = english,
+        phonetic = phonetic.orEmpty(),
+        partOfSpeech = part_of_speech.orEmpty(),
+        translation = translation.orEmpty(),
+        exampleSentence = example_sentence.orEmpty(),
+        difficultyLevel = difficulty_level ?: "mixed",
+        rewardToken = reward_token,
+        estimatedDurationSec = estimated_duration_sec,
+        sortOrder = sort_order,
+        moduleId = module_id,
+        audioUrl = audio_url,
+        sensesJson = sensesJson
+    )
 }

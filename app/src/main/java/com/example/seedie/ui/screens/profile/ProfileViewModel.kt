@@ -27,7 +27,8 @@ data class ProfileIdentityUiState(
     val grade: String = ProfileGradeOptions.DEFAULT_GRADE,
     val phone: String = "未绑定手机号",
     val email: String = "未绑定邮箱",
-    val avatarToneIndex: Int = 0
+    val avatarToneIndex: Int = 0,
+    val vocabularySizeLabel: String = "未检测"
 ) {
     val avatarMonogram: String
         get() = displayName.firstOrNull()?.uppercaseChar()?.toString() ?: "S"
@@ -57,7 +58,7 @@ data class LearningTargetUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     economyManager: EconomyManager,
-    userSessionRepository: UserSessionRepository,
+    private val userSessionRepository: UserSessionRepository,
     private val authService: AuthService,
     private val profileRepository: ProfileRepository,
     private val wordBookRepository: WordBookRepository
@@ -121,6 +122,7 @@ class ProfileViewModel @Inject constructor(
 
     init {
         observeWordBooks()
+        observeVocabularyEstimate()
         refreshProfile()
         refreshLearningTargets()
     }
@@ -347,6 +349,9 @@ class ProfileViewModel @Inject constructor(
             runCatching { profileRepository.getMyProfile() }
                 .onSuccess { profile ->
                     val mappedProfile = profile.toUiState(authService.currentSession.value)
+                    if (profile.hasVocabularyEstimate) {
+                        userSessionRepository.setVocabularyEstimate(profile.vocabularySize)
+                    }
                     _profileEditorUiState.value = _profileEditorUiState.value.copy(
                         profile = mappedProfile,
                         draft = mappedProfile,
@@ -393,6 +398,25 @@ class ProfileViewModel @Inject constructor(
         return normalized.takeIf { phonePattern.matches(it) }.orEmpty()
     }
 
+    private fun observeVocabularyEstimate() {
+        viewModelScope.launch {
+            userSessionRepository.sessionState.collect { session ->
+                val label = if (session.hasVocabularyEstimate) {
+                    "${session.vocabularySize} 词"
+                } else {
+                    "未检测"
+                }
+                val current = _profileEditorUiState.value
+                if (current.profile.vocabularySizeLabel != label) {
+                    _profileEditorUiState.value = current.copy(
+                        profile = current.profile.copy(vocabularySizeLabel = label),
+                        draft = current.draft.copy(vocabularySizeLabel = label)
+                    )
+                }
+            }
+        }
+    }
+
     private fun observeWordBooks() {
         viewModelScope.launch {
             wordBookRepository.observeWordBooks().collect { books ->
@@ -417,6 +441,7 @@ private fun UserProfile.toUiState(session: AuthSession?): ProfileIdentityUiState
         grade = ProfileGradeOptions.normalize(grade),
         phone = phone?.takeIf { it.isNotBlank() } ?: "未绑定手机号",
         email = email?.takeIf { it.isNotBlank() } ?: "未绑定邮箱",
-        avatarToneIndex = avatarToneIndex.coerceIn(0, 2)
+        avatarToneIndex = avatarToneIndex.coerceIn(0, 2),
+        vocabularySizeLabel = if (hasVocabularyEstimate) "$vocabularySize 词" else "未检测"
     )
 }

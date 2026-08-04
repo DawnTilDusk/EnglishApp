@@ -7,8 +7,10 @@ import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.reading.ReadingPracticeConstants
 import com.example.seedie.domain.reading.ReadingPracticeScorer
 import com.example.seedie.domain.repository.PracticeAssignmentRepository
+import com.example.seedie.domain.repository.PracticeCatalogRepository
 import com.example.seedie.domain.repository.ReadingPracticeRepository
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
@@ -29,7 +31,8 @@ import kotlinx.serialization.json.put
 @HiltViewModel
 class ReadingPracticeViewModel @Inject constructor(
     private val repository: ReadingPracticeRepository,
-    private val assignmentRepository: PracticeAssignmentRepository
+    private val assignmentRepository: PracticeAssignmentRepository,
+    private val catalogRepository: PracticeCatalogRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ReadingPracticeUiState())
     val uiState = _uiState.asStateFlow()
@@ -41,19 +44,39 @@ class ReadingPracticeViewModel @Inject constructor(
     private var sessionFinished = false
     private var timerJob: Job? = null
     private var assignmentArgs: PracticeAssignmentArgs? = null
+    private var freeArgs: FreePracticeArgs? = null
+    private var isFreePractice = false
     private var isReviewMode = false
+    private var submittedSuccessfully = false
     private val allAnswers = linkedMapOf<String, String>()
 
-    fun initialize(args: PracticeAssignmentArgs) {
-        if (assignmentArgs?.submissionId == args.submissionId &&
+    fun initializeAssignment(args: PracticeAssignmentArgs) {
+        if (!isFreePractice &&
+            assignmentArgs?.submissionId == args.submissionId &&
             assignmentArgs?.mode == args.mode &&
             _uiState.value.stage != ReadingPracticeStage.Error
         ) {
             return
         }
+        freeArgs = null
+        isFreePractice = false
         assignmentArgs = args
         isReviewMode = args.mode == PracticeAssignmentMode.Review
         loadAssignment(args)
+    }
+
+    fun initializeFree(args: FreePracticeArgs) {
+        if (isFreePractice &&
+            freeArgs?.itemRef == args.itemRef &&
+            _uiState.value.stage != ReadingPracticeStage.Error
+        ) {
+            return
+        }
+        assignmentArgs = null
+        isFreePractice = true
+        isReviewMode = false
+        freeArgs = args
+        loadFree(args)
     }
 
     fun onBackClick() {
@@ -133,6 +156,8 @@ class ReadingPracticeViewModel @Inject constructor(
                         canSubmitSet = false
                     )
                 }
+            } else if (isFreePractice) {
+                completeFreePractice()
             } else {
                 submitAssignmentAndComplete()
             }
@@ -142,14 +167,50 @@ class ReadingPracticeViewModel @Inject constructor(
     }
 
     fun onRetryLoad() {
-        assignmentArgs?.let(::loadAssignment)
+        when {
+            isFreePractice -> freeArgs?.let(::loadFree)
+            else -> assignmentArgs?.let(::loadAssignment)
+        }
     }
 
     fun onFinishSession() {
         finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
     }
 
-    private var submittedSuccessfully = false
+    private fun loadFree(args: FreePracticeArgs) {
+        resetSession()
+        _uiState.value = ReadingPracticeUiState(stage = ReadingPracticeStage.Loading)
+        viewModelScope.launch {
+            runCatching {
+                repository.createSession(
+                    sessionId = args.sessionId,
+                    itemRefs = listOf(args.itemRef)
+                )
+            }.onSuccess { loadedSession ->
+                if (loadedSession.sets.isEmpty()) {
+                    _uiState.value = ReadingPracticeUiState(
+                        stage = ReadingPracticeStage.Error,
+                        errorMessage = "题目不存在或已下架"
+                    )
+                } else {
+                    session = loadedSession
+                    _uiState.value = ReadingPracticeUiState(
+                        stage = ReadingPracticeStage.Answering,
+                        sessionId = loadedSession.sessionId,
+                        totalSetCount = loadedSession.sets.size,
+                        isReviewMode = false
+                    )
+                    startTimer()
+                    showSet(loadedSession, setIndex = 0)
+                }
+            }.onFailure { throwable ->
+                _uiState.value = ReadingPracticeUiState(
+                    stage = ReadingPracticeStage.Error,
+                    errorMessage = throwable.message ?: "阅读练习加载失败"
+                )
+            }
+        }
+    }
 
     private fun loadAssignment(args: PracticeAssignmentArgs) {
         resetSession()
@@ -234,6 +295,34 @@ class ReadingPracticeViewModel @Inject constructor(
                     stage = ReadingPracticeStage.Error,
                     errorMessage = throwable.message ?: "阅读作业加载失败"
                 )
+            }
+        }
+    }
+
+    private fun completeFreePractice() {
+        val args = freeArgs ?: return
+        _uiState.update { it.copy(stage = ReadingPracticeStage.Loading, submitHint = "正在保存…") }
+        viewModelScope.launch {
+            runCatching {
+                catalogRepository.markCompleted(args.moduleId, listOf(args.itemRef))
+            }.onSuccess {
+                submittedSuccessfully = true
+                _uiState.update {
+                    it.copy(
+                        stage = ReadingPracticeStage.Completed,
+                        currentSet = null,
+                        answers = emptyMap(),
+                        canSubmitSet = false,
+                        submitHint = ""
+                    )
+                }
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        stage = ReadingPracticeStage.Error,
+                        errorMessage = error.message ?: "保存进度失败"
+                    )
+                }
             }
         }
     }

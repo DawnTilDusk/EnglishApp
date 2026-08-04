@@ -2,8 +2,11 @@ package com.example.seedie.ui.screens.learning.quiz
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.repository.VocabularyOptionBuilder
+import com.example.seedie.data.repository.VocabularyQuizSessionFactory
 import com.example.seedie.domain.model.StudyResult
-import com.example.seedie.domain.quiz.VocabularyEstimateCalculator
+import com.example.seedie.domain.quiz.GradeBandVocabularyEstimator
 import com.example.seedie.domain.quiz.VocabularyQuizConstants
 import com.example.seedie.domain.repository.VocabularyQuizRepository
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
@@ -22,7 +25,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class VocabularyQuizViewModel @Inject constructor(
-    private val repository: VocabularyQuizRepository
+    private val repository: VocabularyQuizRepository,
+    private val optionBuilder: VocabularyOptionBuilder
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(VocabularyQuizUiState())
     val uiState = _uiState.asStateFlow()
@@ -30,16 +34,21 @@ class VocabularyQuizViewModel @Inject constructor(
     private val _studyResults = MutableSharedFlow<StudyResult>()
     val studyResults = _studyResults.asSharedFlow()
 
-    private var session: VocabularyQuizSession? = null
+    private var sessionId: String? = null
+    private var wordsByBookId: Map<String, List<VocabularyWordEntity>> = emptyMap()
+    private var bandQuestions: List<VocabularyQuizQuestion> = emptyList()
+    private var bandIndex: Int = 0
+    private var bandCorrect: Int = 0
+    private var bandAnswered: Int = 0
+    private val bandScores = mutableListOf<GradeBandVocabularyEstimator.BandScore>()
     private var sessionFinished = false
     private var timerJob: Job? = null
     private val wrongWordIds = linkedSetOf<String>()
     private val wrongWords = mutableListOf<VocabularyQuizWrongWord>()
-    private val correctDifficulties = mutableListOf<String>()
 
     fun initialize(sessionId: String = UUID.randomUUID().toString()) {
-        if (session?.sessionId == sessionId && _uiState.value.stage != VocabularyQuizStage.Error) return
-        loadSession(sessionId)
+        if (this.sessionId == sessionId && _uiState.value.stage != VocabularyQuizStage.Error) return
+        loadPool(sessionId)
     }
 
     fun onBackClick() {
@@ -52,6 +61,17 @@ class VocabularyQuizViewModel @Inject constructor(
 
     fun onConfirmExit() {
         _uiState.update { it.copy(showExitConfirmDialog = false) }
+        if (bandAnswered > 0 && bandScores.none { it.bandIndex == bandIndex }) {
+            bandScores += GradeBandVocabularyEstimator.BandScore(
+                bandIndex = bandIndex,
+                correct = bandCorrect,
+                total = bandAnswered
+            )
+        }
+        if (bandScores.isNotEmpty()) {
+            val estimated = GradeBandVocabularyEstimator.estimate(bandScores.toList())
+            _uiState.update { it.copy(estimatedVocabulary = estimated) }
+        }
         finishSession(isCompleted = false)
     }
 
@@ -79,8 +99,9 @@ class VocabularyQuizViewModel @Inject constructor(
         val selectedOptionId = state.selectedOptionId ?: return
         val selectedOption = question.options.firstOrNull { it.optionId == selectedOptionId } ?: return
 
+        bandAnswered += 1
         if (selectedOption.isCorrect) {
-            correctDifficulties += question.difficultyLevel
+            bandCorrect += 1
             _uiState.update {
                 it.copy(
                     stage = VocabularyQuizStage.AnswerEvaluated,
@@ -113,62 +134,33 @@ class VocabularyQuizViewModel @Inject constructor(
 
     fun onNextQuestion() {
         if (_uiState.value.stage != VocabularyQuizStage.AnswerEvaluated) return
-        val currentSession = session ?: return
         val nextIndex = _uiState.value.currentIndex + 1
-        if (nextIndex >= currentSession.questions.size) {
-            stopTimer()
-            val state = _uiState.value
-            val estimated = VocabularyEstimateCalculator.estimate(
-                VocabularyEstimateCalculator.Input(
-                    correctCount = state.correctCount,
-                    totalCount = state.totalCount,
-                    correctDifficulties = correctDifficulties.toList()
-                )
-            )
-            _uiState.update {
-                it.copy(
-                    stage = VocabularyQuizStage.Completed,
-                    currentQuestion = null,
-                    selectedOptionId = null,
-                    canSubmitAnswer = false,
-                    estimatedVocabulary = estimated
-                )
-            }
+        if (nextIndex >= bandQuestions.size) {
+            onBandFinished()
             return
         }
-        showQuestion(currentSession, nextIndex)
+        showQuestion(nextIndex)
     }
 
     fun onRetryLoad() {
-        session?.sessionId?.let(::loadSession)
+        sessionId?.let(::loadPool)
     }
 
     fun onFinishSession() {
         finishSession(isCompleted = true)
     }
 
-    private fun loadSession(sessionId: String) {
+    private fun loadPool(id: String) {
         resetSession()
+        sessionId = id
         _uiState.value = VocabularyQuizUiState(stage = VocabularyQuizStage.Loading)
         viewModelScope.launch {
             runCatching {
-                repository.createSession(sessionId = sessionId)
-            }.onSuccess { loadedSession ->
-                if (loadedSession.questions.isEmpty()) {
-                    _uiState.value = VocabularyQuizUiState(
-                        stage = VocabularyQuizStage.Error,
-                        errorMessage = "没有可用的测验题目"
-                    )
-                } else {
-                    session = loadedSession
-                    _uiState.value = VocabularyQuizUiState(
-                        stage = VocabularyQuizStage.Ready,
-                        sessionId = loadedSession.sessionId,
-                        totalCount = loadedSession.questions.size
-                    )
-                    startTimer()
-                    showQuestion(loadedSession, questionIndex = 0)
-                }
+                repository.loadWordPool(sessionId = id)
+            }.onSuccess { pool ->
+                wordsByBookId = pool.wordsByBookId
+                startTimer()
+                startBand(0)
             }.onFailure { throwable ->
                 _uiState.value = VocabularyQuizUiState(
                     stage = VocabularyQuizStage.Error,
@@ -178,8 +170,71 @@ class VocabularyQuizViewModel @Inject constructor(
         }
     }
 
-    private fun showQuestion(session: VocabularyQuizSession, questionIndex: Int) {
-        val question = session.questions[questionIndex]
+    private fun startBand(index: Int) {
+        val band = VocabularyQuizConstants.GRADE_BANDS.getOrNull(index)
+            ?: run {
+                completeWithEstimate()
+                return
+            }
+        val bookWords = wordsByBookId[band.bookId].orEmpty()
+        val distractors = wordsByBookId.values.flatten()
+        val sid = sessionId ?: return
+        bandIndex = index
+        bandCorrect = 0
+        bandAnswered = 0
+        bandQuestions = VocabularyQuizSessionFactory.createBandQuestions(
+            sessionId = sid,
+            bandIndex = index,
+            bookWords = bookWords,
+            distractorPool = distractors,
+            optionBuilder = optionBuilder
+        )
+        _uiState.update {
+            it.copy(
+                stage = VocabularyQuizStage.Ready,
+                sessionId = sid,
+                totalCount = bandQuestions.size,
+                bandIndex = index,
+                bandCount = VocabularyQuizConstants.GRADE_BANDS.size,
+                bandTitle = band.title,
+                bandProgressLabel = "第 ${index + 1}/${VocabularyQuizConstants.GRADE_BANDS.size} 档 · ${band.title}",
+                currentQuestion = null
+            )
+        }
+        showQuestion(0)
+    }
+
+    private fun onBandFinished() {
+        val score = GradeBandVocabularyEstimator.BandScore(
+            bandIndex = bandIndex,
+            correct = bandCorrect,
+            total = bandAnswered
+        )
+        bandScores += score
+        val advance = GradeBandVocabularyEstimator.shouldAdvance(bandCorrect, bandAnswered)
+        if (advance && bandIndex < VocabularyQuizConstants.GRADE_BANDS.lastIndex) {
+            startBand(bandIndex + 1)
+        } else {
+            completeWithEstimate()
+        }
+    }
+
+    private fun completeWithEstimate() {
+        stopTimer()
+        val estimated = GradeBandVocabularyEstimator.estimate(bandScores.toList())
+        _uiState.update {
+            it.copy(
+                stage = VocabularyQuizStage.Completed,
+                currentQuestion = null,
+                selectedOptionId = null,
+                canSubmitAnswer = false,
+                estimatedVocabulary = estimated
+            )
+        }
+    }
+
+    private fun showQuestion(questionIndex: Int) {
+        val question = bandQuestions[questionIndex]
         _uiState.update {
             it.copy(
                 stage = VocabularyQuizStage.Ready,
@@ -198,12 +253,23 @@ class VocabularyQuizViewModel @Inject constructor(
         sessionFinished = true
         stopTimer()
         val state = _uiState.value
-        val sessionId = state.sessionId ?: session?.sessionId ?: return
+        val sid = state.sessionId ?: sessionId ?: return
+        // If exiting without completing UI, still try to attach estimate if present
+        val estimated = state.estimatedVocabulary
+            ?: if (bandScores.isNotEmpty() || bandAnswered > 0) {
+                val scores = bandScores.toMutableList()
+                if (bandAnswered > 0 && scores.none { it.bandIndex == bandIndex }) {
+                    scores += GradeBandVocabularyEstimator.BandScore(bandIndex, bandCorrect, bandAnswered)
+                }
+                GradeBandVocabularyEstimator.estimate(scores)
+            } else {
+                null
+            }
         val answeredCount = state.correctCount + state.wrongCount
         val result = StudyResult(
-            sessionId = sessionId,
+            sessionId = sid,
             moduleId = VocabularyQuizConstants.MODULE_ID,
-            isCompleted = isCompleted,
+            isCompleted = isCompleted || estimated != null,
             completedQuestionCount = answeredCount,
             correctCount = state.correctCount,
             wrongCount = state.wrongCount,
@@ -217,7 +283,7 @@ class VocabularyQuizViewModel @Inject constructor(
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
-            estimatedVocabulary = if (isCompleted) state.estimatedVocabulary else null
+            estimatedVocabulary = estimated
         )
         viewModelScope.launch {
             _studyResults.emit(result)
@@ -241,11 +307,16 @@ class VocabularyQuizViewModel @Inject constructor(
 
     private fun resetSession() {
         stopTimer()
-        session = null
+        sessionId = null
+        wordsByBookId = emptyMap()
+        bandQuestions = emptyList()
+        bandIndex = 0
+        bandCorrect = 0
+        bandAnswered = 0
+        bandScores.clear()
         sessionFinished = false
         wrongWordIds.clear()
         wrongWords.clear()
-        correctDifficulties.clear()
     }
 
     override fun onCleared() {

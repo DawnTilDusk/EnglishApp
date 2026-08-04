@@ -1,6 +1,6 @@
 # Supabase 表地图（用途与交互）
 
-更新日期：2026-07-31
+更新日期：2026-08-04
 
 配套：
 
@@ -18,10 +18,11 @@
 | 经济（云） | `user_economy_transactions` | 在用（权威账本） |
 | 学习同步 | `user_check_ins`、词汇进度三表 | 在用 |
 | 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
-| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；作业选题 |
-| 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；作业选题 |
+| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；自由刷 + 作业选题 |
+| 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；自由刷 + 作业选题 |
 | 写作内容 | `writing_prompts` | 远端 SSOT；作文题目 |
 | 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力/写作下发 |
+| 读写完成标记 | `user_practice_item_completions` | 自由刷 + 已提交作业 items；跨设备 |
 | Storage | `writing-submissions`（私有 bucket） | 作文原件/批改件 |
 | Legacy | `content_*`、`study_events`、`points_ledger`、`rewards`、`redemptions` | **已由 015 从远端删除** |
 
@@ -67,7 +68,7 @@ flowchart TB
 | 表 | 用途 | 谁读写 | 交互 |
 |----|------|--------|------|
 | `agencies` | 机构根；一机构一店 | 平台用 `service_role` / `create_agency_admin` 建；Web `/agency` 隐含依赖 | `teachers.agency_id`、`students.agency_id`、`shop_*.agency_id` FK |
-| `profiles` | Auth 用户资料、`role`、手机号、设备 | App / Web 读；`set_my_profile` / `set_my_phone` / `set_my_device_id` 写 | `id` = `auth.users.id`；与 `students`/`teachers` 同 id |
+| `profiles` | Auth 用户资料、`role`、手机号、设备、**词汇量估测**（`vocabulary_size` / `vocabulary_estimated_at`） | App / Web 读；`set_my_profile` / `set_my_phone` / `set_my_device_id` / `set_my_vocabulary_estimate` 写 | `id` = `auth.users.id`；与 `students`/`teachers` 同 id；词汇量为最近一次分档检测结果，非背单词累计 |
 | `students` | 学生扩展（姓名、教师绑定、机构） | App 登录恢复；Web 机构绑学生；教师看名下学生 | `teacher_id`、`agency_id`；商城按机构可见商品 |
 | `teachers` | 教师扩展、所属机构 | Web 机构建教师 / 列表 | `agency_id`；同机构约束见 `010` |
 
@@ -127,15 +128,23 @@ flowchart TB
 
 ---
 
-## 6. 词书内容（预留）
+## 6. 词书内容
 
 | 表 | 用途 | 状态 |
 |----|------|------|
-| `word_books` | 词书元数据 | 远端有；App 按需下载未完成 |
+| `word_books` | 词书元数据 | 远端 SSOT；App Profile「学习目标」按需下载 |
 | `word_book_modules` | 模块 | 同上 |
-| `vocabulary_words` | 词条 | 同上 |
+| `vocabulary_words` | 词条（含 `senses` JSONB：多词性义项列表） | 同上 |
 
-与「学习进度」三表不同：这里是**内容**，进度在 `user_vocabulary_*`。
+当前外研版初中六册（`difficulty` = 档位标签）：
+
+| book_id | 册 |
+|---------|-----|
+| `fltrp-g7-vol1` … `fltrp-g9-vol2` | 七上～九下 |
+
+- 导入产物：[`docs/words/fltrp_junior_words.json`](../words/fltrp_junior_words.json)；脚本 `scripts/extract_fltrp_words.py` / `scripts/apply_fltrp_word_books.py`
+- 词汇检测从六册随机抽样（可不依赖「当前 active 词书」）；背单词仍用已下载 active 词书
+- 与「学习进度」三表不同：这里是**内容**，进度在 `user_vocabulary_*`
 
 ---
 
@@ -148,8 +157,31 @@ flowchart TB
 | `reading_options` | 选项 A–D | 同上 |
 
 - 迁移：[`020_reading_comprehension_catalog.sql`](../../supabase/migrations/020_reading_comprehension_catalog.sql)
-- App：学习中心「阅读训练」→ 作业列表 → 按 assignment items 过滤拉取；**无**全库自刷；**无**本地 assets / Room 题包
-- 进度与提交见 §6.2 练习作业表（`practice_assignment_*`）
+- App：学习中心「阅读训练」→ 模式选择 → **自由刷题**（全库选题，单套开练）或 **完成作业**（按 assignment items 过滤）；**无**本地 assets / Room 题包
+- 完成标记见 §6.1b；作业提交见 §6.2
+
+---
+
+## 6.1a 听力理解内容
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `listening_materials` | 听力材料（音频/文稿、排序） | 远端 SSOT；公开 SELECT |
+| `listening_questions` / `listening_options` | 题与选项 | 同上 |
+
+- App：与阅读相同双模式（自由刷题 / 作业）
+
+---
+
+## 6.1b 阅读/听力「做过」进度（跨设备）
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `user_practice_item_completions` | `(user_id, module_id, item_ref)`；自由刷题完成或作业提交后写入 | 在用；本人 RLS |
+
+- 迁移：[`029_user_practice_item_completions.sql`](../../supabase/migrations/029_user_practice_item_completions.sql)
+- RPC：`mark_my_practice_items_completed`（自由刷）；`submit_practice_assignment` 同步 upsert 作业内 items
+- App 选题列表展示「已做过」徽章，不从题库移除；代币 `refId = free_{module}:{itemRef}`（作业仍为 `assignment:{submissionId}`）
 
 ---
 
@@ -162,10 +194,10 @@ flowchart TB
 | `practice_assignment_recipients` | 下发学员快照 | 同上 |
 | `practice_assignment_submissions` | 每学员一行；读写：`answer_payload` 回顾；写作：`original_path` / `annotated_path` / `score` / `feedback_text`；状态 `pending`→`in_progress`→`submitted`（写作再→`returned`） | 同上 |
 
-- 迁移：[`022`](../../supabase/migrations/022_practice_assignments.sql)、[`023`](../../supabase/migrations/023_practice_assignments_grants.sql)、[`024`](../../supabase/migrations/024_practice_assignments_rls_no_recursion.sql)、[`026_writing_assignments.sql`](../../supabase/migrations/026_writing_assignments.sql)
-- 写入 RPC：`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`（读写）；`submit_writing_assignment` / `return_writing_assignment`（写作）
+- 迁移：[`022`](../../supabase/migrations/022_practice_assignments.sql)、[`023`](../../supabase/migrations/023_practice_assignments_grants.sql)、[`024`](../../supabase/migrations/024_practice_assignments_rls_no_recursion.sql)、[`026_writing_assignments.sql`](../../supabase/migrations/026_writing_assignments.sql)、[`029_user_practice_item_completions.sql`](../../supabase/migrations/029_user_practice_item_completions.sql)
+- 写入 RPC：`create_practice_assignment` / `start_practice_assignment` / `submit_practice_assignment`（读写，提交时写 completions）；`submit_writing_assignment` / `return_writing_assignment`（写作）；`mark_my_practice_items_completed`（自由刷）
 - Web：`/teacher/assignments`；写作批改 `/teacher/assignments/[id]/submissions/[submissionId]`
-- App：阅读/听力两列；写作三列（未完成 / 批改中 / 已完成）
+- App：阅读/听力先模式选择；作业列表两列；写作三列（未完成 / 批改中 / 已完成）
 - Storage：私有 bucket `writing-submissions`，路径 `{assignment_id}/{submission_id}/original.*` 与 `annotated.*`
 
 ---
@@ -177,6 +209,7 @@ flowchart TB
 | `writing_prompts` | 中考风格作文题（题干、词数、满分、`reward_token`） | 远端 SSOT；公开 SELECT |
 
 - 迁移：[`025_writing_prompts_catalog.sql`](../../supabase/migrations/025_writing_prompts_catalog.sql)（种子 8 题 `w09-01`…`w09-08`）
+- App：写作仍为作业-only（本轮无自由刷题）
 
 ---
 
@@ -209,5 +242,7 @@ flowchart TB
 | `reconcile_my_token_balance` | 仅 `service_role` 运维 |
 | `get_teacher_student_stats` | 教师看学生统计 |
 | `set_my_profile` / `set_my_phone` / `set_my_device_id` | 资料 / 设备 |
+| `set_my_vocabulary_estimate` | 写入词汇量估测 |
+| `mark_my_practice_items_completed` | 自由刷题标记阅读/听力 item 已做过 |
 
 EXECUTE / `search_path` 硬化见 [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql) 与 [permission_model.md](./permission_model.md)。

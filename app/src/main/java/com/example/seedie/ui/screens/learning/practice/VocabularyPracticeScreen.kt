@@ -656,11 +656,6 @@ private fun ChineseToEnglishHintRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = currentPrompt.word.partOfSpeech,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary
-        )
         IconButton(
             onClick = onRevealPhoneticHint,
             enabled = uiState.stage == VocabularyPracticeStage.Ready && !uiState.showPhoneticHint

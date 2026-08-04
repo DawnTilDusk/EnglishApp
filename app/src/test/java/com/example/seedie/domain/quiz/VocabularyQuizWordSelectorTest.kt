@@ -11,6 +11,17 @@ class VocabularyQuizWordSelectorTest {
     private val wordBank = VocabularyQuizTestFixtures.wordBank24()
 
     @Test
+    fun selectFromBook_returnsRequestedCount() {
+        val selected = VocabularyQuizWordSelector.selectFromBook(
+            wordBank = wordBank,
+            random = Random(3),
+            count = 12
+        )
+        assertEquals(12, selected.size)
+        assertEquals(selected.size, selected.distinctBy { it.wordId }.size)
+    }
+
+    @Test
     fun selectBalanced_returnsFourWordsPerDifficulty() {
         val selected = VocabularyQuizWordSelector.selectBalanced(
             wordBank = wordBank,

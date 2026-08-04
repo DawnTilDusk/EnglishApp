@@ -80,7 +80,15 @@ internal object VocabularyStaticWordPack {
                 difficultyLevel = entry.difficultyLevel,
                 rewardToken = entry.rewardToken,
                 estimatedDurationSec = entry.estimatedDurationSec,
-                sortOrder = index
+                sortOrder = index,
+                sensesJson = com.example.seedie.domain.model.WordSenseFormat.encodeSensesJson(
+                    listOf(
+                        com.example.seedie.domain.model.WordSense(
+                            partOfSpeech = entry.partOfSpeech,
+                            translation = entry.translation
+                        )
+                    )
+                )
             )
         }
     }

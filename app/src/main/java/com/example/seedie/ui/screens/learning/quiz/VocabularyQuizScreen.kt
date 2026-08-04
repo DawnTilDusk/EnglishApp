@@ -192,7 +192,7 @@ private fun VocabularyQuizScreen(
                     modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
                 )
                 Text(
-                    text = "正确 ${uiState.correctCount} / ${uiState.totalCount} · 获得 $totalTokens 代币",
+                    text = "正确 ${uiState.correctCount} · 错误 ${uiState.wrongCount} · 获得 $totalTokens 代币",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -269,6 +269,12 @@ private fun VocabularyQuizScreen(
                                 )
                             }
                             Column(horizontalAlignment = Alignment.End) {
+                                if (uiState.bandProgressLabel.isNotBlank()) {
+                                    Text(
+                                        text = uiState.bandProgressLabel,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
                                 Text("第 ${uiState.currentIndex + 1} / ${uiState.totalCount} 题")
                                 Text("用时 ${uiState.elapsedSeconds}s")
                             }
@@ -295,7 +301,7 @@ private fun VocabularyQuizScreen(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "${question.phonetic}  ${question.partOfSpeech}",
+                                text = "${question.phonetic}",
                                 style = MaterialTheme.typography.bodyLarge
                             )
                             IconButton(

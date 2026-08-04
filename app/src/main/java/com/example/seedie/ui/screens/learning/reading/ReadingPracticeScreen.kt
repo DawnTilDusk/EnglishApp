@@ -40,19 +40,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
+import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.theme.gardenShadow
 
 @Composable
 fun ReadingPracticeRoute(
-    assignmentArgs: PracticeAssignmentArgs,
+    assignmentArgs: PracticeAssignmentArgs?,
+    freeArgs: FreePracticeArgs?,
     onFinishSession: (StudyResult) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ReadingPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(assignmentArgs.submissionId, assignmentArgs.mode) {
-        viewModel.initialize(assignmentArgs)
+    LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef) {
+        when {
+            assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
+            freeArgs != null -> viewModel.initializeFree(freeArgs)
+        }
     }
 
     LaunchedEffect(Unit) {
