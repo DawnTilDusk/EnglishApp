@@ -24,7 +24,12 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
 import com.example.seedie.ui.screens.learning.reading.ReadingPracticeRoute
+import com.example.seedie.ui.screens.learning.writing.WritingConnectorDrillRoute
+import com.example.seedie.ui.screens.learning.writing.WritingFeatureDestination
+import com.example.seedie.ui.screens.learning.writing.WritingHubScreen
+import com.example.seedie.ui.screens.learning.writing.WritingParaphraseRoute
 import com.example.seedie.ui.screens.learning.writing.WritingPracticeRoute
+import com.example.seedie.ui.screens.learning.writing.WritingSentenceTranslationRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.shop.MyOrdersScreen
 import com.example.seedie.ui.screens.shop.StudentShopScreen
@@ -57,8 +62,12 @@ fun SeedieNavHost(
             Screen.ReadingAssignments.route,
             Screen.ReadingMode.route,
             Screen.ReadingCatalog.route -> ActivityModule.ReadingPractice
+            Screen.WritingHub.route,
             Screen.WritingPractice.route,
-            Screen.WritingAssignments.route -> ActivityModule.WritingPractice
+            Screen.WritingAssignments.route,
+            Screen.WritingSentenceTranslation.route,
+            Screen.WritingConnectorDrill.route,
+            Screen.WritingParaphrase.route -> ActivityModule.WritingPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
             Screen.StudentShop.route,
             Screen.MyOrders.route -> ActivityModule.Shop
@@ -99,8 +108,8 @@ fun SeedieNavHost(
                 onOpenReadingMode = {
                     navController.navigate(Screen.ReadingMode.route)
                 },
-                onOpenWritingAssignments = {
-                    navController.navigate(Screen.WritingAssignments.route)
+                onOpenWritingHub = {
+                    navController.navigate(Screen.WritingHub.route)
                 },
                 onOpenVocabularyQuiz = {
                     navController.navigate(Screen.VocabularyQuiz.route)
@@ -197,6 +206,23 @@ fun SeedieNavHost(
                 }
             )
         }
+        composable(route = Screen.WritingHub.route) {
+            WritingHubScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenFeature = { destination ->
+                    when (destination) {
+                        WritingFeatureDestination.PracticalWriting ->
+                            navController.navigate(Screen.WritingAssignments.route)
+                        WritingFeatureDestination.SentenceTranslation ->
+                            navController.navigate(Screen.WritingSentenceTranslation.route)
+                        WritingFeatureDestination.ConnectorDrill ->
+                            navController.navigate(Screen.WritingConnectorDrill.route)
+                        WritingFeatureDestination.Paraphrase ->
+                            navController.navigate(Screen.WritingParaphrase.route)
+                    }
+                }
+            )
+        }
         composable(route = Screen.ListeningPractice.route) {
             val assignmentArgs = currentListeningAssignmentArgs
             val freeArgs = currentListeningFreeArgs
@@ -278,6 +304,21 @@ fun SeedieNavHost(
                     }
                 )
             }
+        }
+        composable(route = Screen.WritingSentenceTranslation.route) {
+            WritingSentenceTranslationRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(route = Screen.WritingConnectorDrill.route) {
+            WritingConnectorDrillRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable(route = Screen.WritingParaphrase.route) {
+            WritingParaphraseRoute(
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable(route = Screen.VocabularyQuiz.route) {
             VocabularyQuizRoute(

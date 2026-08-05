@@ -54,7 +54,7 @@ fun MainScreen(
     onOpenVocabularyReview: (VocabularyPracticeArgs) -> Unit,
     onOpenListeningMode: () -> Unit,
     onOpenReadingMode: () -> Unit,
-    onOpenWritingAssignments: () -> Unit,
+    onOpenWritingHub: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
     onVisibleModuleChanged: (ActivityModule) -> Unit,
@@ -77,6 +77,7 @@ fun MainScreen(
                     "vocabulary_review" -> "单词复习完成：+${result.earnedTokens} 代币"
                     "listening" -> "听力训练完成：+${result.earnedTokens} 代币"
                     "reading" -> "阅读训练完成：+${result.earnedTokens} 代币"
+                    "writing" -> "写作训练完成：+${result.earnedTokens} 代币"
                     "quiz" -> {
                         val estimateText = result.estimatedVocabulary?.let { "估算词汇量约 $it，" } ?: ""
                         "词汇测验完成：${estimateText}+${result.earnedTokens} 代币"
@@ -148,7 +149,7 @@ fun MainScreen(
                         ModuleConfig(
                             "writing",
                             "写作训练",
-                            "老师布置的作文作业",
+                            "实战提交与专项表达练习",
                             Icons.Default.Create,
                             isAvailable = true
                         )
@@ -255,7 +256,7 @@ fun MainScreen(
 
                             "reading" -> onOpenReadingMode()
 
-                            "writing" -> onOpenWritingAssignments()
+                            "writing" -> onOpenWritingHub()
 
                             "quiz" -> onOpenVocabularyQuiz()
                         }
