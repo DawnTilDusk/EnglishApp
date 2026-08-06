@@ -1,37 +1,48 @@
 package com.example.seedie.ui.screens.learning.writing
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.seedie.ui.components.TabSectionSurface
+import com.example.seedie.ui.theme.gardenShadow
 
 private data class TranslationExercise(
     val prompt: String,
@@ -153,21 +164,21 @@ fun WritingParaphraseRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WritingConnectorDrillRoute(
     onNavigateBack: () -> Unit
 ) {
-    var currentIndex by rememberSaveable { mutableStateOf(0) }
-    var selectedIndex by rememberSaveable { mutableStateOf(-1) }
+    var currentIndex by rememberSaveable { mutableIntStateOf(0) }
+    var selectedIndex by rememberSaveable { mutableIntStateOf(-1) }
     var submitted by rememberSaveable { mutableStateOf(false) }
-    var correctCount by rememberSaveable { mutableStateOf(0) }
+    var correctCount by rememberSaveable { mutableIntStateOf(0) }
     var completed by rememberSaveable { mutableStateOf(false) }
 
     if (completed) {
         PracticeSummaryScreen(
             title = "衔接词训练",
-            summary = "本轮答对 $correctCount / ${connectorExercises.size} 题",
+            headline = "本轮答对 $correctCount / ${connectorExercises.size} 题",
+            subline = "回到写作训练继续下一项练习，或再来一轮巩固熟练度。",
             onNavigateBack = onNavigateBack,
             onRestart = {
                 currentIndex = 0
@@ -182,116 +193,98 @@ fun WritingConnectorDrillRoute(
 
     val exercise = connectorExercises[currentIndex]
     val isCorrect = selectedIndex == exercise.correctIndex
+    val progress = (currentIndex + if (submitted) 1 else 0) / connectorExercises.size.toFloat()
 
-    PracticeScaffold(
-        title = "衔接词训练",
-        onNavigateBack = onNavigateBack
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(
-            text = "第 ${currentIndex + 1} / ${connectorExercises.size} 题",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary
+        PracticeHeader(
+            title = "衔接词训练",
+            progressLabel = "第 ${currentIndex + 1} / ${connectorExercises.size} 题",
+            progress = progress,
+            onNavigateBack = onNavigateBack
         )
-        Text(
-            text = "选出最合适的连接词",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Text(
-                text = exercise.sentence,
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
 
-        exercise.options.forEachIndexed { index, option ->
-            Card(
-                onClick = {
-                    if (!submitted) {
-                        selectedIndex = index
-                    }
-                },
-                colors = CardDefaults.cardColors(
-                    containerColor = optionBackground(
-                        submitted = submitted,
-                        isSelected = selectedIndex == index,
-                        isCorrect = index == exercise.correctIndex
-                    )
-                ),
-                modifier = Modifier.fillMaxWidth()
+        TabSectionSurface(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                androidx.compose.foundation.layout.Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    RadioButton(
-                        selected = selectedIndex == index,
-                        onClick = {
-                            if (!submitted) {
-                                selectedIndex = index
-                            }
-                        }
-                    )
-                    Text(
-                        text = option,
-                        modifier = Modifier.padding(top = 12.dp),
-                        style = MaterialTheme.typography.bodyLarge
+                Text(
+                    text = "选出最合适的连接词",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                PromptBubble(text = exercise.sentence)
+
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    exercise.options.forEachIndexed { index, option ->
+                        WritingChoiceOption(
+                            label = option,
+                            index = index,
+                            isSelected = selectedIndex == index,
+                            isCorrect = index == exercise.correctIndex,
+                            submitted = submitted,
+                            enabled = !submitted,
+                            onSelect = { selectedIndex = index }
+                        )
+                    }
+                }
+
+                if (submitted) {
+                    FeedbackPanel(
+                        isPositive = isCorrect,
+                        title = if (isCorrect) "回答正确" else "再看一下逻辑关系",
+                        message = exercise.explanation
                     )
                 }
             }
         }
 
-        if (submitted) {
-            Text(
-                text = if (isCorrect) "回答正确" else "再看一下逻辑关系",
-                color = if (isCorrect) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.error
-                },
-                style = MaterialTheme.typography.titleSmall
-            )
-            Text(
-                text = exercise.explanation,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        if (!submitted) {
-            Button(
-                onClick = {
-                    submitted = true
-                    if (isCorrect) {
-                        correctCount += 1
-                    }
-                },
-                enabled = selectedIndex >= 0,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("提交答案")
-            }
-        } else {
-            Button(
-                onClick = {
-                    if (currentIndex == connectorExercises.lastIndex) {
-                        completed = true
-                    } else {
-                        currentIndex += 1
-                        selectedIndex = -1
-                        submitted = false
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (currentIndex == connectorExercises.lastIndex) "完成本轮" else "下一题")
+        PracticeActionBar {
+            if (!submitted) {
+                OutlinedButton(
+                    onClick = {
+                        submitted = true
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = selectedIndex >= 0
+                ) {
+                    Text("先看看答案")
+                }
+                Button(
+                    onClick = {
+                        submitted = true
+                        if (isCorrect) {
+                            correctCount += 1
+                        }
+                    },
+                    modifier = Modifier.weight(2f),
+                    enabled = selectedIndex >= 0
+                ) {
+                    Text("提交答案")
+                }
+            } else {
+                Button(
+                    onClick = {
+                        if (currentIndex == connectorExercises.lastIndex) {
+                            completed = true
+                        } else {
+                            currentIndex += 1
+                            selectedIndex = -1
+                            submitted = false
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(if (currentIndex == connectorExercises.lastIndex) "查看结果" else "下一题")
+                }
             }
         }
     }
@@ -305,7 +298,7 @@ private fun WritingOpenAnswerPracticeScreen(
     onNavigateBack: () -> Unit,
     content: @Composable (index: Int, showReference: Boolean) -> Unit
 ) {
-    var currentIndex by rememberSaveable { mutableStateOf(0) }
+    var currentIndex by rememberSaveable { mutableIntStateOf(0) }
     var answer by rememberSaveable { mutableStateOf("") }
     var showReference by rememberSaveable { mutableStateOf(false) }
     var completed by rememberSaveable { mutableStateOf(false) }
@@ -313,7 +306,8 @@ private fun WritingOpenAnswerPracticeScreen(
     if (completed) {
         PracticeSummaryScreen(
             title = title,
-            summary = "这一轮已完成，共练习 $items 题",
+            headline = "本轮已完成 $items 题",
+            subline = "多练几遍就能形成语感，继续下一项或再来一轮吧。",
             onNavigateBack = onNavigateBack,
             onRestart = {
                 currentIndex = 0
@@ -325,54 +319,88 @@ private fun WritingOpenAnswerPracticeScreen(
         return
     }
 
-    PracticeScaffold(
-        title = title,
-        onNavigateBack = onNavigateBack
+    val progress = (currentIndex + if (showReference) 1 else 0) / items.toFloat()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(
-            text = "第 ${currentIndex + 1} / $items 题",
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Text(
-            text = intro,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+        PracticeHeader(
+            title = title,
+            progressLabel = "第 ${currentIndex + 1} / $items 题",
+            progress = progress,
+            onNavigateBack = onNavigateBack
         )
 
-        content(currentIndex, showReference)
-
-        OutlinedTextField(
-            value = answer,
-            onValueChange = { answer = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(160.dp),
-            label = { Text("先写下你的答案") }
-        )
-
-        if (!showReference) {
-            Button(
-                onClick = { showReference = true },
-                enabled = answer.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
+        TabSectionSurface(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                Text("查看参考答案")
+                Text(
+                    text = intro,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+
+                content(currentIndex, showReference)
+
+                Surface(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = MaterialTheme.shapes.medium,
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    )
+                ) {
+                    OutlinedTextField(
+                        value = answer,
+                        onValueChange = { answer = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp),
+                        label = { Text("先写下你的答案") }
+                    )
+                }
             }
-        } else {
-            Button(
-                onClick = {
-                    if (currentIndex == items - 1) {
-                        completed = true
-                    } else {
-                        currentIndex += 1
-                        answer = ""
-                        showReference = false
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(if (currentIndex == items - 1) "完成本轮" else "下一题")
+        }
+
+        PracticeActionBar {
+            if (!showReference) {
+                Button(
+                    onClick = { showReference = true },
+                    enabled = answer.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("查看参考答案")
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { showReference = false },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("再改一改")
+                }
+                Button(
+                    onClick = {
+                        if (currentIndex == items - 1) {
+                            completed = true
+                        } else {
+                            currentIndex += 1
+                            answer = ""
+                            showReference = false
+                        }
+                    },
+                    modifier = Modifier.weight(2f)
+                ) {
+                    Text(if (currentIndex == items - 1) "查看结果" else "下一题")
+                }
             }
         }
     }
@@ -387,135 +415,337 @@ private fun OpenAnswerExerciseContent(
     reference: String,
     showReference: Boolean
 ) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            text = promptTitle,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
         )
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = promptTitle,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = prompt,
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = supportText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
+        PromptBubble(text = prompt)
+        Text(
+            text = supportText,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary
+        )
 
-    if (showReference) {
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+        if (showReference) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+                shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = referenceTitle,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Text(
-                    text = reference,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = referenceTitle,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = reference,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PracticeScaffold(
+private fun PracticeHeader(
     title: String,
-    onNavigateBack: () -> Unit,
-    content: @Composable () -> Unit
+    progressLabel: String,
+    progress: Float,
+    onNavigateBack: () -> Unit
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
-                    }
+    TabSectionSurface(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = onNavigateBack)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "返回",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
+                Surface(
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    shape = CircleShape
+                ) {
+                    Text(
+                        text = progressLabel,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            LinearProgressIndicator(
+                progress = { progress.coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxWidth()
             )
         }
-    ) { padding ->
+    }
+}
+
+@Composable
+private fun PromptBubble(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 72.dp)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun WritingChoiceOption(
+    label: String,
+    index: Int,
+    isSelected: Boolean,
+    isCorrect: Boolean,
+    submitted: Boolean,
+    enabled: Boolean,
+    onSelect: () -> Unit
+) {
+    val containerColor = when {
+        submitted && isCorrect -> MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+        submitted && isSelected && !isCorrect -> MaterialTheme.colorScheme.error.copy(alpha = 0.14f)
+        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        else -> MaterialTheme.colorScheme.surface
+    }
+    val borderColor = when {
+        submitted && isCorrect -> MaterialTheme.colorScheme.primary
+        submitted && isSelected && !isCorrect -> MaterialTheme.colorScheme.error
+        isSelected -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+    }
+    val letter = ('A' + index).toString()
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onSelect),
+        shape = MaterialTheme.shapes.medium,
+        color = containerColor,
+        tonalElevation = if (isSelected) 2.dp else 0.dp,
+        border = BorderStroke(1.dp, borderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                shape = CircleShape
+            ) {
+                Box(
+                    modifier = Modifier.size(30.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = letter,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            Text(
+                modifier = Modifier.weight(1f),
+                text = label,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            if (submitted) {
+                when {
+                    isCorrect -> Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "正确",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    isSelected -> Icon(
+                        imageVector = Icons.Default.ErrorOutline,
+                        contentDescription = "错误",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeedbackPanel(
+    isPositive: Boolean,
+    title: String,
+    message: String
+) {
+    val bgColor = if (isPositive) {
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+    } else {
+        MaterialTheme.colorScheme.error.copy(alpha = 0.10f)
+    }
+    val accentColor = if (isPositive) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.error
+    }
+    Surface(
+        color = bgColor,
+        shape = MaterialTheme.shapes.medium
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            content()
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = accentColor
+            )
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
+    }
+}
+
+@Composable
+private fun PracticeActionBar(
+    content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .gardenShadow(),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            content = content
+        )
     }
 }
 
 @Composable
 private fun PracticeSummaryScreen(
     title: String,
-    summary: String,
+    headline: String,
+    subline: String,
     onNavigateBack: () -> Unit,
     onRestart: () -> Unit
 ) {
-    PracticeScaffold(
-        title = title,
-        onNavigateBack = onNavigateBack
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "练习完成",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = summary,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Button(
-            onClick = onRestart,
-            modifier = Modifier.fillMaxWidth()
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .gardenShadow(),
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface
         ) {
-            Text("再练一轮")
+            Column(
+                modifier = Modifier.padding(32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocalFlorist,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(56.dp)
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = headline,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = subline,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onNavigateBack,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("返回写作训练")
+                    }
+                    Button(
+                        onClick = onRestart,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("再练一轮")
+                    }
+                }
+            }
         }
-        OutlinedButton(
-            onClick = onNavigateBack,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("返回写作训练")
-        }
-    }
-}
-
-@Composable
-private fun optionBackground(
-    submitted: Boolean,
-    isSelected: Boolean,
-    isCorrect: Boolean
-): Color {
-    return when {
-        submitted && isCorrect -> MaterialTheme.colorScheme.primaryContainer
-        submitted && isSelected -> MaterialTheme.colorScheme.errorContainer
-        isSelected -> MaterialTheme.colorScheme.surfaceVariant
-        else -> MaterialTheme.colorScheme.surface
     }
 }
