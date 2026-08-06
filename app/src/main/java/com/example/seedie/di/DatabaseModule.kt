@@ -8,7 +8,9 @@ import com.example.seedie.data.local.dao.ActivityDurationDao
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
+import com.example.seedie.data.local.dao.GardenPlantDao
 import com.example.seedie.data.local.dao.GardenPlotDao
+import com.example.seedie.data.local.dao.GardenUnlockDao
 import com.example.seedie.data.local.dao.SyncOperationDao
 import com.example.seedie.data.local.dao.VocabularyBookProgressDao
 import com.example.seedie.data.local.dao.VocabularyStudyRoundDao
@@ -46,6 +48,7 @@ object DatabaseModule {
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_6_7)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_7_8)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_8_9)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_9_10)
             .build()
     }
 
@@ -61,6 +64,12 @@ object DatabaseModule {
 
     @Provides
     fun provideGardenPlotDao(database: SeedieDatabase): GardenPlotDao = database.gardenPlotDao()
+
+    @Provides
+    fun provideGardenPlantDao(database: SeedieDatabase): GardenPlantDao = database.gardenPlantDao()
+
+    @Provides
+    fun provideGardenUnlockDao(database: SeedieDatabase): GardenUnlockDao = database.gardenUnlockDao()
 
     @Provides
     fun provideEconomyTransactionDao(database: SeedieDatabase): EconomyTransactionDao = database.economyTransactionDao()

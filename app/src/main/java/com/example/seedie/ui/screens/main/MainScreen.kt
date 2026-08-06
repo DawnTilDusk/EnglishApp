@@ -74,14 +74,27 @@ fun MainScreen(
             viewModel.handleStudyResult(result)
             snackbarHostState.showSnackbar(
                 when (result.moduleId) {
-                    "vocabulary_review" -> "单词复习完成：+${result.earnedTokens} 代币"
-                    "listening" -> "听力训练完成：+${result.earnedTokens} 代币"
-                    "reading" -> "阅读训练完成：+${result.earnedTokens} 代币"
-                    "quiz" -> {
-                        val estimateText = result.estimatedVocabulary?.let { "估算词汇量约 $it，" } ?: ""
-                        "词汇测验完成：${estimateText}+${result.earnedTokens} 代币"
+                    "vocabulary_review" -> {
+                        if (result.earnedTokens > 0) {
+                            "单词复习完成：+${result.earnedTokens} 代币，已种入花园"
+                        } else {
+                            "单词复习完成，已种入花园"
+                        }
                     }
-                    else -> "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词"
+                    "listening" -> if (result.isCompleted) "听力训练完成，已种入花园" else "听力已结束，树苗可能已枯萎"
+                    "reading" -> if (result.isCompleted) "阅读训练完成，已种入花园" else "阅读已结束，树苗可能已枯萎"
+                    "writing" -> "写作已更新，已种入花园"
+                    "quiz" -> {
+                        val estimateText = result.estimatedVocabulary?.let { "估算词汇量约 $it。" } ?: ""
+                        "${estimateText}词汇测验完成，已种入花园"
+                    }
+                    else -> {
+                        if (result.earnedTokens > 0) {
+                            "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词，已种入花园"
+                        } else {
+                            "背单词完成，已种入花园"
+                        }
+                    }
                 }
             )
             onStudyResultConsumed()

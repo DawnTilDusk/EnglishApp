@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.local.entity.VocabularyWordEntity
 import com.example.seedie.data.repository.VocabularyOptionBuilder
 import com.example.seedie.data.repository.VocabularyQuizSessionFactory
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.quiz.GradeBandVocabularyEstimator
 import com.example.seedie.domain.quiz.VocabularyQuizConstants
@@ -35,6 +36,7 @@ class VocabularyQuizViewModel @Inject constructor(
     val studyResults = _studyResults.asSharedFlow()
 
     private var sessionId: String? = null
+    private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
     private var wordsByBookId: Map<String, List<VocabularyWordEntity>> = emptyMap()
     private var bandQuestions: List<VocabularyQuizQuestion> = emptyList()
     private var bandIndex: Int = 0
@@ -45,6 +47,10 @@ class VocabularyQuizViewModel @Inject constructor(
     private var timerJob: Job? = null
     private val wrongWordIds = linkedSetOf<String>()
     private val wrongWords = mutableListOf<VocabularyQuizWrongWord>()
+
+    fun setSelectedSpeciesId(speciesId: String) {
+        selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
+    }
 
     fun initialize(sessionId: String = UUID.randomUUID().toString()) {
         if (this.sessionId == sessionId && _uiState.value.stage != VocabularyQuizStage.Error) return
@@ -275,15 +281,12 @@ class VocabularyQuizViewModel @Inject constructor(
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
-            earnedTokens = state.earnedTokens + if (isCompleted) {
-                VocabularyQuizConstants.COMPLETION_BONUS
-            } else {
-                0
-            },
+            earnedTokens = 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
-            estimatedVocabulary = estimated
+            estimatedVocabulary = estimated,
+            selectedSpeciesId = selectedSpeciesId
         )
         viewModelScope.launch {
             _studyResults.emit(result)

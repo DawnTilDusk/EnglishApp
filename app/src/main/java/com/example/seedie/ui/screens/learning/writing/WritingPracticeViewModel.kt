@@ -164,7 +164,6 @@ class WritingPracticeViewModel @Inject constructor(
     private fun maybeEmitTokens(state: WritingPracticeUiState) {
         if (tokensEmitted) return
         if (state.status != "returned") return
-        if (state.earnedTokens <= 0) return
         val sid = submissionId ?: return
         tokensEmitted = true
         _studyResults.tryEmit(
@@ -177,7 +176,7 @@ class WritingPracticeViewModel @Inject constructor(
                 wrongCount = 0,
                 skippedCount = 0,
                 accuracy = 0f,
-                earnedTokens = state.earnedTokens,
+                earnedTokens = 0,
                 studyDurationSec = 0,
                 vocabularyDelta = 0,
                 wrongWordIds = emptyList()

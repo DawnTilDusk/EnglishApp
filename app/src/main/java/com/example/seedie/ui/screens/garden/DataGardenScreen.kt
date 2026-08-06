@@ -16,7 +16,7 @@ fun DataGardenScreen(
     trendReplayKey: Int = 0,
     viewModel: GardenViewModel = hiltViewModel()
 ) {
-    val plots by viewModel.gardenPlots.collectAsState()
+    val forestUiState by viewModel.forestUiState.collectAsState()
     val statsUiState by viewModel.statsUiState.collectAsState()
 
     Row(
@@ -25,18 +25,22 @@ fun DataGardenScreen(
             .padding(24.dp),
         horizontalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Left side: Stats Panel (Takes 40% of width)
         StatsPanelSection(
             modifier = Modifier.weight(0.4f),
             learningDistribution = statsUiState.learningDistribution,
-            trendReplayKey = trendReplayKey
+            trendReplayKey = trendReplayKey,
+            forestAliveCount = forestUiState.aliveCount,
+            forestWitheredCount = forestUiState.witheredCount
         )
 
-        // Right side: Garden Plot (Takes 60% of width)
-        GardenPlotSection(
+        ForestPanel(
             modifier = Modifier.weight(0.6f),
-            plots = plots,
-            onPlotClick = { plot -> viewModel.onPlotClicked(plot) }
+            state = forestUiState,
+            onRangeModeChange = viewModel::setRangeMode,
+            onShiftRange = viewModel::shiftRange,
+            onTreeClick = viewModel::onTreeClick,
+            onOpenGardenerHut = viewModel::openGardenerHut,
+            onCloseGardenerHut = viewModel::closeGardenerHut
         )
     }
 }

@@ -654,37 +654,40 @@ data class StudyResult(
 
 ---
 
-### 5.6 数据花园 Data Garden 【已实现】
+### 5.6 数据花园 Data Garden 【已实现 · 历史林】
 
 **相关文件：**
 
-- [`domain/usecase/GardenEngine.kt`](../app/src/main/java/com/example/seedie/domain/usecase/GardenEngine.kt)
-- [`ui/screens/garden/GardenViewModel.kt`](../app/src/main/java/com/example/seedie/ui/screens/garden/GardenViewModel.kt)
-- [`ui/screens/garden/GardenPlotSection.kt`](../app/src/main/java/com/example/seedie/ui/screens/garden/GardenPlotSection.kt)
-- [`ui/screens/garden/StatsPanelSection.kt`](../app/src/main/java/com/example/seedie/ui/screens/garden/StatsPanelSection.kt)
-- [`ui/screens/garden/DataGardenScreen.kt`](../app/src/main/java/com/example/seedie/ui/screens/garden/DataGardenScreen.kt)
+- [`domain/usecase/GardenEngine.kt`](../../app/src/main/java/com/example/seedie/domain/usecase/GardenEngine.kt)
+- [`domain/usecase/ForestLayout.kt`](../../app/src/main/java/com/example/seedie/domain/usecase/ForestLayout.kt)
+- [`ui/screens/garden/GardenViewModel.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/GardenViewModel.kt)
+- [`ui/screens/garden/ForestPanel.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/ForestPanel.kt)
+- [`ui/screens/garden/ForestScene.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/ForestScene.kt)
+- [`ui/screens/garden/PlantSpeciesPicker.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/PlantSpeciesPicker.kt)
+- [`ui/screens/garden/DataGardenScreen.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/DataGardenScreen.kt)
+
+设计说明：[garden_forest_mvp.md](../2026-08-06/garden_forest_mvp.md)。
 
 | 子功能 | 状态 | 说明 |
 |--------|------|------|
-| 16 格花园网格 | **已实现** | 4×4 布局，点击交互 |
-| 种植 seed | **已实现** | 空格点击 → 消耗 20 代币 → 种植 flower |
-| 浇水升级 | **已实现** | 已种植物 → 消耗 10 代币 → level+1（max 2） |
-| 初始化 demo 数据 | **已实现** | 部分格子预置植物（index 5,6,9,10） |
-| 统计面板动画图表 | **已实现** | Compose Canvas 绘制，切换 Tab 时有动画 |
-| 词汇量自动升级植物 | **未实现** | spec 设计为监听 vocabularySize 阈值自动升级，当前为手动浇水 |
-| 花园云同步 | **未实现** | Entity 有 syncStatus 字段但无 Syncer |
+| 历史林写入 | **已实现** | `StudyResult` → `recordFromStudyResult`；中途退出必种枯苗；透视土格摆树 |
+| 开题前选树 | **已实现** | `PlantSessionGate`；`selectedSpeciesId` |
+| 日/周回看 + 菱形均匀格 | **已实现** | `ForestPanel` / `ForestScene`（6×6 等距+透视，稳定随机占格） |
+| 园丁解锁物种 | **已实现** | 代币 + `garden_unlocks` |
+| 枯树退出确认 | **已实现** | `GardenExitConfirmDialog`（统一枯苗文案） |
+| 旧 16 格点种浇水 | **已降级** | 不再作为主 UI |
+| 花园云同步 | **未实现** | Entity 有 syncStatus，无 Syncer |
 
 **GardenEngine 核心逻辑：**
 
 ```
-initializeGarden()  → 创建 16 个 GardenPlotEntity（部分预置 demo 植物）
-plantSeed(index)      → spendTokens(20) → 更新 plot（plantType="flower", level=0）
-waterPlant(plot)      → spendTokens(10) → level+1 → emit PlantLeveledUp 事件
-gardenPlots           → Flow，随 authSession.userId 切换自动刷新
+recordFromStudyResult → !完成→WITHERED（含0题）；完成且有题→ALIVE；完成0题跳过；sessionId 幂等
+unlockSpecies → spendTokens(refId=garden_unlock:…) → garden_unlocks
+observePlantsForDate / Between → 日/周森林
+ForestLayout.build → 6×6 均匀格 + 稳定随机占格；ForestScene 菱形透视绘制
 ```
 
 ---
-
 ### 5.7 个人中心 Profile 【部分实现】
 
 **相关文件：**
@@ -744,16 +747,17 @@ rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
 
 | 途径 | 触发位置 | 典型金额 |
 |------|----------|----------|
-| 手动点击完成任务 | `DashboardViewModel.onTaskClicked` | 10-20（`task:{userId}:{date}:{key}`） |
-| 背单词完成 | `MainViewModel.handleStudyResult` | 按 StudyResult.earnedTokens |
+| 手动点击完成任务 | `DashboardViewModel.onTaskClicked` | 10-20（`task:{userId}:{date}:{key}`，接口保留） |
+| 背单词 / 单词复习完成 | `MainViewModel.handleStudyResult` | 按 `StudyResult.earnedTokens` |
+| 听力 / 阅读 / 写作 / 词汇测验 | 结算 | **不再发币**（`earnedTokens=0`）；奖励为历史林种树 |
 
 #### 代币消费途径
 
 | 操作 | 消费 | 位置 |
 |------|------|------|
-| 种植 seed | 20 代币 | `GardenEngine.plantSeed` |
-| 浇水升级 | 10 代币 | `GardenEngine.waterPlant` |
+| 解锁花园物种 | 目录价（如 50/80/120/200） | `GardenEngine.unlockSpecies`（`garden_unlock:{userId}:{speciesId}`） |
 | 机构商城 | 商品价 | 服务端 RPC 扣款 |
+| 旧点种/浇水 | — | UI 已移除主路径 |
 
 #### 奖励动画事件
 
@@ -762,7 +766,8 @@ rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
 ```kotlin
 sealed class RewardEvent {
     data class TokenDropped(val amount: Int)
-    data class PlantLeveledUp(val plotIndex: Int, val newLevel: Int)
+    data class PlantLeveledUp(val plotIndex: Int, val newLevel: Int) // 旧养成遗留
+    data class PlantGrown(val speciesId: String, val status: String)
     data class AchievementUnlocked(val badgeId: String)
 }
 ```

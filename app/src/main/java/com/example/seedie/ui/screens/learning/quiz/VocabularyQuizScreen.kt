@@ -44,6 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.quiz.VocabularyQuizConstants
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
+import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
@@ -54,55 +56,58 @@ fun VocabularyQuizRoute(
     onNavigateBack: () -> Unit,
     viewModel: VocabularyQuizViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
-    var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
-    var speakerReady by remember { mutableStateOf(false) }
+    PlantSessionGate { speciesId ->
+        val uiState by viewModel.uiState.collectAsState()
+        val context = LocalContext.current
+        var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
+        var speakerReady by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        viewModel.initialize()
-    }
+        LaunchedEffect(speciesId) {
+            viewModel.setSelectedSpeciesId(speciesId)
+            viewModel.initialize()
+        }
 
-    DisposableEffect(Unit) {
-        var textToSpeech: TextToSpeech? = null
-        textToSpeech = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                speakerReady = true
-                textToSpeech?.language = Locale.US
+        DisposableEffect(Unit) {
+            var textToSpeech: TextToSpeech? = null
+            textToSpeech = TextToSpeech(context) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    speakerReady = true
+                    textToSpeech?.language = Locale.US
+                }
+            }
+            speaker = textToSpeech
+            onDispose {
+                textToSpeech?.stop()
+                textToSpeech?.shutdown()
+                speaker = null
+                speakerReady = false
             }
         }
-        speaker = textToSpeech
-        onDispose {
-            textToSpeech?.stop()
-            textToSpeech?.shutdown()
-            speaker = null
-            speakerReady = false
-        }
-    }
 
-    LaunchedEffect(Unit) {
-        viewModel.studyResults.collect { result ->
-            onFinishSession(result)
-        }
-    }
-
-    VocabularyQuizScreen(
-        uiState = uiState,
-        onNavigateBack = onNavigateBack,
-        onBackClick = viewModel::onBackClick,
-        onConfirmExit = viewModel::onConfirmExit,
-        onDismissExitDialog = viewModel::onDismissExitDialog,
-        onOptionSelected = viewModel::onOptionSelected,
-        onSubmitAnswer = viewModel::onSubmitAnswer,
-        onNextQuestion = viewModel::onNextQuestion,
-        onRetryLoad = viewModel::onRetryLoad,
-        onFinishSession = viewModel::onFinishSession,
-        onPlayPronunciation = { english ->
-            if (speakerReady) {
-                speaker?.speak(english, TextToSpeech.QUEUE_FLUSH, null, english)
+        LaunchedEffect(Unit) {
+            viewModel.studyResults.collect { result ->
+                onFinishSession(result)
             }
         }
-    )
+
+        VocabularyQuizScreen(
+            uiState = uiState,
+            onNavigateBack = onNavigateBack,
+            onBackClick = viewModel::onBackClick,
+            onConfirmExit = viewModel::onConfirmExit,
+            onDismissExitDialog = viewModel::onDismissExitDialog,
+            onOptionSelected = viewModel::onOptionSelected,
+            onSubmitAnswer = viewModel::onSubmitAnswer,
+            onNextQuestion = viewModel::onNextQuestion,
+            onRetryLoad = viewModel::onRetryLoad,
+            onFinishSession = viewModel::onFinishSession,
+            onPlayPronunciation = { english ->
+                if (speakerReady) {
+                    speaker?.speak(english, TextToSpeech.QUEUE_FLUSH, null, english)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -120,20 +125,10 @@ private fun VocabularyQuizScreen(
     onPlayPronunciation: (String) -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {
-                Button(onClick = onConfirmExit) {
-                    Text("确认退出")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = onDismissExitDialog) {
-                    Text("继续测验")
-                }
-            },
-            title = { Text("退出后将结束本次词汇测验") },
-            text = { Text("已完成的作答会被记录，但你将离开当前测验。") }
+        GardenExitConfirmDialog(
+            answeredQuestionCount = uiState.correctCount + uiState.wrongCount,
+            onConfirmExit = onConfirmExit,
+            onContinue = onDismissExitDialog
         )
     }
 
@@ -168,7 +163,6 @@ private fun VocabularyQuizScreen(
         }
 
         VocabularyQuizStage.Completed -> {
-            val totalTokens = uiState.earnedTokens + VocabularyQuizConstants.COMPLETION_BONUS
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -192,7 +186,7 @@ private fun VocabularyQuizScreen(
                     modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
                 )
                 Text(
-                    text = "正确 ${uiState.correctCount} · 错误 ${uiState.wrongCount} · 获得 $totalTokens 代币",
+                    text = "正确 ${uiState.correctCount} · 错误 ${uiState.wrongCount} · 完成将种入花园",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )

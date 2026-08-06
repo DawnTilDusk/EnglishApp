@@ -1,61 +1,206 @@
 package com.example.seedie.domain.usecase
 
-import com.example.seedie.data.local.dao.GardenPlotDao
-import com.example.seedie.data.local.entity.GardenPlotEntity
+import com.example.seedie.data.local.DevicePreferencesRepository
+import com.example.seedie.data.local.dao.GardenPlantDao
+import com.example.seedie.data.local.dao.GardenUnlockDao
+import com.example.seedie.data.local.entity.GardenPlantEntity
+import com.example.seedie.data.local.entity.GardenUnlockEntity
 import com.example.seedie.data.remote.AuthService
+import com.example.seedie.domain.model.GardenSpecies
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.RewardEvent
+import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.EconomyManager
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
-import javax.inject.Inject
-import javax.inject.Singleton
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+
+sealed class GardenUnlockResult {
+    data object Success : GardenUnlockResult()
+    data object AlreadyUnlocked : GardenUnlockResult()
+    data object InsufficientTokens : GardenUnlockResult()
+    data object NotLoggedIn : GardenUnlockResult()
+    data object UnknownSpecies : GardenUnlockResult()
+}
+
+data class GardenSpeciesUi(
+    val species: GardenSpecies,
+    val unlocked: Boolean
+)
 
 @Singleton
 class GardenEngine @Inject constructor(
-    private val gardenPlotDao: GardenPlotDao,
+    private val gardenPlantDao: GardenPlantDao,
+    private val gardenUnlockDao: GardenUnlockDao,
     private val economyManager: EconomyManager,
     private val rewardEventBus: RewardEventBus,
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val devicePreferencesRepository: DevicePreferencesRepository
 ) {
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val gardenPlots: Flow<List<GardenPlotEntity>> = authService.currentSession
-        .flatMapLatest { session ->
-            gardenPlotDao.getAllPlots(session?.userId ?: "")
+    fun observePlantsForDate(localDate: String): Flow<List<GardenPlantEntity>> =
+        authService.currentSession.flatMapLatest { session ->
+            val userId = session?.userId
+            if (userId.isNullOrBlank()) flowOf(emptyList())
+            else gardenPlantDao.observePlantsForDate(userId, localDate)
         }
 
-    suspend fun initializeGarden() {
-        val userId = authService.currentSession.value?.userId ?: ""
-        val plots = List(16) { index ->
-            when (index) {
-                5 -> GardenPlotEntity(userId = userId, plotIndex = index, plantType = "flower", level = 1)
-                6 -> GardenPlotEntity(userId = userId, plotIndex = index, plantType = "grass", level = 0)
-                9 -> GardenPlotEntity(userId = userId, plotIndex = index, plantType = "flower", level = 2)
-                10 -> GardenPlotEntity(userId = userId, plotIndex = index, plantType = "grass", level = 1)
-                else -> GardenPlotEntity(userId = userId, plotIndex = index)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observePlantsBetween(startDate: String, endDate: String): Flow<List<GardenPlantEntity>> =
+        authService.currentSession.flatMapLatest { session ->
+            val userId = session?.userId
+            if (userId.isNullOrBlank()) flowOf(emptyList())
+            else gardenPlantDao.observePlantsBetween(userId, startDate, endDate)
+        }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    fun observeSpeciesCatalog(): Flow<List<GardenSpeciesUi>> =
+        authService.currentSession.flatMapLatest { session ->
+            val userId = session?.userId
+            if (userId.isNullOrBlank()) {
+                flowOf(defaultCatalogUi())
+            } else {
+                gardenUnlockDao.observeUnlocks(userId).map { unlocks ->
+                    val unlockedIds = unlocks.map { it.speciesId }.toSet()
+                    GardenSpeciesCatalog.all.map { species ->
+                        GardenSpeciesUi(
+                            species = species,
+                            unlocked = species.unlockedByDefault || species.id in unlockedIds
+                        )
+                    }
+                }
             }
         }
-        gardenPlotDao.initializePlots(plots)
+
+    suspend fun ensureDefaultUnlocks() {
+        val userId = authService.currentSession.value?.userId ?: return
+        GardenSpeciesCatalog.all.filter { it.unlockedByDefault }.forEach { species ->
+            gardenUnlockDao.insertUnlock(
+                GardenUnlockEntity(
+                    userId = userId,
+                    speciesId = species.id,
+                    unlockedAt = System.currentTimeMillis()
+                )
+            )
+        }
     }
 
-    suspend fun plantSeed(plotIndex: Int, type: String = "flower"): Boolean {
-        if (economyManager.spendTokens(20, "Planted $type seed")) {
-            val userId = authService.currentSession.value?.userId ?: ""
-            val newPlot = GardenPlotEntity(userId = userId, plotIndex = plotIndex, plantType = type, level = 0)
-            gardenPlotDao.updatePlot(newPlot)
-            return true
-        }
-        return false
+    suspend fun isSpeciesUnlocked(speciesId: String): Boolean {
+        val species = GardenSpeciesCatalog.byId(speciesId) ?: return false
+        if (species.unlockedByDefault) return true
+        val userId = authService.currentSession.value?.userId ?: return false
+        return gardenUnlockDao.findUnlock(userId, speciesId) != null
     }
 
-    suspend fun waterPlant(plot: GardenPlotEntity): Boolean {
-        if (plot.plantType == "empty" || plot.level >= 2) return false
-        if (economyManager.spendTokens(10, "Watered plant at ${plot.plotIndex}")) {
-            val upgradedPlot = plot.copy(level = plot.level + 1, syncStatus = "PENDING", syncedAt = null)
-            gardenPlotDao.updatePlot(upgradedPlot)
-            rewardEventBus.emit(RewardEvent.PlantLeveledUp(plot.plotIndex, upgradedPlot.level))
-            return true
+    suspend fun unlockSpecies(speciesId: String): GardenUnlockResult {
+        val species = GardenSpeciesCatalog.byId(speciesId) ?: return GardenUnlockResult.UnknownSpecies
+        val userId = authService.currentSession.value?.userId
+            ?: return GardenUnlockResult.NotLoggedIn
+        if (species.unlockedByDefault || gardenUnlockDao.findUnlock(userId, speciesId) != null) {
+            return GardenUnlockResult.AlreadyUnlocked
         }
-        return false
+        if (species.unlockCost <= 0) {
+            gardenUnlockDao.insertUnlock(
+                GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
+            )
+            return GardenUnlockResult.Success
+        }
+        val spent = economyManager.spendTokens(
+            amount = species.unlockCost,
+            item = "Garden species ${species.id}",
+            refId = "garden_unlock:$userId:${species.id}"
+        )
+        if (!spent) return GardenUnlockResult.InsufficientTokens
+        gardenUnlockDao.insertUnlock(
+            GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
+        )
+        return GardenUnlockResult.Success
     }
+
+    suspend fun getLastSelectedSpeciesId(): String {
+        val saved = devicePreferencesRepository.getLastGardenSpeciesId()
+        if (saved != null && isSpeciesUnlocked(saved)) return saved
+        return GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+    }
+
+    suspend fun setLastSelectedSpeciesId(speciesId: String) {
+        if (isSpeciesUnlocked(speciesId)) {
+            devicePreferencesRepository.setLastGardenSpeciesId(speciesId)
+        }
+    }
+
+    /**
+     * Records a plant from a study session.
+     * @return status written, or null if skipped / duplicate.
+     */
+    suspend fun recordFromStudyResult(result: StudyResult): String? {
+        val status = when {
+            !result.isCompleted -> GardenPlantEntity.STATUS_WITHERED
+            result.completedQuestionCount > 0 -> GardenPlantEntity.STATUS_ALIVE
+            else -> return null
+        }
+        val userId = authService.currentSession.value?.userId ?: return null
+        val speciesId = resolveSpeciesId(result.selectedSpeciesId)
+        val existing = gardenPlantDao.findBySessionId(userId, result.sessionId)
+        if (existing != null) {
+            if (existing.status == GardenPlantEntity.STATUS_WITHERED &&
+                status == GardenPlantEntity.STATUS_ALIVE
+            ) {
+                val upgraded = existing.copy(
+                    status = GardenPlantEntity.STATUS_ALIVE,
+                    speciesId = speciesId,
+                    completedQuestionCount = result.completedQuestionCount,
+                    correctCount = result.correctCount,
+                    studyDurationSec = result.studyDurationSec,
+                    syncStatus = "PENDING",
+                    syncedAt = null
+                )
+                gardenPlantDao.updatePlant(upgraded)
+                rewardEventBus.emit(RewardEvent.PlantGrown(speciesId = speciesId, status = status))
+                return status
+            }
+            return null
+        }
+
+        val now = System.currentTimeMillis()
+        val plant = GardenPlantEntity(
+            id = UUID.randomUUID().toString(),
+            userId = userId,
+            sessionId = result.sessionId,
+            moduleId = result.moduleId,
+            speciesId = speciesId,
+            status = status,
+            completedQuestionCount = result.completedQuestionCount,
+            correctCount = result.correctCount,
+            studyDurationSec = result.studyDurationSec,
+            createdAt = now,
+            localDate = dateFormat.format(Date(now)),
+            syncStatus = "PENDING",
+            syncedAt = null
+        )
+        val inserted = gardenPlantDao.insertPlant(plant)
+        if (inserted == -1L) return null
+        rewardEventBus.emit(RewardEvent.PlantGrown(speciesId = speciesId, status = status))
+        return status
+    }
+
+    private suspend fun resolveSpeciesId(requested: String): String {
+        val id = requested.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
+        return if (isSpeciesUnlocked(id)) id else GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+    }
+
+    private fun defaultCatalogUi(): List<GardenSpeciesUi> =
+        GardenSpeciesCatalog.all.map { species ->
+            GardenSpeciesUi(species = species, unlocked = species.unlockedByDefault)
+        }
 }

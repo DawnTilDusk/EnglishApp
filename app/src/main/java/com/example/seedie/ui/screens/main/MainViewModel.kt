@@ -10,6 +10,7 @@ import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.UserSessionRepository
+import com.example.seedie.domain.usecase.GardenEngine
 import com.example.seedie.domain.usecase.RewardEventBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
@@ -36,7 +37,8 @@ class MainViewModel @Inject constructor(
     private val authService: AuthService,
     private val rewardEventBus: RewardEventBus,
     private val vocabularyPracticeRepository: VocabularyPracticeRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val gardenEngine: GardenEngine
 ) : ViewModel() {
 
     private val handledSessions = mutableSetOf<String>()
@@ -84,6 +86,7 @@ class MainViewModel @Inject constructor(
                 )
                 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
             }
+            gardenEngine.recordFromStudyResult(result)
             if (result.isCompleted) {
                 when (result.moduleId) {
                     "listening" -> completeTodayListeningTask()

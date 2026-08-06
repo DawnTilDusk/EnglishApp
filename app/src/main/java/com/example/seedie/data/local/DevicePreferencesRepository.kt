@@ -20,6 +20,7 @@ class DevicePreferencesRepository @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     private val DEVICE_ID_KEY = stringPreferencesKey("device_id")
+    private val LAST_GARDEN_SPECIES_KEY = stringPreferencesKey("last_garden_species_id")
 
     suspend fun getOrCreateDeviceId(): String {
         val currentId = context.deviceDataStore.data.map { preferences ->
@@ -35,5 +36,17 @@ class DevicePreferencesRepository @Inject constructor(
             preferences[DEVICE_ID_KEY] = newId
         }
         return newId
+    }
+
+    suspend fun getLastGardenSpeciesId(): String? {
+        return context.deviceDataStore.data.map { preferences ->
+            preferences[LAST_GARDEN_SPECIES_KEY]
+        }.first()
+    }
+
+    suspend fun setLastGardenSpeciesId(speciesId: String) {
+        context.deviceDataStore.edit { preferences ->
+            preferences[LAST_GARDEN_SPECIES_KEY] = speciesId
+        }
     }
 }

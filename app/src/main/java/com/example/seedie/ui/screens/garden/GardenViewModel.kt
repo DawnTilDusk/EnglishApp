@@ -2,19 +2,43 @@ package com.example.seedie.ui.screens.garden
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.seedie.data.local.entity.GardenPlotEntity
 import com.example.seedie.domain.model.ActivityModuleIds
 import com.example.seedie.domain.model.ActivityModuleSummary
 import com.example.seedie.domain.model.activityModuleLabel
 import com.example.seedie.domain.repository.ActivityTrackingRepository
+import com.example.seedie.domain.usecase.ForestGridCell
+import com.example.seedie.domain.usecase.ForestLayout
 import com.example.seedie.domain.usecase.GardenEngine
+import com.example.seedie.domain.usecase.PlacedTree
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.map
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+
+enum class ForestRangeMode { Day, Week }
+
+data class ForestPanelUiState(
+    val rangeMode: ForestRangeMode = ForestRangeMode.Day,
+    val anchorDate: String = todayString(),
+    val rangeLabel: String = todayString(),
+    val cells: List<ForestGridCell> = ForestLayout.build(emptyList()).cells,
+    val trees: List<PlacedTree> = emptyList(),
+    val aliveCount: Int = 0,
+    val witheredCount: Int = 0,
+    val selectedTree: PlacedTree? = null,
+    val showGardenerHut: Boolean = false
+)
 
 @HiltViewModel
 class GardenViewModel @Inject constructor(
@@ -22,12 +46,61 @@ class GardenViewModel @Inject constructor(
     private val activityTrackingRepository: ActivityTrackingRepository
 ) : ViewModel() {
 
-    val gardenPlots: StateFlow<List<GardenPlotEntity>> = gardenEngine.gardenPlots
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = List(16) { index -> GardenPlotEntity(userId = "", plotIndex = index) }
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    private val rangeMode = MutableStateFlow(ForestRangeMode.Day)
+    private val anchorDate = MutableStateFlow(todayString())
+    private val selectedPlantId = MutableStateFlow<String?>(null)
+    private val showGardenerHut = MutableStateFlow(false)
+
+    init {
+        viewModelScope.launch {
+            gardenEngine.ensureDefaultUnlocks()
+        }
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val plantsFlow = combine(rangeMode, anchorDate) { mode, date ->
+        mode to date
+    }.flatMapLatest { (mode, date) ->
+        when (mode) {
+            ForestRangeMode.Day -> gardenEngine.observePlantsForDate(date)
+            ForestRangeMode.Week -> {
+                val (start, end) = weekBounds(date)
+                gardenEngine.observePlantsBetween(start, end)
+            }
+        }
+    }
+
+    val forestUiState: StateFlow<ForestPanelUiState> = combine(
+        plantsFlow,
+        rangeMode,
+        anchorDate,
+        selectedPlantId,
+        showGardenerHut
+    ) { plants, mode, date, selectedId, hut ->
+        val scene = ForestLayout.build(plants)
+        ForestPanelUiState(
+            rangeMode = mode,
+            anchorDate = date,
+            rangeLabel = when (mode) {
+                ForestRangeMode.Day -> date
+                ForestRangeMode.Week -> {
+                    val (start, end) = weekBounds(date)
+                    "$start ~ $end"
+                }
+            },
+            cells = scene.cells,
+            trees = scene.trees,
+            aliveCount = plants.count { it.status == "ALIVE" },
+            witheredCount = plants.count { it.status == "WITHERED" },
+            selectedTree = scene.trees.firstOrNull { it.plantId == selectedId },
+            showGardenerHut = hut
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = ForestPanelUiState()
+    )
 
     val statsUiState: StateFlow<GardenStatsUiState> = activityTrackingRepository
         .observeTodayModuleSummaries()
@@ -38,22 +111,42 @@ class GardenViewModel @Inject constructor(
             initialValue = GardenStatsUiState()
         )
 
-    init {
-        viewModelScope.launch {
-            gardenEngine.initializeGarden()
-        }
+    fun setRangeMode(mode: ForestRangeMode) {
+        rangeMode.value = mode
     }
 
-    fun onPlotClicked(plot: GardenPlotEntity) {
-        viewModelScope.launch {
-            if (plot.plantType == "empty") {
-                // Try to plant a seed if empty
-                gardenEngine.plantSeed(plot.plotIndex)
-            } else {
-                // Try to water/level up the plant
-                gardenEngine.waterPlant(plot)
-            }
+    fun shiftRange(delta: Int) {
+        val cal = Calendar.getInstance()
+        cal.time = dateFormat.parse(anchorDate.value) ?: Date()
+        when (rangeMode.value) {
+            ForestRangeMode.Day -> cal.add(Calendar.DAY_OF_YEAR, delta)
+            ForestRangeMode.Week -> cal.add(Calendar.WEEK_OF_YEAR, delta)
         }
+        anchorDate.value = dateFormat.format(cal.time)
+        selectedPlantId.value = null
+    }
+
+    fun onTreeClick(tree: PlacedTree) {
+        selectedPlantId.value = if (selectedPlantId.value == tree.plantId) null else tree.plantId
+    }
+
+    fun openGardenerHut() {
+        showGardenerHut.value = true
+    }
+
+    fun closeGardenerHut() {
+        showGardenerHut.value = false
+    }
+
+    private fun weekBounds(anchor: String): Pair<String, String> {
+        val cal = Calendar.getInstance()
+        cal.time = dateFormat.parse(anchor) ?: Date()
+        cal.firstDayOfWeek = Calendar.MONDAY
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        val start = dateFormat.format(cal.time)
+        cal.add(Calendar.DAY_OF_YEAR, 6)
+        val end = dateFormat.format(cal.time)
+        return start to end
     }
 }
 
@@ -109,13 +202,17 @@ internal fun toGardenStatsUiState(
         .filterNot { it.moduleId in excludedDistributionModuleIds }
         .sortedWith(
             compareByDescending<ActivityModuleSummary> { it.durationSec }
-                .thenBy { preferredDistributionOrder.indexOf(it.moduleId).let { index -> if (index == -1) Int.MAX_VALUE else index } }
+                .thenBy {
+                    preferredDistributionOrder.indexOf(it.moduleId)
+                        .let { index -> if (index == -1) Int.MAX_VALUE else index }
+                }
                 .thenBy { learningDistributionLabels[it.moduleId] ?: activityModuleLabel(it.moduleId) }
         )
         .map { summary ->
             LearningDistributionItemUiState(
                 moduleId = summary.moduleId,
-                label = learningDistributionLabels[summary.moduleId] ?: activityModuleLabel(summary.moduleId),
+                label = learningDistributionLabels[summary.moduleId]
+                    ?: activityModuleLabel(summary.moduleId),
                 durationSec = summary.durationSec
             )
         }
@@ -128,3 +225,6 @@ internal fun toGardenStatsUiState(
         )
     )
 }
+
+private fun todayString(): String =
+    SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
