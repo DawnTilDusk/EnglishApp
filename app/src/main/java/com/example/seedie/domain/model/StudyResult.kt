@@ -13,7 +13,8 @@ data class StudyResult(
     val studyDurationSec: Int,
     val vocabularyDelta: Int,
     val wrongWordIds: List<String>,
-    val estimatedVocabulary: Int? = null
+    val estimatedVocabulary: Int? = null,
+    val selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
 ) {
     val studyTimeMinutes: Int
         get() = if (studyDurationSec <= 0) 0 else (studyDurationSec + 59) / 60

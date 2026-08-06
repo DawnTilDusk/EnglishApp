@@ -45,6 +45,8 @@ import com.example.seedie.BuildConfig
 import com.example.seedie.data.audio.WordAudioPlayer
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
+import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
@@ -58,6 +60,27 @@ fun ListeningPracticeRoute(
     onFinishSession: (StudyResult) -> Unit,
     onNavigateBack: () -> Unit,
     viewModel: ListeningPracticeViewModel = hiltViewModel()
+) {
+    PlantSessionGate { speciesId ->
+        ListeningPracticeRouteBody(
+            assignmentArgs = assignmentArgs,
+            freeArgs = freeArgs,
+            speciesId = speciesId,
+            onFinishSession = onFinishSession,
+            onNavigateBack = onNavigateBack,
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+private fun ListeningPracticeRouteBody(
+    assignmentArgs: PracticeAssignmentArgs?,
+    freeArgs: FreePracticeArgs?,
+    speciesId: String,
+    onFinishSession: (StudyResult) -> Unit,
+    onNavigateBack: () -> Unit,
+    viewModel: ListeningPracticeViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -108,7 +131,8 @@ fun ListeningPracticeRoute(
         }
     }
 
-    LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef) {
+    LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef, speciesId) {
+        viewModel.setSelectedSpeciesId(speciesId)
         when {
             assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
             freeArgs != null -> viewModel.initializeFree(freeArgs)
@@ -188,28 +212,25 @@ private fun ListeningPracticeScreen(
     onFinishSession: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {
-                Button(onClick = onConfirmExit) {
-                    Text("确认退出")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = onDismissExitDialog) {
-                    Text("继续练习")
-                }
-            },
-            title = {
-                Text(if (uiState.isReviewMode) "退出回顾？" else "退出后将结束本次作业")
-            },
-            text = {
-                Text(
-                    if (uiState.isReviewMode) "进度不会改变。"
-                    else "未提交的作业不会记入已完成。"
-                )
-            }
-        )
+        if (uiState.isReviewMode) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    Button(onClick = onConfirmExit) { Text("确认退出") }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = onDismissExitDialog) { Text("继续练习") }
+                },
+                title = { Text("退出回顾？") },
+                text = { Text("进度不会改变。") }
+            )
+        } else {
+            GardenExitConfirmDialog(
+                answeredQuestionCount = uiState.correctCount + uiState.wrongCount,
+                onConfirmExit = onConfirmExit,
+                onContinue = onDismissExitDialog
+            )
+        }
     }
 
     when (uiState.stage) {
@@ -261,7 +282,7 @@ private fun ListeningPracticeScreen(
                 )
                 if (!uiState.isReviewMode) {
                     Text(
-                        text = "获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s",
+                        text = "本局将种入你的花园 · 用时 ${uiState.elapsedSeconds}s",
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                     )

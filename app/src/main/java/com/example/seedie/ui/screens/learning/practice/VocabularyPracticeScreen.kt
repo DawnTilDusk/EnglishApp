@@ -65,8 +65,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
+import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
@@ -77,12 +80,32 @@ fun VocabularyPracticeRoute(
     onNavigateBack: () -> Unit,
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
+    PlantSessionGate { speciesId ->
+        VocabularyPracticeRouteContent(
+            args = args,
+            speciesId = speciesId,
+            onFinishSession = onFinishSession,
+            onNavigateBack = onNavigateBack,
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+private fun VocabularyPracticeRouteContent(
+    args: VocabularyPracticeArgs,
+    speciesId: String,
+    onFinishSession: (StudyResult) -> Unit,
+    onNavigateBack: () -> Unit,
+    viewModel: VocabularyPracticeViewModel
+) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
     var speakerReady by remember { mutableStateOf(false) }
 
-    LaunchedEffect(args) {
+    LaunchedEffect(args, speciesId) {
+        viewModel.setSelectedSpeciesId(speciesId)
         viewModel.initialize(args)
     }
 
@@ -157,20 +180,10 @@ private fun VocabularyPracticeScreen(
     onDeferReview: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {
-                Button(onClick = onConfirmExit) {
-                    Text("确认退出")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = onDismissExitDialog) {
-                    Text("继续学习")
-                }
-            },
-            title = { Text("退出后将结束本次学习") },
-            text = { Text("已完成的作答会被记录，但你将离开当前练习。") }
+        GardenExitConfirmDialog(
+            answeredQuestionCount = uiState.correctCount + uiState.wrongCount + uiState.skippedCount,
+            onConfirmExit = onConfirmExit,
+            onContinue = onDismissExitDialog
         )
     }
 

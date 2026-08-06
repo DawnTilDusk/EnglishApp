@@ -119,7 +119,9 @@ private enum class TrendFilterMenuType {
 fun StatsPanelSection(
     modifier: Modifier = Modifier,
     learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
-    trendReplayKey: Int = 0
+    trendReplayKey: Int = 0,
+    forestAliveCount: Int = 0,
+    forestWitheredCount: Int = 0
 ) {
     val donutData = remember(learningDistribution.items) {
         learningDistribution.items.mapIndexed { index, item ->
@@ -160,6 +162,12 @@ fun StatsPanelSection(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
+        Text(
+            text = "所选时段森林：活苗 $forestAliveCount · 枯苗 $forestWitheredCount",
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            color = PrimaryGreen
+        )
+
         DonutFocusCard(
             modifier = Modifier
                 .fillMaxWidth()

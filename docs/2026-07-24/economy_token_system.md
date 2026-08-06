@@ -1,6 +1,6 @@
 # 学生代币系统（Economy Ledger）
 
-更新日期：2026-07-24
+更新日期：2026-08-06
 
 ## 1. 背景
 
@@ -10,6 +10,8 @@
 本地账本：Room `economy_transactions`，仅上传 `PENDING` 行。
 
 表级总览见 [supabase_table_map.md](./supabase_table_map.md)。详细根因与修复见同目录 [changelog.md](./changelog.md)。
+
+2026-08-06 起与历史林花园对齐：**听/读/写/词汇测验不再发币**；背单词（含复习）与每日任务领取仍发币；代币主消耗含园丁解锁树种（`refId = garden_unlock:{userId}:{speciesId}`）。详见 [garden_forest_mvp.md](../2026-08-06/garden_forest_mvp.md)。
 
 ## 2. 不变量
 
@@ -33,9 +35,11 @@ displayed = if (cloudCache known) cloudBalance + sum(PENDING)
 
 | 场景 | refId |
 |------|--------|
-| 学习结算 | `study:{sessionId}` |
+| 学习结算（背单词/复习） | `study:{sessionId}` |
 | 每日任务领取 | `task:{userId}:{yyyy-MM-dd}:{normalizedTitle}` |
-| 花园消费等 | 可空（无业务幂等键时） |
+| 园丁解锁物种 | `garden_unlock:{userId}:{speciesId}` |
+| 听/读/写作业（若仍写流水） | `assignment:{sessionId}` 或 `free_*`（当前客户端对这些模块 `earnedTokens=0`） |
+| 其它消费 | 可空（无业务幂等键时） |
 
 ## 5. 同步状态机
 
@@ -52,9 +56,10 @@ failure → remain PENDING，下次重试
 
 ## 7. 非目标（尚未做）
 
-- 花园服务端权威扣款
+- 花园服务端权威扣款 / 植物云同步 Syncer
 - 客户端镜像全量云端流水
 - 自动清洗已污染生产账户
+- 每日任务玩法重做（现有领取发币接口保留）
 
 （`points_ledger` 已删除，见 [legacy_schema_cleanup.md](./legacy_schema_cleanup.md) / migration `015`。）
 

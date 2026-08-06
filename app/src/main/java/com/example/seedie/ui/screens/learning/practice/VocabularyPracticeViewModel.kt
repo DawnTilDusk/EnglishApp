@@ -2,6 +2,7 @@ package com.example.seedie.ui.screens.learning.practice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -38,6 +39,11 @@ class VocabularyPracticeViewModel @Inject constructor(
     val pronunciationEvents = _pronunciationEvents.asSharedFlow()
 
     private var initializedArgs: VocabularyPracticeArgs? = null
+    private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+
+    fun setSelectedSpeciesId(speciesId: String) {
+        selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
+    }
     private var timerJob: Job? = null
     private var reviewHintJob: Job? = null
     private val wrongWordIds = linkedSetOf<String>()
@@ -1060,7 +1066,8 @@ class VocabularyPracticeViewModel @Inject constructor(
             earnedTokens = state.earnedTokens,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
-            wrongWordIds = wrongWordIds.toList()
+            wrongWordIds = wrongWordIds.toList(),
+            selectedSpeciesId = selectedSpeciesId
         )
     }
 
@@ -1084,8 +1091,10 @@ class VocabularyPracticeViewModel @Inject constructor(
             accuracy = accuracy,
             earnedTokens = baseResult.earnedTokens + currentResult.earnedTokens,
             studyDurationSec = baseResult.studyDurationSec + currentResult.studyDurationSec,
-            vocabularyDelta = baseResult.vocabularyDelta,
-            wrongWordIds = (baseResult.wrongWordIds + currentResult.wrongWordIds).distinct()
+            vocabularyDelta = baseResult.vocabularyDelta + currentResult.vocabularyDelta,
+            wrongWordIds = (baseResult.wrongWordIds + currentResult.wrongWordIds).distinct(),
+            estimatedVocabulary = currentResult.estimatedVocabulary ?: baseResult.estimatedVocabulary,
+            selectedSpeciesId = baseResult.selectedSpeciesId.ifBlank { currentResult.selectedSpeciesId }
         )
     }
 

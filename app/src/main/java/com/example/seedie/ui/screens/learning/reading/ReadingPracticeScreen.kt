@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
+import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
+import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.theme.gardenShadow
@@ -51,33 +53,36 @@ fun ReadingPracticeRoute(
     onNavigateBack: () -> Unit,
     viewModel: ReadingPracticeViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    PlantSessionGate { speciesId ->
+        val uiState by viewModel.uiState.collectAsState()
 
-    LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef) {
-        when {
-            assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
-            freeArgs != null -> viewModel.initializeFree(freeArgs)
+        LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef, speciesId) {
+            viewModel.setSelectedSpeciesId(speciesId)
+            when {
+                assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
+                freeArgs != null -> viewModel.initializeFree(freeArgs)
+            }
         }
-    }
 
-    LaunchedEffect(Unit) {
-        viewModel.studyResults.collect { result ->
-            onFinishSession(result)
+        LaunchedEffect(Unit) {
+            viewModel.studyResults.collect { result ->
+                onFinishSession(result)
+            }
         }
-    }
 
-    ReadingPracticeScreen(
-        uiState = uiState,
-        onNavigateBack = onNavigateBack,
-        onBackClick = viewModel::onBackClick,
-        onConfirmExit = viewModel::onConfirmExit,
-        onDismissExitDialog = viewModel::onDismissExitDialog,
-        onOptionSelected = viewModel::onOptionSelected,
-        onSubmitSet = viewModel::onSubmitSet,
-        onNextSet = viewModel::onNextSet,
-        onRetryLoad = viewModel::onRetryLoad,
-        onFinishSession = viewModel::onFinishSession
-    )
+        ReadingPracticeScreen(
+            uiState = uiState,
+            onNavigateBack = onNavigateBack,
+            onBackClick = viewModel::onBackClick,
+            onConfirmExit = viewModel::onConfirmExit,
+            onDismissExitDialog = viewModel::onDismissExitDialog,
+            onOptionSelected = viewModel::onOptionSelected,
+            onSubmitSet = viewModel::onSubmitSet,
+            onNextSet = viewModel::onNextSet,
+            onRetryLoad = viewModel::onRetryLoad,
+            onFinishSession = viewModel::onFinishSession
+        )
+    }
 }
 
 @Composable
@@ -94,30 +99,25 @@ private fun ReadingPracticeScreen(
     onFinishSession: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
-        AlertDialog(
-            onDismissRequest = {},
-            confirmButton = {
-                Button(onClick = onConfirmExit) {
-                    Text("确认退出")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = onDismissExitDialog) {
-                    Text("继续作答")
-                }
-            },
-            title = {
-                Text(
-                    if (uiState.isReviewMode) "退出回顾？" else "退出后将结束本次作业"
-                )
-            },
-            text = {
-                Text(
-                    if (uiState.isReviewMode) "进度不会改变。"
-                    else "未提交的作业不会记入已完成。"
-                )
-            }
-        )
+        if (uiState.isReviewMode) {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {
+                    Button(onClick = onConfirmExit) { Text("确认退出") }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = onDismissExitDialog) { Text("继续作答") }
+                },
+                title = { Text("退出回顾？") },
+                text = { Text("进度不会改变。") }
+            )
+        } else {
+            GardenExitConfirmDialog(
+                answeredQuestionCount = uiState.correctCount + uiState.wrongCount,
+                onConfirmExit = onConfirmExit,
+                onContinue = onDismissExitDialog
+            )
+        }
     }
 
     when (uiState.stage) {
@@ -162,7 +162,7 @@ private fun ReadingPracticeScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Text("正确 ${uiState.correctCount} / 错误 ${uiState.wrongCount}")
                 if (!uiState.isReviewMode) {
-                    Text("获得 ${uiState.earnedTokens} 代币 · 用时 ${uiState.elapsedSeconds}s")
+                    Text("本局将种入你的花园 · 用时 ${uiState.elapsedSeconds}s")
                 }
                 Spacer(modifier = Modifier.height(20.dp))
                 Button(onClick = onFinishSession) { Text("完成") }

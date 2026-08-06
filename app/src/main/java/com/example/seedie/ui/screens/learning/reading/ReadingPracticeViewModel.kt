@@ -2,6 +2,7 @@ package com.example.seedie.ui.screens.learning.reading
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.PracticeAssignmentMode
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.reading.ReadingPracticeConstants
@@ -27,6 +28,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.util.UUID
 
 @HiltViewModel
 class ReadingPracticeViewModel @Inject constructor(
@@ -39,6 +41,12 @@ class ReadingPracticeViewModel @Inject constructor(
 
     private val _studyResults = MutableSharedFlow<StudyResult>()
     val studyResults = _studyResults.asSharedFlow()
+
+    private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+
+    fun setSelectedSpeciesId(speciesId: String) {
+        selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
+    }
 
     private var session: ReadingPracticeSession? = null
     private var sessionFinished = false
@@ -182,8 +190,9 @@ class ReadingPracticeViewModel @Inject constructor(
         _uiState.value = ReadingPracticeUiState(stage = ReadingPracticeStage.Loading)
         viewModelScope.launch {
             runCatching {
+                val attemptSessionId = "${args.sessionId}:${UUID.randomUUID()}"
                 repository.createSession(
-                    sessionId = args.sessionId,
+                    sessionId = attemptSessionId,
                     itemRefs = listOf(args.itemRef)
                 )
             }.onSuccess { loadedSession ->
@@ -348,7 +357,7 @@ class ReadingPracticeViewModel @Inject constructor(
                     submissionId = args.submissionId,
                     correctCount = state.correctCount,
                     totalCount = total,
-                    earnedTokens = state.earnedTokens,
+                    earnedTokens = 0,
                     answerPayload = payload
                 )
             }.onSuccess {
@@ -411,11 +420,11 @@ class ReadingPracticeViewModel @Inject constructor(
     }
 
     private fun finishSession(isCompleted: Boolean, awardTokens: Boolean) {
+        val state = _uiState.value
+        val sessionId = state.sessionId ?: session?.sessionId ?: return
         if (sessionFinished) return
         sessionFinished = true
         stopTimer()
-        val state = _uiState.value
-        val sessionId = state.sessionId ?: session?.sessionId ?: return
         val answeredCount = state.correctCount + state.wrongCount
         val result = StudyResult(
             sessionId = sessionId,
@@ -426,10 +435,11 @@ class ReadingPracticeViewModel @Inject constructor(
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
-            earnedTokens = if (awardTokens) state.earnedTokens else 0,
+            earnedTokens = 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
-            wrongWordIds = emptyList()
+            wrongWordIds = emptyList(),
+            selectedSpeciesId = selectedSpeciesId
         )
         viewModelScope.launch {
             _studyResults.emit(result)

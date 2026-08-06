@@ -351,4 +351,44 @@ object SeedieDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS garden_plants (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    sessionId TEXT NOT NULL,
+                    moduleId TEXT NOT NULL,
+                    speciesId TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    completedQuestionCount INTEGER NOT NULL,
+                    correctCount INTEGER NOT NULL,
+                    studyDurationSec INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    localDate TEXT NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_garden_plants_userId_sessionId ON garden_plants(userId, sessionId)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_garden_plants_userId_localDate ON garden_plants(userId, localDate)"
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS garden_unlocks (
+                    userId TEXT NOT NULL,
+                    speciesId TEXT NOT NULL,
+                    unlockedAt INTEGER NOT NULL,
+                    PRIMARY KEY(userId, speciesId)
+                )
+                """.trimIndent()
+            )
+        }
+    }
 }

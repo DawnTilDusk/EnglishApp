@@ -2,6 +2,7 @@ package com.example.seedie.ui.screens.learning.listening
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.PracticeAssignmentMode
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.ListeningPracticeRepository
@@ -26,6 +27,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.util.UUID
 
 @HiltViewModel
 class ListeningPracticeViewModel @Inject constructor(
@@ -38,6 +40,12 @@ class ListeningPracticeViewModel @Inject constructor(
 
     private val _studyResults = MutableSharedFlow<StudyResult>()
     val studyResults = _studyResults.asSharedFlow()
+
+    private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+
+    fun setSelectedSpeciesId(speciesId: String) {
+        selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
+    }
 
     private val _playAudioEvents = MutableSharedFlow<PlayAudioEvent>()
     val playAudioEvents = _playAudioEvents.asSharedFlow()
@@ -217,8 +225,9 @@ class ListeningPracticeViewModel @Inject constructor(
         _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
         viewModelScope.launch {
             runCatching {
+                val attemptSessionId = "${args.sessionId}:${UUID.randomUUID()}"
                 repository.createSession(
-                    sessionId = args.sessionId,
+                    sessionId = attemptSessionId,
                     itemRefs = listOf(args.itemRef)
                 )
             }.onSuccess { loadedSession ->
@@ -399,7 +408,7 @@ class ListeningPracticeViewModel @Inject constructor(
                     submissionId = args.submissionId,
                     correctCount = state.correctCount,
                     totalCount = total,
-                    earnedTokens = state.earnedTokens,
+                    earnedTokens = 0,
                     answerPayload = payload
                 )
             }.onSuccess {
@@ -526,10 +535,11 @@ class ListeningPracticeViewModel @Inject constructor(
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
-            earnedTokens = if (awardTokens) state.earnedTokens else 0,
+            earnedTokens = 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
-            wrongWordIds = wrongQuestionIds.toList()
+            wrongWordIds = wrongQuestionIds.toList(),
+            selectedSpeciesId = selectedSpeciesId
         )
         viewModelScope.launch {
             _studyResults.emit(result)

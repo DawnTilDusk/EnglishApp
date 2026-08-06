@@ -80,9 +80,12 @@ class EconomyManagerImpl @Inject constructor(
         }
     }
 
-    override suspend fun spendTokens(amount: Int, item: String): Boolean {
+    override suspend fun spendTokens(amount: Int, item: String, refId: String?): Boolean {
         if (amount <= 0) return false
         val userId = authService.currentSession.value?.userId ?: return false
+        if (!refId.isNullOrBlank() && transactionDao.findByRefId(userId, refId) != null) {
+            return true
+        }
         if (projectedBalance(userId) < amount) return false
 
         val transaction = EconomyTransactionEntity(
@@ -90,9 +93,13 @@ class EconomyManagerImpl @Inject constructor(
             userId = userId,
             timestamp = System.currentTimeMillis(),
             amount = -amount,
-            reason = "Bought: $item"
+            reason = "Bought: $item",
+            refId = refId?.takeIf { it.isNotBlank() }
         )
-        transactionDao.insertTransaction(transaction)
+        val inserted = transactionDao.insertTransaction(transaction)
+        if (inserted == -1L) {
+            return !refId.isNullOrBlank() && transactionDao.findByRefId(userId, refId) != null
+        }
         val result = economyTransactionSyncer.syncAllToCloud(userId)
         if (result.error == null) {
             rememberCloudBalance(userId, result.cloudBalance)
