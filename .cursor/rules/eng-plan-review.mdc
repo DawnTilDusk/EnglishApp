@@ -1,50 +1,68 @@
 ---
-description: Before CreatePlan for code changes, run a professional SWE engineering review
+description: Code-changing plans need a short SWE review with hard gates; CreatePlan shows one chosen approach
 alwaysApply: true
 ---
 
-# Engineering plan review (this repo only)
+# Engineering plan review
 
-This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
+When producing a **Plan** (Plan mode / `CreatePlan` / step-by-step outline) that will **modify code** (app, web, SQL/migrations, scripts, behavior-affecting config), act as a senior engineer first. Own **how / where / contracts / verification / sequencing** — not product justification (that is the PM rule).
 
-When producing a **Plan** (Plan mode / `CreatePlan` / step-by-step implementation outline) that will **modify code** (app, web, SQL/migrations, scripts, configs that change runtime behavior), act as a **senior software engineer** first—plans must be technically rigorous, not a task shopping list.
+If a PM review also applies: **产品审视 → 工程审视 → `CreatePlan`**. Do not collapse both into vague「做这件事」bullets.
 
-## When to apply
+## When
 
-Trigger **before** writing or presenting the plan whenever the work will touch compilable sources, schema, APIs, client/server contracts, or behavior-affecting config.
+Trigger **before** writing or presenting the plan when work touches compilable sources, schema, APIs, client/server contracts, or behavior-affecting config.
 
-## When to skip
+## Skip
 
-Skip the full SWE checklist when the plan is **only**:
+Skip the full review when the plan is **only**:
 
-- Docs / changelog / Cursor rules with no code or schema change
+- Docs / changelog / `.cursor/rules/` with no code or schema change
 - Pure ops runbooks with no repo edits
-- User explicitly skips（「跳过工程评审」「直接列步骤」等）—then do a minimal confirmation and proceed
-- Same conversation already completed this review for an unchanged technical scope
+- User says「跳过工程评审」「直接列步骤」— confirm in one line, then proceed
+- Same conversation already completed this review for an **unchanged** technical scope
 
-If a **PM feature review** also applies, run PM first (product direction), then this SWE review (technical plan)—do not collapse them into vague “do the thing” bullets.
+## Hard gates
 
-## Required checklist (cover in order; keep short, do not skip items)
+Do **not** `CreatePlan` until all apply:
 
-1. **Problem & constraints** — Concrete failure/need; non-goals; hard constraints (platform, RLS, offline, perf, existing APIs)
-2. **Current system** — Relevant modules, data flow, schema/contracts; cite real paths after a quick repo check (`docs/`, code, migrations)—no guessing architecture
-3. **Design options** — At least 2 approaches when non-trivial; pick one with a one-line rationale (complexity, risk, fit with Android/web/Supabase stack)
-4. **Change surface** — Files/layers touched; API/schema/permission impact; migrations & backward compatibility; what stays unchanged
-5. **Correctness & edges** — Failure modes, empty/error states, concurrency/idempotency, authz; how to verify (compile, tests, smoke queries)
-6. **Sequencing** — Ordered steps with dependencies; smallest shippable slice first; rollback or safe feature-flag notes when risky
-7. **Open questions** — Ask 1–2 blocking technical questions first; state assumptions for the rest, then `CreatePlan`
+1. **Current system** — Cite real paths after a repo check (`app/`, `web/`, `supabase/migrations/`, existing Manager/Syncer/RPC, or topic docs). Guessing architecture is forbidden.
+2. **Non-goals** — State what this change will **not** do; name what stays unchanged.
+3. **One approach in the plan** — For non-trivial work, compare ≥2 options in **工程审视**, pick one with a one-line rationale (complexity / risk / fit with Android + web + Supabase). `CreatePlan` presents **only** the chosen approach — no A/B left for the user inside the plan.
+4. **Change surface** — Name concrete files/layers; if tables / roles / RPCs are involved, cite schema or `docs/2026-07-24/supabase_table_map.md` / `docs/2026-07-24/permission_model.md` and state RLS / authz impact **or**「无」.
+5. **Verification** — Every plan step maps to a check: `compileDebugKotlin` / `npm run build` / smoke SQL / explicit manual path.
+6. **Questions** — Ask at most 1–2 **blocking** technical questions first; write assumptions for the rest, then `CreatePlan`.
 
-## Output shape
+## Required output
 
-- Lead with a short **工程审视** (decisions + why), then the plan steps—do not dump file lists without rationale
-- Plans must name **concrete paths, contracts, and verification**—avoid “改一下相关代码” / “适当重构”
-- Prefer the **smallest correct change**; call out scope creep explicitly if the user asked for more than needed
-- After implementation, still follow compile / docs / remote Supabase rules; this rule does **not** require a `docs/` write for the review alone
+Lead with a short **工程审视**, then ordered steps. Required fields:
+
+- **选定方案 + why** (and rejected alternative in one line, when non-trivial)
+- **当前系统锚点** (paths / contracts)
+- **变更面** (files, API/schema, permissions; unchanged surface)
+- **正确性与边界** (failure / empty / idempotency / authz as relevant)
+- **验证** (per step or overall)
+- **假设或阻塞问题**
+
+Plans must name **concrete paths, contracts, and verification** — never「改一下相关代码」/「适当重构」. Prefer the **smallest correct change**; call out scope creep if the user asked for more than needed.
+
+After implementation, still follow compile / docs / remote Supabase rules. This review alone does **not** require a `docs/` write.
 
 ## Anti-patterns
 
-- Vague steps (“update the backend”, “handle edge cases”) with no module or contract
-- Ignoring existing patterns in-repo in favor of a greenfield redesign
-- Skipping schema/RLS/permission impact when data or roles are involved
-- Over-engineering (extra layers, premature abstractions) without a stated need
-- Treating the plan as a PM feature brief—product “what” belongs in PM review; this rule owns technical “how” and “why this how”
+```
+❌「更新后端，处理边界情况」无模块名
+✅「EconomyManager.addTokens + sync_my_economy_transactions；refId=garden:water:{userId}:{date}；验证：compileDebugKotlin + 查 user_economy_transactions」
+
+❌ CreatePlan 正文写「方案 A 或 B，你选」
+✅ 工程审视比较两者 → 计划只写选定方案
+
+❌ 忽略既有 Syncer/ledger，另起一套积分表
+✅ 扩展现有 economy 路径；non-goal：不新建平行余额系统
+
+❌ 把计划写成产品简介（留存、体验故事）而无路径与验证
+✅ 产品结论引用 PM；工程只写 how / where / verify
+
+❌ 用户已跳过工程评审仍强制长文
+✅ 一行确认 → 直接给可执行步骤
+```

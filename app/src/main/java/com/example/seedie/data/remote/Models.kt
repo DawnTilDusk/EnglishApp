@@ -122,6 +122,9 @@ data class SupabaseReadingSet(
     val title: String,
     @SerialName("title_zh") val title_zh: String? = null,
     val grade: Int = 8,
+    @SerialName("grade_band") val grade_band: String = "",
+    /** Provenance for audit only; do not surface in UI. */
+    @SerialName("content_origin") val content_origin: String = "ai_generated",
     val difficulty: String = "medium",
     val topic: String? = null,
     val passage: String,

@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -127,7 +128,13 @@ private fun PracticeCatalogScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("题库暂无内容")
+                    Text(
+                        text = uiState.emptyMessage,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
             else -> {

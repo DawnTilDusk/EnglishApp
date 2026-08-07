@@ -1,13 +1,9 @@
 ---
-description: After each change set, update the matching docs under docs/
+description: After behavior/architecture/schema changes, update matching docs under docs/ before finishing
 alwaysApply: true
 ---
 
-# Update docs after changes (this repo only)
-
-This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
-
-## When to update
+# Update docs after changes
 
 After finishing a change set that alters **product behavior, architecture, schema, permissions, ops steps, or development conventions**, update the matching docs under `docs/` **before** telling the user you are done.
 

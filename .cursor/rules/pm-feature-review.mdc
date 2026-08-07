@@ -1,44 +1,63 @@
 ---
-description: Before implementing product features, run a PM review (research, best practices, design)
+description: Product features need a short PM review with hard gates before CreatePlan or code
 alwaysApply: true
 ---
 
-# PM feature review (this repo only)
+# PM feature review
 
-This rule lives in the EnglishApp project `.cursor/rules/` and applies only when this workspace is open—not to other projects.
+Act as a product manager **before** any implementation plan or code when the request changes product behavior. Own **what / why / for whom / MVP / success / product risk** — never file paths, schemas, or implementation steps (that is the engineering rule).
 
-When the user proposes a **product feature** (new capability, product behavior change, user flow / UX design, or “实现/加一个/做…模块” style requests), act as a professional product manager **before** writing an implementation plan or code.
+## When
 
-## When to apply
+Apply when the request is product-facing **and** the user is in Plan / design discussion, or has not said to implement immediately:
 
-Trigger when the request is product-facing **and** the user is in Plan / design discussion, or has not yet said to implement immediately.
+- New capability, user-visible flow / UX, or「实现 / 加一个 / 做…模块」
+- Economy / token rules, shop, garden rewards
+- Permission or role-visibility changes (student / teacher / agency_admin)
+- Copy or empty states that change what users can do
 
-## When to skip
+## Skip
 
-Skip the full PM checklist when the change is **only**:
+Skip the full review when the change is **only**:
 
-- Bug fix, pure refactor, docs / Cursor rules, compile / ops, SQL-only, or clear technical debt cleanup
-- User explicitly skips PM（「直接实现」「跳过 PM」「不用产品评审」等）—then do a minimal confirmation and proceed
-- Same conversation already completed this review for an unchanged scope, and work is only implementing
+- Bug fix, pure refactor, docs / `.cursor/rules/`, compile / ops
+- SQL / migration with no user-facing product semantics
+- User says「直接实现」「跳过 PM」「不用产品评审」— confirm in one line, then proceed
+- Same conversation already completed this review for an **unchanged** scope (implementation only)
 
-## Required checklist (cover in order; keep short, do not skip items)
+## Hard gates
 
-1. **Problem & goals** — What user problem; success criteria (measurable when possible)
-2. **Who** — Roles (student / teacher / admin, etc. for this product) and key scenarios
-3. **Research** — Existing in-product capability and constraints (check `docs/`, relevant code / schema first); brief industry / competitor / best-practice notes when useful (edtech / language learning / similar UX)
-4. **Design** — Primary flow, empty/edge states, permissions & data impact, MVP vs later
-5. **Risks & tradeoffs** — Complexity, misuse, conflicts with economy / permission systems
-6. **Open questions** — Ask 1–2 blocking questions first; state assumptions for the rest and continue
-7. **Then build** — Only after direction is clear: CreatePlan / implement
+Do **not** `CreatePlan` or write product code until all apply:
 
-## Output shape
+1. **Repo anchor** — Name ≥1 existing doc or in-product capability you actually checked (start with `docs/2026-06-28/project_overview.md`, `docs/2026-07-24/economy_token_system.md`, `docs/2026-07-24/permission_model.md`, or a clearly related topic doc). Designing from imagination is forbidden.
+2. **Roles** — State impact for `student` / `teacher` / `agency_admin`, or explicitly「仅 student」/「仅 teacher」等.
+3. **MVP** — List ≥1 in-MVP item and ≥1 deferred; default to the smallest viable slice.
+4. **Success** — At least one concrete success criterion (observable behavior or metric).
+5. **Economy / permission touch** — If the feature touches tokens, balance, shop, or who can see/do what: name the conflict surface (double-spend, balance projection, RLS / role overreach, teacher vs student asymmetry) **or** state「无冲突」with a one-line why.
+6. **Questions** — Ask at most 1–2 **blocking** questions first; write assumptions for the rest and continue.
 
-- Lead with a short **产品审视**, then technical approach—do not jump straight to implementation detail
-- In Plan mode: fold the review into the plan, then `CreatePlan`
-- After implementation, still follow compile / docs / remote Supabase rules; this rule does **not** require a `docs/` write for the review alone (only when shipped behavior/contracts change, per the docs rule)
+## Required output
+
+Lead with a short **产品审视** (decision-sized, not a report). Required fields, in order:
+
+- **问题与成功标准**
+- **角色与关键场景**
+- **现状锚点** (doc or capability named above)
+- **MVP / later**
+- **风险** (product / economy / permission)
+- **假设或阻塞问题**
+
+In Plan mode: fold this into the plan body, then run the engineering review (if code will change), then `CreatePlan`. This rule alone does **not** require a `docs/` write.
 
 ## Anti-patterns
 
-- Do not turn research into a long report—keep it decision-sized
-- Do not inflate scope for appearances; default to the smallest viable solution
-- Do not force a full PM review after an explicit skip
+```
+❌「加个花园浇水功能，提升留存」→ 直接列开发步骤
+✅ 问题：学生缺低成本每日回访动机；成功：日活学生完成 1 次浇水；角色：仅 student；锚点：garden_forest_mvp + economy_token_system；MVP：浇水动画 + 固定代币，later：连续浇水加成；风险：与学习代币重复发放 / refId 幂等
+
+❌ 研究报告式长文（竞品对比三屏）却不划 MVP
+✅ 行业一句带过；把篇幅留给角色、MVP、经济/权限冲突
+
+❌ 用户已说「跳过 PM」仍强制全文评审
+✅ 一行确认跳过 → 进入工程或实现
+```

@@ -18,7 +18,7 @@
 | 经济（云） | `user_economy_transactions` | 在用（权威账本） |
 | 学习同步 | `user_check_ins`、词汇进度三表 | 在用 |
 | 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
-| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；自由刷 + 作业选题 |
+| 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；自由刷（按学年）+ 作业选题 |
 | 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；自由刷 + 作业选题 |
 | 写作内容 | `writing_prompts` | 远端 SSOT；作文题目 |
 | 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力/写作下发 |
@@ -152,13 +152,15 @@ flowchart TB
 
 | 表 | 用途 | 状态 |
 |----|------|------|
-| `reading_sets` | 短文套卷（passage、年级、难度、排序） | 远端 SSOT；公开 SELECT |
+| `reading_sets` | 短文套卷（passage、`grade`、`grade_band`、`content_origin`、难度、排序） | 远端 SSOT；公开 SELECT |
 | `reading_questions` | 套内题目（题干、解析、`reward_token`、可选 `highlight_word`） | 同上 |
 | `reading_options` | 选项 A–D | 同上 |
 
-- 迁移：[`020_reading_comprehension_catalog.sql`](../../supabase/migrations/020_reading_comprehension_catalog.sql)
-- App：学习中心「阅读训练」→ 模式选择 → **自由刷题**（全库选题，单套开练）或 **完成作业**（按 assignment items 过滤）；**无**本地 assets / Room 题包
-- 完成标记见 §6.1b；作业提交见 §6.2
+- 迁移：[`020_reading_comprehension_catalog.sql`](../../supabase/migrations/020_reading_comprehension_catalog.sql)、[`030_reading_grade_bands.sql`](../../supabase/migrations/030_reading_grade_bands.sql)
+- `grade_band`：`g7a`…`g9b`（七上–九下）；自由练习按资料年级映射（初一→七上+七下，余类推）；非初中年级目录为空
+- `content_origin`：`ai_generated` / `editorial` / `licensed`；**仅库内审计**，App / 教师端 UI 不展示
+- App：学习中心「阅读训练」→ 模式选择 → **自由刷题**（按学年过滤目录，单套开练）或 **完成作业**（按 assignment items，**不**按年级挡）；**无**本地 assets / Room 题包
+- 完成标记见 §6.1b；作业提交见 §6.2；结构说明见 [reading_grade_bands.md](../2026-08-07/reading_grade_bands.md)
 
 ---
 

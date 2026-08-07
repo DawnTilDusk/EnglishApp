@@ -1,0 +1,104 @@
+{
+  "sets": [
+    {
+      "id": "r07a-01",
+      "grade_band": "g7a"
+    },
+    {
+      "id": "r07a-02",
+      "grade_band": "g7a"
+    },
+    {
+      "id": "r07a-03",
+      "grade_band": "g7a"
+    },
+    {
+      "id": "r07a-04",
+      "grade_band": "g7a"
+    },
+    {
+      "id": "r07a-05",
+      "grade_band": "g7a"
+    },
+    {
+      "id": "r07b-01",
+      "grade_band": "g7b"
+    },
+    {
+      "id": "r07b-02",
+      "grade_band": "g7b"
+    },
+    {
+      "id": "r07b-03",
+      "grade_band": "g7b"
+    },
+    {
+      "id": "r07b-04",
+      "grade_band": "g7b"
+    },
+    {
+      "id": "r07b-05",
+      "grade_band": "g7b"
+    },
+    {
+      "id": "r08b-01",
+      "grade_band": "g8b"
+    },
+    {
+      "id": "r08b-02",
+      "grade_band": "g8b"
+    },
+    {
+      "id": "r08b-03",
+      "grade_band": "g8b"
+    },
+    {
+      "id": "r08b-04",
+      "grade_band": "g8b"
+    },
+    {
+      "id": "r08b-05",
+      "grade_band": "g8b"
+    },
+    {
+      "id": "r09a-01",
+      "grade_band": "g9a"
+    },
+    {
+      "id": "r09a-02",
+      "grade_band": "g9a"
+    },
+    {
+      "id": "r09a-03",
+      "grade_band": "g9a"
+    },
+    {
+      "id": "r09a-04",
+      "grade_band": "g9a"
+    },
+    {
+      "id": "r09a-05",
+      "grade_band": "g9a"
+    },
+    {
+      "id": "r09b-01",
+      "grade_band": "g9b"
+    },
+    {
+      "id": "r09b-02",
+      "grade_band": "g9b"
+    },
+    {
+      "id": "r09b-03",
+      "grade_band": "g9b"
+    },
+    {
+      "id": "r09b-04",
+      "grade_band": "g9b"
+    },
+    {
+      "id": "r09b-05",
+      "grade_band": "g9b"
+    }
+  ]
+}

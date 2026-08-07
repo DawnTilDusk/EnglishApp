@@ -3,6 +3,7 @@ package com.example.seedie.ui.screens.learning.catalog
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.domain.model.PracticeCatalogItem
+import com.example.seedie.domain.reading.ReadingGradeBands
 import com.example.seedie.domain.repository.PracticeCatalogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -16,6 +17,7 @@ data class PracticeCatalogUiState(
     val title: String = "阅读题库",
     val isLoading: Boolean = true,
     val errorMessage: String? = null,
+    val emptyMessage: String = ReadingGradeBands.EMPTY_CATALOG_MESSAGE,
     val items: List<PracticeCatalogItem> = emptyList()
 )
 
@@ -53,9 +55,14 @@ class PracticeCatalogViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
                 catalogRepository.listCatalog(moduleId)
-            }.onSuccess { items ->
+            }.onSuccess { load ->
                 _uiState.update {
-                    it.copy(isLoading = false, items = items, errorMessage = null)
+                    it.copy(
+                        isLoading = false,
+                        items = load.items,
+                        emptyMessage = load.emptyMessage,
+                        errorMessage = null
+                    )
                 }
             }.onFailure { error ->
                 _uiState.update {
