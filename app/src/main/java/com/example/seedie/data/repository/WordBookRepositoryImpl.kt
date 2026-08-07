@@ -135,7 +135,8 @@ private fun SupabaseWordBook.toWordBookEntity(previous: WordBookEntity?): WordBo
         isActive = isActive,
         wordCount = word_count,
         updatedAt = updated_at,
-        coverUrl = cover_url
+        coverUrl = cover_url,
+        gradeLevel = grade_level
     )
 }
 
@@ -175,7 +176,9 @@ private fun SupabaseVocabularyWord.toEntity(): VocabularyWordEntity {
         sortOrder = sort_order,
         moduleId = module_id,
         audioUrl = audio_url,
-        sensesJson = sensesJson
+        sensesJson = sensesJson,
+        difficultyValue = difficulty_value,
+        masterId = master_id
     )
 }
 

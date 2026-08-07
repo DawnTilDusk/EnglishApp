@@ -32,7 +32,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -239,7 +238,13 @@ private fun AssignmentCard(
                 Text(score, style = MaterialTheme.typography.bodySmall)
             }
             item.isOverdue -> {
-                Text("已逾期", color = Color(0xFFB91C1C), style = MaterialTheme.typography.bodySmall)
+                // 逾期提示：改用主题的错误语义色，跟随 Light/Dark 主题自动切换，
+                // 避免固定亮红破坏 Seedie 自然绿的整体调性
+                Text(
+                    text = "已逾期",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
             else -> {
                 Text(

@@ -30,6 +30,7 @@ fun TeacherBottomNavigationBar(
 
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
+        // 与学生端底栏保持一致的绿色系语义，教师端也在同一 IP 视觉体系
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.primary
     ) {
@@ -44,12 +45,14 @@ fun TeacherBottomNavigationBar(
                 },
                 icon = { Icon(imageVector = tab.second, contentDescription = tab.first) },
                 label = { Text(tab.first) },
+                // 选中：primaryContainer 新芽白绿底 + onPrimaryContainer 深林绿前景
+                // 未选中：onSurfaceVariant 苍林绿，避免旧的驼色 secondary 与前景混淆
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.surface,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.secondary,
-                    unselectedTextColor = MaterialTheme.colorScheme.secondary
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }

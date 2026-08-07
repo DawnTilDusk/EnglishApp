@@ -80,7 +80,8 @@ data class SupabaseWordBook(
     val version: Int = 1,
     @SerialName("word_count") val word_count: Int = 0,
     @SerialName("cover_url") val cover_url: String? = null,
-    @SerialName("updated_at") val updated_at: Long = 0L
+    @SerialName("updated_at") val updated_at: Long = 0L,
+    @SerialName("grade_level") val grade_level: Int? = null
 )
 
 @Serializable
@@ -103,11 +104,13 @@ data class SupabaseVocabularyWord(
     val translation: String? = null,
     @SerialName("example_sentence") val example_sentence: String? = null,
     @SerialName("difficulty_level") val difficulty_level: String? = null,
+    @SerialName("difficulty_value") val difficulty_value: Int? = null,
     @SerialName("reward_token") val reward_token: Int = 0,
     @SerialName("estimated_duration_sec") val estimated_duration_sec: Int = 0,
     @SerialName("sort_order") val sort_order: Int = 0,
     @SerialName("audio_url") val audio_url: String? = null,
-    val senses: List<SupabaseWordSense>? = null
+    val senses: List<SupabaseWordSense>? = null,
+    @SerialName("master_id") val master_id: String? = null
 )
 
 @Serializable
@@ -168,7 +171,11 @@ data class SupabaseListeningMaterial(
     @SerialName("estimated_seconds") val estimated_seconds: Int = 0,
     @SerialName("sort_order") val sort_order: Int = 0,
     val version: Int = 1,
-    @SerialName("updated_at") val updated_at: Long = 0L
+    @SerialName("updated_at") val updated_at: Long = 0L,
+    @SerialName("book_id") val book_id: String? = null,
+    @SerialName("grade_level") val grade_level: Int? = null,
+    @SerialName("unit_ref") val unit_ref: String? = null,
+    @SerialName("section_ref") val section_ref: String? = null
 )
 
 @Serializable

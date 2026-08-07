@@ -1,6 +1,5 @@
 package com.example.seedie.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -11,30 +10,74 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
+// Light 主题：主色调完全保留 Seedie IP 的生机绿套装，补充色只负责容器/描边/层次
+private val LightColorScheme = lightColorScheme(
+    // 主色：生机绿 PrimaryGreen，Seedie 小芽的品牌主情绪色，不做替换
     primary = PrimaryGreen,
+    onPrimary = SurfaceCream,
+    // 主容器：Green100 新芽白绿，用作选中/高亮的浅底，属于补充层次
+    primaryContainer = Green100,
+    onPrimaryContainer = Green800,
+
+    // 次色：橡木棕 SecondaryBrown，保留原有中性木质感
     secondary = SecondaryBrown,
+    onSecondary = SurfaceCream,
+    // 次容器：Green50 晨露绿，用作弱层级信息底，仍维持整体绿意
+    secondaryContainer = Green50,
+    onSecondaryContainer = SecondaryBrown,
+
+    // 三级色：暖阳橙 AccentOrange，奖励/代币/强调点，保留品牌 IP
     tertiary = AccentOrange,
+    onTertiary = SurfaceCream,
+    // 三级容器：KhakiGold 卡其金淡化版，用于成就点缀的底色
+    tertiaryContainer = KhakiGold.copy(alpha = 0.24f),
+    onTertiaryContainer = SecondaryBrown,
+
+    // 背景：淡薄荷绿保留（IP 底色）
     background = BackgroundMint,
-    surface = SurfaceCream
+    onBackground = Green900,
+
+    // 表面：奶油白保留卡片清爽感
+    surface = SurfaceCream,
+    onSurface = Green900,
+    // 表面变体：Green50 晨露绿作为分隔/次级容器底，比灰色更贴合花园气质
+    surfaceVariant = Green50,
+    onSurfaceVariant = Green700,
+
+    // 描边：Green300 春叶绿常规描边、Green100 用于极淡分隔线
+    outline = Green300,
+    outlineVariant = Green100
 )
 
-private val LightColorScheme = lightColorScheme(
+// Dark 主题：保持生机绿的品牌情绪，反转色阶用于深色环境
+private val DarkColorScheme = darkColorScheme(
+    // 深色态下依然以生机绿为主色，让品牌情绪跨主题延续
     primary = PrimaryGreen,
-    secondary = SecondaryBrown,
-    tertiary = AccentOrange,
-    background = BackgroundMint,
-    surface = SurfaceCream
+    onPrimary = Green900,
+    primaryContainer = Green700,
+    onPrimaryContainer = Green100,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = SecondaryBrown,
+    onSecondary = SurfaceCream,
+    secondaryContainer = DeepCocoa,
+    onSecondaryContainer = Green100,
+
+    tertiary = AccentOrange,
+    onTertiary = DeepCocoa,
+    tertiaryContainer = ForestDeep,
+    onTertiaryContainer = KhakiGold,
+
+    // 深色背景：Green900 墨林绿，避免纯黑显得冰冷
+    background = Green900,
+    onBackground = Green50,
+
+    surface = Green800,
+    onSurface = Green50,
+    surfaceVariant = ForestDeep,
+    onSurfaceVariant = Green200,
+
+    outline = Green600,
+    outlineVariant = Green700
 )
 
 @Composable

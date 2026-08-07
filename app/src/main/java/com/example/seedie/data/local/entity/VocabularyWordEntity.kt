@@ -9,7 +9,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["bookId"]),
         Index(value = ["bookId", "difficultyLevel"]),
-        Index(value = ["moduleId"])
+        Index(value = ["moduleId"]),
+        Index(value = ["masterId"])
     ]
 )
 data class VocabularyWordEntity(
@@ -28,5 +29,11 @@ data class VocabularyWordEntity(
     val moduleId: String? = null,
     val audioUrl: String? = null,
     /** JSON array of {part_of_speech, translation}; empty → use legacy fields. */
-    val sensesJson: String = "[]"
+    val sensesJson: String = "[]",
+    /** Numeric grade-based difficulty, inherited from owning word_book. Nullable
+     *  when server has not populated it yet; readers should fall back to the
+     *  legacy `difficultyLevel` enum. */
+    val difficultyValue: Int? = null,
+    /** Reference into vocabulary_master; nullable for legacy rows. */
+    val masterId: String? = null
 )

@@ -71,7 +71,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.AccentOrange
+import com.example.seedie.ui.theme.ForestDeep
+import com.example.seedie.ui.theme.MossGreen
+import com.example.seedie.ui.theme.OliveYellow
 import com.example.seedie.ui.theme.PrimaryGreen
+import com.example.seedie.ui.theme.SageGreen
 import com.example.seedie.ui.theme.SecondaryBrown
 import com.example.seedie.ui.theme.gardenPressable
 import kotlinx.coroutines.delay
@@ -752,14 +756,17 @@ private fun DonutChart(
     }
 }
 
+// 学习时间分布环形图配色：前 3 位仍是 Seedie 三主色（生机绿/暖阳橙/橡木棕），
+// 保证「最主要的切片依然是 IP 主色」；后续用新增补充色继续丰富层次，
+// 让不同学习模块像同一片花园里的不同植物，色相彼此协调不刺眼。
 private val donutPalette = listOf(
-    PrimaryGreen,
-    AccentOrange,
-    SecondaryBrown,
-    Color(0xFF5B8DEF),
-    Color(0xFF2EAEA1),
-    Color(0xFF9C6ADE),
-    Color(0xFFD96C75)
+    PrimaryGreen,   // 生机绿：主色，占比最高的模块用它承担品牌情绪
+    AccentOrange,   // 暖阳橙：次强调，第二大切片保持 IP 的暖色亮点
+    SecondaryBrown, // 橡木棕：中性木质色，第三切片撑起层次
+    MossGreen,      // 苔藓绿：偏黄的中绿，形成绿色内部的自然过渡
+    SageGreen,      // 鼠尾草绿：柔和过渡色，让相邻切片衔接更顺
+    OliveYellow,    // 橄榄黄绿：暖调收获色，用于成就/复盘类
+    ForestDeep      // 深森林绿：最深切片，压住整体不飘
 )
 
 private fun donutPaletteColor(index: Int): Color {

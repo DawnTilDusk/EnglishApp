@@ -17,5 +17,7 @@ data class WordBookEntity(
     val isActive: Boolean,
     val wordCount: Int,
     val updatedAt: Long,
-    val coverUrl: String? = null
+    val coverUrl: String? = null,
+    /** Numeric grade-based difficulty (1 = 一年级上，18 = 九年级下，可继续扩展)。可空。 */
+    val gradeLevel: Int? = null
 )

@@ -1,0 +1,3886 @@
+{
+  "$schema_version": 1,
+  "root": "C:\\Users\\zhong\\Desktop\\Eng资料",
+  "book_count": 5,
+  "books": [
+    {
+      "book_id": "pep-g7-vol1",
+      "grade_level": 13,
+      "source_root": "C:\\Users\\zhong\\Desktop\\Eng资料\\7上",
+      "word_pdfs": [
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\2024秋人教版七上单词表（总表）.pdf",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\2024秋人教版七上单词表（汉译英）.pdf",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\2024秋人教版七上单词表（英译汉）.pdf"
+      ],
+      "textbook_pdfs": [
+        "7上\\新版\\【1】7上音频（新教材）\\24秋人教版七上英语新教材笔记.pdf",
+        "7上\\新版\\【1】7上音频（新教材）\\（根据2022年版课程标准修订）义务教育教科书 英语 七年级 上册.pdf"
+      ],
+      "audio_full": [
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\01 P2 7上 SU1SecA2a.mp3",
+          "name": "01 P2 7上 SU1SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\23 P20 7上U1SecA1b.mp3",
+          "name": "23 P20 7上U1SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\24 P20 7上U1SecA1c.mp3",
+          "name": "24 P20 7上U1SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\25 P21 7上U1PR1.mp3",
+          "name": "25 P21 7上U1PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\26 P21 7上U1PR2.mp3",
+          "name": "26 P21 7上U1PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\27 P21 7上U1SecA2a.mp3",
+          "name": "27 P21 7上U1SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\28 P22 7上U1SecA2d.mp3",
+          "name": "28 P22 7上U1SecA2d.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\29 P24 7上U1SecB1b.mp3",
+          "name": "29 P24 7上U1SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\30 P28 7上U2SecA1b.mp3",
+          "name": "30 P28 7上U2SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\31 P28 7上U2SecA1c.mp3",
+          "name": "31 P28 7上U2SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\32 P29 7上U2PR1.mp3",
+          "name": "32 P29 7上U2PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\33 P29 7上U2PR2.mp3",
+          "name": "33 P29 7上U2PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\34 P29 7上U2PR3.mp3",
+          "name": "34 P29 7上U2PR3.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\35 P29 7上U2SecA2a.mp3",
+          "name": "35 P29 7上U2SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\36 P30 7上U2SecA2c.mp3",
+          "name": "36 P30 7上U2SecA2c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\37 P32 7上U2SecB1b.mp3",
+          "name": "37 P32 7上U2SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\38 P36 7上U3SecA1b.mp3",
+          "name": "38 P36 7上U3SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\39 P36 7上U3SecA1c.mp3",
+          "name": "39 P36 7上U3SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\40 P37 7上U3PR1.mp3",
+          "name": "40 P37 7上U3PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\41 P37 7上U3PR2.mp3",
+          "name": "41 P37 7上U3PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\42 P37 7上U3SecA2a.mp3",
+          "name": "42 P37 7上U3SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\43 P38 7上U3SecA2d.mp3",
+          "name": "43 P38 7上U3SecA2d.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\44 P40 7上U3SecB1b.mp3",
+          "name": "44 P40 7上U3SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\45 P44 7上U4SecA1b.mp3",
+          "name": "45 P44 7上U4SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\46 P44 7上U4SecA1c.mp3",
+          "name": "46 P44 7上U4SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\47 P45 7上U4PR1.mp3",
+          "name": "47 P45 7上U4PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\48 P45 7上U4PR2.mp3",
+          "name": "48 P45 7上U4PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\49 P45 7上U4SecA2a.mp3",
+          "name": "49 P45 7上U4SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\50 P46 7上U4SecA2c.mp3",
+          "name": "50 P46 7上U4SecA2c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\51 P48 7上U4SecB1b.mp3",
+          "name": "51 P48 7上U4SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\52 P52 7上U5SecA1b.mp3",
+          "name": "52 P52 7上U5SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\53 P52 7上U5SecA1c.mp3",
+          "name": "53 P52 7上U5SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\54 P53 7上U5PR1.mp3",
+          "name": "54 P53 7上U5PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\55 P53 7上U5PR2.mp3",
+          "name": "55 P53 7上U5PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\56 P53 7上U5SecA2a.mp3",
+          "name": "56 P53 7上U5SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\57 P54 7上U5SecA2c.mp3",
+          "name": "57 P54 7上U5SecA2c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\58 P56 7上U5SecB1b.mp3",
+          "name": "58 P56 7上U5SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\59 P60 7上U6SecA1b.mp3",
+          "name": "59 P60 7上U6SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\60 P60 7上U6SecA1c.mp3",
+          "name": "60 P60 7上U6SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\61 P60 7上U6SecA1d.mp3",
+          "name": "61 P60 7上U6SecA1d.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\62 P61 7上U6PR1.mp3",
+          "name": "62 P61 7上U6PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\63 P61 7上U6PR2.mp3",
+          "name": "63 P61 7上U6PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\64 P61 7上U6SecA2a.mp3",
+          "name": "64 P61 7上U6SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\65 P62 7上U6SecA2d.mp3",
+          "name": "65 P62 7上U6SecA2d.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\66 P64 7上U6SecB1b.mp3",
+          "name": "66 P64 7上U6SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\67 P68 7上U7SecA1a.mp3",
+          "name": "67 P68 7上U7SecA1a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\68 P68 7上U7SecA1b.mp3",
+          "name": "68 P68 7上U7SecA1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\69 P68 7上U7SecA1c.mp3",
+          "name": "69 P68 7上U7SecA1c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\70 P69 7上U7PR1.mp3",
+          "name": "70 P69 7上U7PR1.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\71 P69 7上U7PR2.mp3",
+          "name": "71 P69 7上U7PR2.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\72 P69 7上U7SecA2a.mp3",
+          "name": "72 P69 7上U7SecA2a.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\73 P70 7上U7SecA2c.mp3",
+          "name": "73 P70 7上U7SecA2c.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\74 P72 7上U7SecB1b.mp3",
+          "name": "74 P72 7上U7SecB1b.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\75 P106 7上Starter Unit 1 Vocabulary.mp3",
+          "name": "75 P106 7上Starter Unit 1 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\76 P106 7上Starter Unit 2 Vocabulary.mp3",
+          "name": "76 P106 7上Starter Unit 2 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\77 P106 7上Starter Unit 3 Vocabulary.mp3",
+          "name": "77 P106 7上Starter Unit 3 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\78 P106 7上Unit 1 Vocabulary.mp3",
+          "name": "78 P106 7上Unit 1 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\79 P107 7上Unit 2 Vocabulary.mp3",
+          "name": "79 P107 7上Unit 2 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词SU1.MP3",
+          "name": "7上单词SU1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词SU2.MP3",
+          "name": "7上单词SU2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词SU3.MP3",
+          "name": "7上单词SU3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U1.MP3",
+          "name": "7上单词U1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U2.MP3",
+          "name": "7上单词U2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U3.MP3",
+          "name": "7上单词U3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U4.MP3",
+          "name": "7上单词U4.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U5.MP3",
+          "name": "7上单词U5.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U6.MP3",
+          "name": "7上单词U6.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上单词U7.MP3",
+          "name": "7上单词U7.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表SU1.MP3",
+          "name": "7上小学词汇表SU1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表SU2.MP3",
+          "name": "7上小学词汇表SU2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表SU3.MP3",
+          "name": "7上小学词汇表SU3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U1.MP3",
+          "name": "7上小学词汇表U1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U2.MP3",
+          "name": "7上小学词汇表U2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U3.MP3",
+          "name": "7上小学词汇表U3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U4.MP3",
+          "name": "7上小学词汇表U4.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U5.MP3",
+          "name": "7上小学词汇表U5.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U6.MP3",
+          "name": "7上小学词汇表U6.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上小学词汇表U7.MP3",
+          "name": "7上小学词汇表U7.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U1.MP3",
+          "name": "7上扩展阅读U1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U2.MP3",
+          "name": "7上扩展阅读U2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U3.MP3",
+          "name": "7上扩展阅读U3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U4.MP3",
+          "name": "7上扩展阅读U4.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U5.MP3",
+          "name": "7上扩展阅读U5.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U6.MP3",
+          "name": "7上扩展阅读U6.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上扩展阅读U7.MP3",
+          "name": "7上扩展阅读U7.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文SU1.MP3",
+          "name": "7上课文SU1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文SU2.MP3",
+          "name": "7上课文SU2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文SU3.MP3",
+          "name": "7上课文SU3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U1.MP3",
+          "name": "7上课文U1.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U2.MP3",
+          "name": "7上课文U2.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U3.MP3",
+          "name": "7上课文U3.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U4.MP3",
+          "name": "7上课文U4.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U5.MP3",
+          "name": "7上课文U5.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U6.MP3",
+          "name": "7上课文U6.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【1】7上新版音频\\7上课文U7.MP3",
+          "name": "7上课文U7.MP3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\80 P108 7上Unit 3 Vocabulary.mp3",
+          "name": "80 P108 7上Unit 3 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\81 P109 7上Unit 4 Vocabulary.mp3",
+          "name": "81 P109 7上Unit 4 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\82 P110 7上Unit 5 Vocabulary.mp3",
+          "name": "82 P110 7上Unit 5 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\83 P110 7上Unit 6 Vocabulary.mp3",
+          "name": "83 P110 7上Unit 6 Vocabulary.mp3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\84 P111 7上Unit 7 Vocabulary.mp3",
+          "name": "84 P111 7上Unit 7 Vocabulary.mp3"
+        }
+      ],
+      "audio_segments": [
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\02 P2 7上SU1SecA2b.mp3",
+          "name": "02 P2 7上SU1SecA2b.mp3",
+          "index_hint": 2,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\03 P2 7上SU1SecA2c.mp3",
+          "name": "03 P2 7上SU1SecA2c.mp3",
+          "index_hint": 3,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\04 P3 7上SU1PR1.mp3",
+          "name": "04 P3 7上SU1PR1.mp3",
+          "index_hint": 4,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\05 P3 7上SU1PR2.mp3",
+          "name": "05 P3 7上SU1PR2.mp3",
+          "index_hint": 5,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\06 P3 7上SU1PR3.mp3",
+          "name": "06 P3 7上SU1PR3.mp3",
+          "index_hint": 6,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Pronunciation 3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\07 P3 7上SU1PR4.mp3",
+          "name": "07 P3 7上SU1PR4.mp3",
+          "index_hint": 7,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Pronunciation 4"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\08 P4 7上SU1SecB1b.mp3",
+          "name": "08 P4 7上SU1SecB1b.mp3",
+          "index_hint": 8,
+          "unit_ref": "Starter Unit 1",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\09 P8 7上SU2SecA2a.mp3",
+          "name": "09 P8 7上SU2SecA2a.mp3",
+          "index_hint": 9,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\10 P8 7上SU2SecA2c.mp3",
+          "name": "10 P8 7上SU2SecA2c.mp3",
+          "index_hint": 10,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\11 P8 7上SU2SecA2d.mp3",
+          "name": "11 P8 7上SU2SecA2d.mp3",
+          "index_hint": 11,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\12 P9 7上SU2PR1.mp3",
+          "name": "12 P9 7上SU2PR1.mp3",
+          "index_hint": 12,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\13 P9 7上SU2PR3.mp3",
+          "name": "13 P9 7上SU2PR3.mp3",
+          "index_hint": 13,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Pronunciation 3"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\14 P9 7上SU2PR4.mp3",
+          "name": "14 P9 7上SU2PR4.mp3",
+          "index_hint": 14,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Pronunciation 4"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\15 P10 7上SU2SecB1b.mp3",
+          "name": "15 P10 7上SU2SecB1b.mp3",
+          "index_hint": 15,
+          "unit_ref": "Starter Unit 2",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\16 P14 7上SU3SecA2a.mp3",
+          "name": "16 P14 7上SU3SecA2a.mp3",
+          "index_hint": 16,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\17 P14 7上SU3SecA2b.mp3",
+          "name": "17 P14 7上SU3SecA2b.mp3",
+          "index_hint": 17,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\18 P14 7上SU3SecA2c.mp3",
+          "name": "18 P14 7上SU3SecA2c.mp3",
+          "index_hint": 18,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\19 P15 7上SU3PR1.mp3",
+          "name": "19 P15 7上SU3PR1.mp3",
+          "index_hint": 19,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\20 P15 7上SU3PR2.mp3",
+          "name": "20 P15 7上SU3PR2.mp3",
+          "index_hint": 20,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\21 P15 7上SU3PR4.mp3",
+          "name": "21 P15 7上SU3PR4.mp3",
+          "index_hint": 21,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Pronunciation 4"
+        },
+        {
+          "relpath": "7上\\新版\\【1】7上音频（新教材）\\【2】7上听力+单词（细分）\\22 P16 7上SU3SecB1b.mp3",
+          "name": "22 P16 7上SU3SecB1b.mp3",
+          "index_hint": 22,
+          "unit_ref": "Starter Unit 3",
+          "section_ref": "Section B 1b"
+        }
+      ],
+      "listening_docs": [
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 1 You and Me 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 2 We’re Family 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 4 My Favourite Subject 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 5 Fun Clubs 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 6 A Day in the Life 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit 7 Happy Birthday 基础词汇默写.docx",
+        "7上\\新版\\【1】7上音频（新教材）\\七上新教材单词默写表\\《基础词汇默写》\\Unit+3+My+School 基础词汇默写.docx"
+      ],
+      "other_files": [
+        "7上\\保存不了，点开文件夹加我百度网盘为好友。\\1783389341124.jpg"
+      ]
+    },
+    {
+      "book_id": "pep-g7-vol2",
+      "grade_level": 14,
+      "source_root": "C:\\Users\\zhong\\Desktop\\Eng资料\\7下",
+      "word_pdfs": [
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 8\\unit8单词表.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\汇总版\\[21650527]2025春人教版七年级英语下册英汉互译-单词默写练习(对照版与默写版).pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\汇总版\\[21650531]2025春新人教版七年级英语下册看音标写单词-单词默写练习(对照版与默写版).pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit1重点单词、词性转换、短语、句型背默1733046965.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit2重点单词、词性转换、短语、句型背默1733046969.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit3重点单词、词性转换、短语、句子背默1733046975.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit4重点单词、词性转换、短语、句型背默1733046980.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit5重点单词、词性转换、短语、句型背默1733046984.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit6重点单词、词性转换、短语、句型背默1733046988.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit7重点单词、词性转换、短语、句型背默1733046993.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\背诵版\\七下unit8重点单词、词性转换、短语、句型背默1733046998.pdf"
+      ],
+      "textbook_pdfs": [
+        "7下\\新版\\【2】7下音频（新教材）\\（根据2022年版课程标准修订）义务教育教科书·英语七年级下册.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1 汉译英.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1 英译汉.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1总.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1汉译英横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1艾宾浩斯.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 1\\unit1英译汉横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2 汉译英-词性.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2汉译英-框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2汉译英.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2英译汉-框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 2\\unit2英译汉.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3 汉译英-框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3汉译英-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3艾宾.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3英译汉-框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 3\\unit3英译汉-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 4\\unit4 艾宾.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 4\\unit4中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 4\\unit4汉译英-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 4\\unit4英译汉-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 5\\unit5中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 5\\unit5汉译英-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 5\\unit5艾宾浩斯.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 5\\unit5英译汉-横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6 英译汉横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6汉译英框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6汉译英横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6艾宾浩斯.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 6\\unit6英译汉框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7中英互译.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7汉译英框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7汉译英横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7艾宾浩斯.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7英译汉框框.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 7\\unit7英译汉横线.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 8\\unit8汉译英.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 8\\unit8英译汉.pdf",
+        "7下\\新版\\【2】7下音频（新教材）\\【5】七下新教材单词默写表\\Unit 8\\unit8英译汉框框.pdf"
+      ],
+      "audio_full": [
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\23-7下-Unit-3-Setion-B-1b.mp3",
+          "name": "23-7下-Unit-3-Setion-B-1b.mp3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\30-7下-Unit-4-Setion-B-1b.mp3",
+          "name": "30-7下-Unit-4-Setion-B-1b.mp3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\37-7下-Unit-5-Setion-B-1b.mp3",
+          "name": "37-7下-Unit-5-Setion-B-1b.mp3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\44-7下-Unit-6-Setion-B-1b.mp3",
+          "name": "44-7下-Unit-6-Setion-B-1b.mp3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\52-7下-Unit-7-Setion-B-1b.mp3",
+          "name": "52-7下-Unit-7-Setion-B-1b.mp3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U1.MP3",
+          "name": "7下单词U1.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U2.MP3",
+          "name": "7下单词U2.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U3.MP3",
+          "name": "7下单词U3.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U4.MP3",
+          "name": "7下单词U4.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U5.MP3",
+          "name": "7下单词U5.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U6.MP3",
+          "name": "7下单词U6.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U7.MP3",
+          "name": "7下单词U7.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词U8.MP3",
+          "name": "7下单词U8.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit1.MP3",
+          "name": "7下单词表小学部分Unit1.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit1.MP3",
+          "name": "7下单词表小学部分Unit1.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit2.MP3",
+          "name": "7下单词表小学部分Unit2.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit2.MP3",
+          "name": "7下单词表小学部分Unit2.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit3.MP3",
+          "name": "7下单词表小学部分Unit3.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit3.MP3",
+          "name": "7下单词表小学部分Unit3.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit4.MP3",
+          "name": "7下单词表小学部分Unit4.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit4.MP3",
+          "name": "7下单词表小学部分Unit4.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit5.MP3",
+          "name": "7下单词表小学部分Unit5.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit5.MP3",
+          "name": "7下单词表小学部分Unit5.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit6.MP3",
+          "name": "7下单词表小学部分Unit6.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit6.MP3",
+          "name": "7下单词表小学部分Unit6.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit7.MP3",
+          "name": "7下单词表小学部分Unit7.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit7.MP3",
+          "name": "7下单词表小学部分Unit7.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下单词表小学部分Unit8.MP3",
+          "name": "7下单词表小学部分Unit8.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\7下单词表小学部分Unit8.MP3",
+          "name": "7下单词表小学部分Unit8.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下小学单词.MP3",
+          "name": "7下小学单词.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U1.MP3",
+          "name": "7下拓展阅读U1.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U2.MP3",
+          "name": "7下拓展阅读U2.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U3.MP3",
+          "name": "7下拓展阅读U3.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U4.MP3",
+          "name": "7下拓展阅读U4.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U5.MP3",
+          "name": "7下拓展阅读U5.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U6.MP3",
+          "name": "7下拓展阅读U6.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U7.MP3",
+          "name": "7下拓展阅读U7.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下拓展阅读U8.MP3",
+          "name": "7下拓展阅读U8.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U1.MP3",
+          "name": "7下课文U1.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U2.MP3",
+          "name": "7下课文U2.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U3.MP3",
+          "name": "7下课文U3.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U4.MP3",
+          "name": "7下课文U4.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U5.MP3",
+          "name": "7下课文U5.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U6.MP3",
+          "name": "7下课文U6.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U7.MP3",
+          "name": "7下课文U7.MP3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【1】七年级下册新版音频\\7下课文U8.MP3",
+          "name": "7下课文U8.MP3"
+        }
+      ],
+      "audio_segments": [
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\01-7下-Unit-1-Section-A-1b.mp3",
+          "name": "01-7下-Unit-1-Section-A-1b.mp3",
+          "index_hint": 1,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\02-7下-Unit-1-Section-A-1c.mp3",
+          "name": "02-7下-Unit-1-Section-A-1c.mp3",
+          "index_hint": 2,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\03-7下-Unit-1-Pronunciation-1.mp3",
+          "name": "03-7下-Unit-1-Pronunciation-1.mp3",
+          "index_hint": 3,
+          "unit_ref": "Unit 1",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\04-7下-Unit-1-Pronunciation-2.mp3",
+          "name": "04-7下-Unit-1-Pronunciation-2.mp3",
+          "index_hint": 4,
+          "unit_ref": "Unit 1",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\05-7下-Unit-1-Pronunciation-3.mp3",
+          "name": "05-7下-Unit-1-Pronunciation-3.mp3",
+          "index_hint": 5,
+          "unit_ref": "Unit 1",
+          "section_ref": "Pronunciation 3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\06-7下-Unit-1-Section-A-2a.mp3",
+          "name": "06-7下-Unit-1-Section-A-2a.mp3",
+          "index_hint": 6,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\07-7下-Unit-1-Section-A-2c.mp3",
+          "name": "07-7下-Unit-1-Section-A-2c.mp3",
+          "index_hint": 7,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\08-7下-Unit-1-Section-B-1b.mp3",
+          "name": "08-7下-Unit-1-Section-B-1b.mp3",
+          "index_hint": 8,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\09-7下-Unit-2-Section-A-1b.mp3",
+          "name": "09-7下-Unit-2-Section-A-1b.mp3",
+          "index_hint": 9,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\10-7下-Unit-2-Section-A-1c.mp3",
+          "name": "10-7下-Unit-2-Section-A-1c.mp3",
+          "index_hint": 10,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\11-7下-Unit-2-Section-A-1d.mp3",
+          "name": "11-7下-Unit-2-Section-A-1d.mp3",
+          "index_hint": 11,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1d"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\12-7下-Unit-2-Pronunciation-1.mp3",
+          "name": "12-7下-Unit-2-Pronunciation-1.mp3",
+          "index_hint": 12,
+          "unit_ref": "Unit 2",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\13-7下-Unit-2-Pronunciation-2.mp3",
+          "name": "13-7下-Unit-2-Pronunciation-2.mp3",
+          "index_hint": 13,
+          "unit_ref": "Unit 2",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\14-7下-Unit-2-Section-A-2a.mp3",
+          "name": "14-7下-Unit-2-Section-A-2a.mp3",
+          "index_hint": 14,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\15-7下-Unit-2-Section-A-2e.mp3",
+          "name": "15-7下-Unit-2-Section-A-2e.mp3",
+          "index_hint": 15,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2e"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\16-7下-Unit-2-Section-B-1b.mp3",
+          "name": "16-7下-Unit-2-Section-B-1b.mp3",
+          "index_hint": 16,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\17-7下-Unit-3-Section-A-1b.mp3",
+          "name": "17-7下-Unit-3-Section-A-1b.mp3",
+          "index_hint": 17,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\18-7下-Unit-3-Section-A-1c.mp3",
+          "name": "18-7下-Unit-3-Section-A-1c.mp3",
+          "index_hint": 18,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\19-7下-Unit-3-Pronunciation-1.mp3",
+          "name": "19-7下-Unit-3-Pronunciation-1.mp3",
+          "index_hint": 19,
+          "unit_ref": "Unit 3",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\20-7下-Unit-3-Pronunciation-2.mp3",
+          "name": "20-7下-Unit-3-Pronunciation-2.mp3",
+          "index_hint": 20,
+          "unit_ref": "Unit 3",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\21-7下-Unit-3-Section-A-2a.mp3",
+          "name": "21-7下-Unit-3-Section-A-2a.mp3",
+          "index_hint": 21,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\22-7下-Unit-3-Section-A-2d.mp3",
+          "name": "22-7下-Unit-3-Section-A-2d.mp3",
+          "index_hint": 22,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\24-7下-Unit-4-Section-A-1b.mp3",
+          "name": "24-7下-Unit-4-Section-A-1b.mp3",
+          "index_hint": 24,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\25-7下-Unit-4-Section-A-1c.mp3",
+          "name": "25-7下-Unit-4-Section-A-1c.mp3",
+          "index_hint": 25,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\26-7下-Unit-4-Pronunciation-1.mp3",
+          "name": "26-7下-Unit-4-Pronunciation-1.mp3",
+          "index_hint": 26,
+          "unit_ref": "Unit 4",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\27-7下-Unit-4-Pronunciation-2.mp3",
+          "name": "27-7下-Unit-4-Pronunciation-2.mp3",
+          "index_hint": 27,
+          "unit_ref": "Unit 4",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\28-7下-Unit-4-SectionA-2a.mp3",
+          "name": "28-7下-Unit-4-SectionA-2a.mp3",
+          "index_hint": 28,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\29-7下-Unit-4-SectionA-2c.mp3",
+          "name": "29-7下-Unit-4-SectionA-2c.mp3",
+          "index_hint": 29,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\31-7下-Unit-5-Section-A-1b.mp3",
+          "name": "31-7下-Unit-5-Section-A-1b.mp3",
+          "index_hint": 31,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\32-7下-Unit-5-Section-A-1c.mp3",
+          "name": "32-7下-Unit-5-Section-A-1c.mp3",
+          "index_hint": 32,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\33-7下-Unit-5-Pronunciation-1.mp3",
+          "name": "33-7下-Unit-5-Pronunciation-1.mp3",
+          "index_hint": 33,
+          "unit_ref": "Unit 5",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\34-7下-Unit-5-Pronunciation-2.mp3",
+          "name": "34-7下-Unit-5-Pronunciation-2.mp3",
+          "index_hint": 34,
+          "unit_ref": "Unit 5",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\35-7下-Unit-5-Section-A-2a.mp3",
+          "name": "35-7下-Unit-5-Section-A-2a.mp3",
+          "index_hint": 35,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\36-7下-Unit-5-Section-A-2d.mp3",
+          "name": "36-7下-Unit-5-Section-A-2d.mp3",
+          "index_hint": 36,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\38-7下-Unit-6-Section-A-1b.mp3",
+          "name": "38-7下-Unit-6-Section-A-1b.mp3",
+          "index_hint": 38,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\39-7下-Unit-6-Section-A-1c.mp3",
+          "name": "39-7下-Unit-6-Section-A-1c.mp3",
+          "index_hint": 39,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\40-7下-Unit-6-Pronunciation-1.mp3",
+          "name": "40-7下-Unit-6-Pronunciation-1.mp3",
+          "index_hint": 40,
+          "unit_ref": "Unit 6",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\41-7下-Unit-6-Pronunciation-2.mp3",
+          "name": "41-7下-Unit-6-Pronunciation-2.mp3",
+          "index_hint": 41,
+          "unit_ref": "Unit 6",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\42-7下-Unit-6-Section-A-2a.mp3",
+          "name": "42-7下-Unit-6-Section-A-2a.mp3",
+          "index_hint": 42,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\43-7下-Unit-6-Section-A-2c.mp3",
+          "name": "43-7下-Unit-6-Section-A-2c.mp3",
+          "index_hint": 43,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\45-7下-Unit-7-Section-A-1b.mp3",
+          "name": "45-7下-Unit-7-Section-A-1b.mp3",
+          "index_hint": 45,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\46-7下-Unit-7-Section-A-1c.mp3",
+          "name": "46-7下-Unit-7-Section-A-1c.mp3",
+          "index_hint": 46,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\47-7下-Unit-7-Pronunciation-1.mp3",
+          "name": "47-7下-Unit-7-Pronunciation-1.mp3",
+          "index_hint": 47,
+          "unit_ref": "Unit 7",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\48-7下-Unit-7-Pronunciation-2.mp3",
+          "name": "48-7下-Unit-7-Pronunciation-2.mp3",
+          "index_hint": 48,
+          "unit_ref": "Unit 7",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\49-7下-Unit-7-Pronunciation-3.mp3",
+          "name": "49-7下-Unit-7-Pronunciation-3.mp3",
+          "index_hint": 49,
+          "unit_ref": "Unit 7",
+          "section_ref": "Pronunciation 3"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\50-7下-Unit-7-Section-A-2a.mp3",
+          "name": "50-7下-Unit-7-Section-A-2a.mp3",
+          "index_hint": 50,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\51-7下-Unit-7-Section-A-2d.mp3",
+          "name": "51-7下-Unit-7-Section-A-2d.mp3",
+          "index_hint": 51,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\53-7下-Unit-8-Section-A-1b.mp3",
+          "name": "53-7下-Unit-8-Section-A-1b.mp3",
+          "index_hint": 53,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\54-7下-Unit-8-Section-A-1c.mp3",
+          "name": "54-7下-Unit-8-Section-A-1c.mp3",
+          "index_hint": 54,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\55-7下-Unit-8-Section-A-1d.mp3",
+          "name": "55-7下-Unit-8-Section-A-1d.mp3",
+          "index_hint": 55,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1d"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\56-7下-Unit-8-Pronunciation-1.mp3",
+          "name": "56-7下-Unit-8-Pronunciation-1.mp3",
+          "index_hint": 56,
+          "unit_ref": "Unit 8",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\57-7下-Unit-8-Pronunciation-2.mp3",
+          "name": "57-7下-Unit-8-Pronunciation-2.mp3",
+          "index_hint": 57,
+          "unit_ref": "Unit 8",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\58-7下-Unit-8-Section-A-2a.mp3",
+          "name": "58-7下-Unit-8-Section-A-2a.mp3",
+          "index_hint": 58,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\59-7下-Unit-8-Section-A-2e.mp3",
+          "name": "59-7下-Unit-8-Section-A-2e.mp3",
+          "index_hint": 59,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2e"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\60-7下-Unit-8-Section-B-1b.mp3",
+          "name": "60-7下-Unit-8-Section-B-1b.mp3",
+          "index_hint": 60,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\61-7下-Unit-1-Vocabulary.mp3",
+          "name": "61-7下-Unit-1-Vocabulary.mp3",
+          "index_hint": 61,
+          "unit_ref": "Unit 1",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\61-7下-Unit-1-Vocabulary.mp3",
+          "name": "61-7下-Unit-1-Vocabulary.mp3",
+          "index_hint": 61,
+          "unit_ref": "Unit 1",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\62-7下-Unit-2-Vocabulary.mp3",
+          "name": "62-7下-Unit-2-Vocabulary.mp3",
+          "index_hint": 62,
+          "unit_ref": "Unit 2",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\62-7下-Unit-2-Vocabulary.mp3",
+          "name": "62-7下-Unit-2-Vocabulary.mp3",
+          "index_hint": 62,
+          "unit_ref": "Unit 2",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\63-7下-Unit-3-Vocabulary.mp3",
+          "name": "63-7下-Unit-3-Vocabulary.mp3",
+          "index_hint": 63,
+          "unit_ref": "Unit 3",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\63-7下-Unit-3-Vocabulary.mp3",
+          "name": "63-7下-Unit-3-Vocabulary.mp3",
+          "index_hint": 63,
+          "unit_ref": "Unit 3",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\64-7下-Unit-4-Vocabulary.mp3",
+          "name": "64-7下-Unit-4-Vocabulary.mp3",
+          "index_hint": 64,
+          "unit_ref": "Unit 4",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\64-7下-Unit-4-Vocabulary.mp3",
+          "name": "64-7下-Unit-4-Vocabulary.mp3",
+          "index_hint": 64,
+          "unit_ref": "Unit 4",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\65-7下-Unit-5-Vocabulary.mp3",
+          "name": "65-7下-Unit-5-Vocabulary.mp3",
+          "index_hint": 65,
+          "unit_ref": "Unit 5",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\65-7下-Unit-5-Vocabulary.mp3",
+          "name": "65-7下-Unit-5-Vocabulary.mp3",
+          "index_hint": 65,
+          "unit_ref": "Unit 5",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\66-7下-Unit-6-Vocabulary.mp3",
+          "name": "66-7下-Unit-6-Vocabulary.mp3",
+          "index_hint": 66,
+          "unit_ref": "Unit 6",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\66-7下-Unit-6-Vocabulary.mp3",
+          "name": "66-7下-Unit-6-Vocabulary.mp3",
+          "index_hint": 66,
+          "unit_ref": "Unit 6",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\67-7下-Unit-7-Vocabulary.mp3",
+          "name": "67-7下-Unit-7-Vocabulary.mp3",
+          "index_hint": 67,
+          "unit_ref": "Unit 7",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\67-7下-Unit-7-Vocabulary.mp3",
+          "name": "67-7下-Unit-7-Vocabulary.mp3",
+          "index_hint": 67,
+          "unit_ref": "Unit 7",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【2】7下听力+单词（细分版）\\68-7下-Unit-8-Vocabulary.mp3",
+          "name": "68-7下-Unit-8-Vocabulary.mp3",
+          "index_hint": 68,
+          "unit_ref": "Unit 8",
+          "section_ref": "Vocabulary"
+        },
+        {
+          "relpath": "7下\\新版\\【2】7下音频（新教材）\\【4】单词听力\\68-7下-Unit-8-Vocabulary.mp3",
+          "name": "68-7下-Unit-8-Vocabulary.mp3",
+          "index_hint": 68,
+          "unit_ref": "Unit 8",
+          "section_ref": "Vocabulary"
+        }
+      ],
+      "listening_docs": [
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 1 听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 2 No Rules, No Order听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 3 Keep Fit听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 4 Eat Well听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 5 Here and Now听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 6 Rain or Shine听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 7 A Day to Remember听力材料.docx",
+        "7下\\新版\\【2】7下音频（新教材）\\【3】课文听力原文材料\\2025新人教七下Unit 8 Once upon a Time听力材料.docx"
+      ],
+      "other_files": []
+    },
+    {
+      "book_id": "pep-g8-vol1",
+      "grade_level": 15,
+      "source_root": "C:\\Users\\zhong\\Desktop\\Eng资料\\8上",
+      "word_pdfs": [
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 1 单词听写作业纸-091dee0cccbd.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 1 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 2 单词听写作业纸-7ada7d864bc9.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 2 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 3 单词听写作业纸-6de45740a2aa.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 3 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 4 单词听写作业纸-5ba4b148b335.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 4 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 5 单词听写作业纸-2a20f3ec4523.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 5 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 6 单词听写作业纸-41fd9abcbd1b.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 6 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 7 单词听写作业纸-f26859847fb4.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 7 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 8 单词听写作业纸-db9e1990372c.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词听写\\Unit 8 单词听写作业纸.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 单词词性单列-3078167654f5.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 看音标默单词-c901c0a164c3.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 看音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 音标默单词-7bfc99e7668a944150428fa3e807368e.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 单词词性单列-9ed15ca2b48d.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 音标默单词-4f1b521377c4.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 单词词性单列-b3685ba2091c.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 音标默单词-f3e860b41c32.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 单词词性单列-5eec37ed5f39.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 音标默单词-9d35b9967320.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 单词词性单列-0fec4433f489.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 音标默单词-56311cd6f6b0.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 单词词性单列-a42de048b724.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 音标默单词-cede70df7a4f.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 单词词性单列-3405c7921010.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 音标默单词-73937634b869.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 音标默单词.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 单词词性单列-64816e53ebb5.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 单词词性单列.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 音标默单词-f6b45cd97836.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 音标默单词.pdf"
+      ],
+      "textbook_pdfs": [
+        "8上\\新版\\【3】8上音频（新教材）\\（根据2022年版课程标准修订）义务教育教科书·英语八年级上册.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\默写助手.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\八年级上册英语 无水印版-e6e8159b2ecb.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\八年级上册英语 无水印版.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 中英互译小纸条-510b9b3e6b2b.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 中译英-d48c7708bb8c.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 艾宾浩斯记忆表-ed89243aa28d.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 英译中-c9e2a8e68aab.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 音节划分记忆-78d185c52700.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U1 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 中英互译小纸条-35e1420787a7.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 中译英-8701003b5961.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 艾宾浩斯记忆表-2bc74d38b8ea.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 英译中-b2a945a622b7.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 音节划分记忆-d519e28dfa8f.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U2 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 中英互译小纸条-76923ef10069.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 中译英-905de182cded.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 艾宾浩斯记忆表-4f40d5654f98.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 英译中-9ceca916e48a.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 音节划分记忆-5e7819e545a9.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U3 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 中英互译小纸条-2eec5ab35bdc.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 中译英-9d73d5a8c43c.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 艾宾浩斯记忆表-bb283f909205.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 英译中-cb39b0b58ac4.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 音节划分记忆-a07e80b99a14.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U4 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 中英互译小纸条-10980367fcc3.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 中译英-37e7a754fa61.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 艾宾浩斯记忆表-47badf4165e1.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 英译中-3c513acfd728.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 音节划分记忆-7234fd37d931.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U5 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 中英互译小纸条-09b16dbb293f.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 中译英-8509ad725f64.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 艾宾浩斯记忆表-eb1313f91f6c.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 英译中-8969e70996f5.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 音节划分记忆-279ae727fda6.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U6 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 中英互译小纸条-4adab2159be4.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 中译英-d9e375e79767.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 艾宾浩斯记忆表-81e8eefc6151.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 英译中-4ca0f229920b.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 音节划分记忆-a70d9e382458.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U7 音节划分记忆.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 中英互译小纸条-8f90514a9271.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 中英互译小纸条.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 中译英-4c36db8d4417.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 中译英.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 艾宾浩斯记忆表-92390cb3da1e.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 艾宾浩斯记忆表.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 英译中-7bc95c31c1d7.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 英译中.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 音节划分记忆-883097970bbe.pdf",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\U8 音节划分记忆.pdf"
+      ],
+      "audio_full": [
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit1Vocabulary.mp3",
+          "name": "8上Unit1Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit2Vocabulary.mp3",
+          "name": "8上Unit2Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit3Vocabulary.mp3",
+          "name": "8上Unit3Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit4Vocabulary.mp3",
+          "name": "8上Unit4Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit5Vocabulary.mp3",
+          "name": "8上Unit5Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit6Vocabulary.mp3",
+          "name": "8上Unit6Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit7Vocabulary.mp3",
+          "name": "8上Unit7Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【3】8上单词\\8上Unit8Vocabulary.mp3",
+          "name": "8上Unit8Vocabulary.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 1.MP3",
+          "name": "人教8上 Reading Plus 1.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 2.MP3",
+          "name": "人教8上 Reading Plus 2.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 3.MP3",
+          "name": "人教8上 Reading Plus 3.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 4.MP3",
+          "name": "人教8上 Reading Plus 4.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 5.MP3",
+          "name": "人教8上 Reading Plus 5.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 6.MP3",
+          "name": "人教8上 Reading Plus 6.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 7.MP3",
+          "name": "人教8上 Reading Plus 7.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Reading Plus 8.MP3",
+          "name": "人教8上 Reading Plus 8.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 1 Happy Holiday.MP3",
+          "name": "人教8上 Unit 1 Happy Holiday.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 2 Home Sweet Home.MP3",
+          "name": "人教8上 Unit 2 Home Sweet Home.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 3 Same or Different？.MP3",
+          "name": "人教8上 Unit 3 Same or Different？.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 4 Amazing Plants and Animals.MP3",
+          "name": "人教8上 Unit 4 Amazing Plants and Animals.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 5 What a Delicious Meal.MP3",
+          "name": "人教8上 Unit 5 What a Delicious Meal.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 6 Plan for Yourself.MP3",
+          "name": "人教8上 Unit 6 Plan for Yourself.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 7 When Tomorrow Comes.MP3",
+          "name": "人教8上 Unit 7 When Tomorrow Comes.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 Unit 8 Let's Communicate.MP3",
+          "name": "人教8上 Unit 8 Let's Communicate.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 1.MP3",
+          "name": "人教8上 单词表 Unit 1.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 2.MP3",
+          "name": "人教8上 单词表 Unit 2.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 3.MP3",
+          "name": "人教8上 单词表 Unit 3.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 4.MP3",
+          "name": "人教8上 单词表 Unit 4.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 5.MP3",
+          "name": "人教8上 单词表 Unit 5.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 6.MP3",
+          "name": "人教8上 单词表 Unit 6.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 7.MP3",
+          "name": "人教8上 单词表 Unit 7.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 Unit 8.MP3",
+          "name": "人教8上 单词表 Unit 8.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 不规则动词.MP3",
+          "name": "人教8上 单词表 不规则动词.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【1】8上新版音频\\人教8上 单词表 小学部分.MP3",
+          "name": "人教8上 单词表 小学部分.MP3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 1 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 1 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 1 Section A, 2a and 2d.mp3",
+          "name": "八上 原文录音 Unit 1 Section A, 2a and 2d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 1 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 1 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 1 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 1 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 2 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 2 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 2 Section A, 2a and 2d.mp3",
+          "name": "八上 原文录音 Unit 2 Section A, 2a and 2d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 2 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 2 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 2 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 2 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 3 Section A, 1b, 1c and 1d.mp3",
+          "name": "八上 原文录音 Unit 3 Section A, 1b, 1c and 1d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 3 Section A, 2a and 2c.mp3",
+          "name": "八上 原文录音 Unit 3 Section A, 2a and 2c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 3 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 3 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 3 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 3 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 4 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 4 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 4 Section A, 2a and 2d.mp3",
+          "name": "八上 原文录音 Unit 4 Section A, 2a and 2d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 4 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 4 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 4 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 4 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 5 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 5 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 5 Section A, 2a and 2c.mp3",
+          "name": "八上 原文录音 Unit 5 Section A, 2a and 2c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 5 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 5 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 5 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 5 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 6 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 6 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 6 Section A, 2a and 2c.mp3",
+          "name": "八上 原文录音 Unit 6 Section A, 2a and 2c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 6 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 6 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 6 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 6 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 7 Section A, 1b.mp3",
+          "name": "八上 原文录音 Unit 7 Section A, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 7 Section A, 1c.mp3",
+          "name": "八上 原文录音 Unit 7 Section A, 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 7 Section A, 2a and 2d.mp3",
+          "name": "八上 原文录音 Unit 7 Section A, 2a and 2d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 7 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 7 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 7 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 7 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 8 Section A, 1b and 1c.mp3",
+          "name": "八上 原文录音 Unit 8 Section A, 1b and 1c.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 8 Section A, 2a and 2d.mp3",
+          "name": "八上 原文录音 Unit 8 Section A, 2a and 2d.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 8 Section A, Pronunciation, 1.mp3",
+          "name": "八上 原文录音 Unit 8 Section A, Pronunciation, 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 原文录音 Unit 8 Section A, Pronunciation, 2.mp3",
+          "name": "八上 原文录音 Unit 8 Section A, Pronunciation, 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 1.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 1.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 2.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 2.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 3.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 3.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 4.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 4.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 5.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 5.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 6.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 6.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 7.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 7.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Reading Plus Unit 8.mp3",
+          "name": "八上 课文朗读 Reading Plus Unit 8.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 1 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 1 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 1 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 1 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 2 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 2 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 2 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 2 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 3 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 3 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 3 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 3 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 4 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 4 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 4 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 4 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 5 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 5 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 5 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 5 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 6 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 6 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 6 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 6 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 7 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 7 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 7 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 7 Section B, 3a.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 8 Section B, 1b.mp3",
+          "name": "八上 课文朗读 Unit 8 Section B, 1b.mp3"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【4】八上音频细分版\\八上 课文朗读 Unit 8 Section B, 3a.mp3",
+          "name": "八上 课文朗读 Unit 8 Section B, 3a.mp3"
+        }
+      ],
+      "audio_segments": [
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\01 P2 8上Unit1SectionA1b.mp3",
+          "name": "01 P2 8上Unit1SectionA1b.mp3",
+          "index_hint": 1,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\02 P2 8上Unit1SectionA1c.mp3",
+          "name": "02 P2 8上Unit1SectionA1c.mp3",
+          "index_hint": 2,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\03 P3 8上Unit1Pronunciation1.mp3",
+          "name": "03 P3 8上Unit1Pronunciation1.mp3",
+          "index_hint": 3,
+          "unit_ref": "Unit 1",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\04 P3 8上Unit1Pronunciation2.mp3",
+          "name": "04 P3 8上Unit1Pronunciation2.mp3",
+          "index_hint": 4,
+          "unit_ref": "Unit 1",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\05 P3 8上Unit1SectionA2a.mp3",
+          "name": "05 P3 8上Unit1SectionA2a.mp3",
+          "index_hint": 5,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\06 P4 8上Unit1SectionA2d.mp3",
+          "name": "06 P4 8上Unit1SectionA2d.mp3",
+          "index_hint": 6,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\07 P6 8上Unit1SectionB1b.mp3",
+          "name": "07 P6 8上Unit1SectionB1b.mp3",
+          "index_hint": 7,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\08 P12 8上Unit2SectionA1b.mp3",
+          "name": "08 P12 8上Unit2SectionA1b.mp3",
+          "index_hint": 8,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\09 P12 8上Unit2SectionA1c.mp3",
+          "name": "09 P12 8上Unit2SectionA1c.mp3",
+          "index_hint": 9,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\10 P13 8上Unit2Pronunciation1.mp3",
+          "name": "10 P13 8上Unit2Pronunciation1.mp3",
+          "index_hint": 10,
+          "unit_ref": "Unit 2",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\11 P13 8上Unit2Pronunciation2.mp3",
+          "name": "11 P13 8上Unit2Pronunciation2.mp3",
+          "index_hint": 11,
+          "unit_ref": "Unit 2",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\12 P13 8上Unit2SectionA2a.mp3",
+          "name": "12 P13 8上Unit2SectionA2a.mp3",
+          "index_hint": 12,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\13 P14 8上Unit2SectionA2d.mp3",
+          "name": "13 P14 8上Unit2SectionA2d.mp3",
+          "index_hint": 13,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\14 P16 8上Unit2SectionB1b.mp3",
+          "name": "14 P16 8上Unit2SectionB1b.mp3",
+          "index_hint": 14,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\15 P22 8上Unit3SectionA1b.mp3",
+          "name": "15 P22 8上Unit3SectionA1b.mp3",
+          "index_hint": 15,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\16 P22 8上Unit3SectionA1c.mp3",
+          "name": "16 P22 8上Unit3SectionA1c.mp3",
+          "index_hint": 16,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\17 P22 8上Unit3SectionA1d.mp3",
+          "name": "17 P22 8上Unit3SectionA1d.mp3",
+          "index_hint": 17,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\18 P23 8上Unit3Pronunciation1.mp3",
+          "name": "18 P23 8上Unit3Pronunciation1.mp3",
+          "index_hint": 18,
+          "unit_ref": "Unit 3",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\19 P23 8上Unit3Pronunciation2.mp3",
+          "name": "19 P23 8上Unit3Pronunciation2.mp3",
+          "index_hint": 19,
+          "unit_ref": "Unit 3",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\20 P23 8上Unit3SectionA2a.mp3",
+          "name": "20 P23 8上Unit3SectionA2a.mp3",
+          "index_hint": 20,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\21 P24 8上Unit3SectionA2c.mp3",
+          "name": "21 P24 8上Unit3SectionA2c.mp3",
+          "index_hint": 21,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\22 P26 8上Unit3SectionB1b.mp3",
+          "name": "22 P26 8上Unit3SectionB1b.mp3",
+          "index_hint": 22,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\23 P32 8上Unit4SectionA1b.mp3",
+          "name": "23 P32 8上Unit4SectionA1b.mp3",
+          "index_hint": 23,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\24 P32 8上Unit4SectionA1c.mp3",
+          "name": "24 P32 8上Unit4SectionA1c.mp3",
+          "index_hint": 24,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\25 P33 8上Unit4Pronunciation1.mp3",
+          "name": "25 P33 8上Unit4Pronunciation1.mp3",
+          "index_hint": 25,
+          "unit_ref": "Unit 4",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\26 P33 8上Unit4Pronunciation2.mp3",
+          "name": "26 P33 8上Unit4Pronunciation2.mp3",
+          "index_hint": 26,
+          "unit_ref": "Unit 4",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\27 P33 8上Unit4SectionA2a.mp3",
+          "name": "27 P33 8上Unit4SectionA2a.mp3",
+          "index_hint": 27,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\28 P34 8上Unit4SectionA2d.mp3",
+          "name": "28 P34 8上Unit4SectionA2d.mp3",
+          "index_hint": 28,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\29 P36 8上Unit4SectionB1b.mp3",
+          "name": "29 P36 8上Unit4SectionB1b.mp3",
+          "index_hint": 29,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\30 P42 8上Unit5SectionA1b.mp3",
+          "name": "30 P42 8上Unit5SectionA1b.mp3",
+          "index_hint": 30,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\31 P42 8上Unit5SectionA1c.mp3",
+          "name": "31 P42 8上Unit5SectionA1c.mp3",
+          "index_hint": 31,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\32 P43 8上Unit5Pronunciation1.mp3",
+          "name": "32 P43 8上Unit5Pronunciation1.mp3",
+          "index_hint": 32,
+          "unit_ref": "Unit 5",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\33 P43 8上Unit5Pronunciation2.mp3",
+          "name": "33 P43 8上Unit5Pronunciation2.mp3",
+          "index_hint": 33,
+          "unit_ref": "Unit 5",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\34 P43 8上Unit5SectionA2a.mp3",
+          "name": "34 P43 8上Unit5SectionA2a.mp3",
+          "index_hint": 34,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\35 P44 8上Unit5SectionA2c.mp3",
+          "name": "35 P44 8上Unit5SectionA2c.mp3",
+          "index_hint": 35,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\36 P46 8上Unit5SectionB1b.mp3",
+          "name": "36 P46 8上Unit5SectionB1b.mp3",
+          "index_hint": 36,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\37 P52 8上Unit6SectionA1b.mp3",
+          "name": "37 P52 8上Unit6SectionA1b.mp3",
+          "index_hint": 37,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\38 P52 8上Unit6SectionA1c.mp3",
+          "name": "38 P52 8上Unit6SectionA1c.mp3",
+          "index_hint": 38,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\39 P53 8上Unit6Pronunciation1.mp3",
+          "name": "39 P53 8上Unit6Pronunciation1.mp3",
+          "index_hint": 39,
+          "unit_ref": "Unit 6",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\40 P53 8上Unit6Pronunciation2.mp3",
+          "name": "40 P53 8上Unit6Pronunciation2.mp3",
+          "index_hint": 40,
+          "unit_ref": "Unit 6",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\41 P53 8上Unit6SectionA2a.mp3",
+          "name": "41 P53 8上Unit6SectionA2a.mp3",
+          "index_hint": 41,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\42 P54 8上Unit6SectionA2c.mp3",
+          "name": "42 P54 8上Unit6SectionA2c.mp3",
+          "index_hint": 42,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\43 P56 8上Unit6SectionB1b.mp3",
+          "name": "43 P56 8上Unit6SectionB1b.mp3",
+          "index_hint": 43,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\44 P62 8上Unit7SectionA1b.mp3",
+          "name": "44 P62 8上Unit7SectionA1b.mp3",
+          "index_hint": 44,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\45 P62 8上Unit7SectionA1c.mp3",
+          "name": "45 P62 8上Unit7SectionA1c.mp3",
+          "index_hint": 45,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\46 P63 8上Unit7Pronunciation1.mp3",
+          "name": "46 P63 8上Unit7Pronunciation1.mp3",
+          "index_hint": 46,
+          "unit_ref": "Unit 7",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\47 P63 8上Unit7Pronunciation2.mp3",
+          "name": "47 P63 8上Unit7Pronunciation2.mp3",
+          "index_hint": 47,
+          "unit_ref": "Unit 7",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\48 P63 8上Unit7SectionA2a.mp3",
+          "name": "48 P63 8上Unit7SectionA2a.mp3",
+          "index_hint": 48,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\49 P64 8上Unit7SectionA2d.mp3",
+          "name": "49 P64 8上Unit7SectionA2d.mp3",
+          "index_hint": 49,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\50 P66 8上Unit7SectionB1b.mp3",
+          "name": "50 P66 8上Unit7SectionB1b.mp3",
+          "index_hint": 50,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\51 P72 8上Unit8SectionA1b.mp3",
+          "name": "51 P72 8上Unit8SectionA1b.mp3",
+          "index_hint": 51,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\52 P72 8上Unit8SectionA1c.mp3",
+          "name": "52 P72 8上Unit8SectionA1c.mp3",
+          "index_hint": 52,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\53 P73 8上Unit8Pronunciation1.mp3",
+          "name": "53 P73 8上Unit8Pronunciation1.mp3",
+          "index_hint": 53,
+          "unit_ref": "Unit 8",
+          "section_ref": "Pronunciation 1"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\54 P73 8上Unit8Pronunciation2.mp3",
+          "name": "54 P73 8上Unit8Pronunciation2.mp3",
+          "index_hint": 54,
+          "unit_ref": "Unit 8",
+          "section_ref": "Pronunciation 2"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\55 P73 8上Unit8SectionA2a.mp3",
+          "name": "55 P73 8上Unit8SectionA2a.mp3",
+          "index_hint": 55,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2a"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\56 P74 8上Unit8SectionA2d.mp3",
+          "name": "56 P74 8上Unit8SectionA2d.mp3",
+          "index_hint": 56,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2d"
+        },
+        {
+          "relpath": "8上\\新版\\【3】8上音频（新教材）\\【2】8上听力\\57 P76 8上Unit8SectionB1b.mp3",
+          "name": "57 P76 8上Unit8SectionB1b.mp3",
+          "index_hint": 57,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section B 1b"
+        }
+      ],
+      "listening_docs": [
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 1 Happy Holiday 单词（背诵版+默写版）-3989a265565f.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 1 Happy Holiday 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 2 Home Sweet Home 单词（背诵版+默写版）-d43684832eba.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 2 Home Sweet Home 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 3 Same or Different 单词（背诵版+默写版）-185baff679f9.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 3 Same or Different 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 4 Amazing Plants and Animals 单词（背诵版+默写版）-9d18325322e9.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 4 Amazing Plants and Animals 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 5 What a Delicious Meal! 单词（背诵版+默写版）-2e090571a5df.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 5 What a Delicious Meal! 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 6 Plan for Yourself（背诵版+默写版）-f2c11bf776ff.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 6 Plan for Yourself（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 7 When Tomorrow Comes 单词（背诵版+默写版）-c94bf295eb77.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 7 When Tomorrow Comes 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 8 Let's Communicate! 单词（背诵版+默写版）-23590b3ea482.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】Unit 8 Let's Communicate! 单词（背诵版+默写版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】八上全册单词（背诵版）-d2c376c9dae5.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】八上全册单词（背诵版）.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】八上全册单词（默写版）-f5c5088d51bb.docx",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\【2025秋】八上全册单词（默写版）.docx"
+      ],
+      "other_files": [
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\111-2aef33129486.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\111.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\112-7b1cba980dbf.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\112.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\113-c9ded5ee282e.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\113.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\114-4b3a7fd41058.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\114.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\115-a2ca2bbf55af.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\115.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\116-859ef4b09664.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\116.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\117-0a9e47d3ebab.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\117.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\118-cbada0dcf88f.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\118.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\119-6e390a6f09f2.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\119.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\120-009c5c43d23f.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\120.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\121-f22662b4d3f9.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\121.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\122-53802ff5d5aa.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词表\\122.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\111-2ea02698191b.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\111.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\112-f706c9e8aa1f.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\112.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\113-bdf53196cdac.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\113.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\114-08d99c0c0e51.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\114.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\115-9135199c3d4f.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\115.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\116-371286525af4.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\116.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\117-b2488a14be66.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\117.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\118-d93f39f3005e.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\118.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\119-ff121aeedda0.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\119.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\120-e7176739e742.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\120.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\121-ab66e357c5b1.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\121.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\122-7bb756276606.jpg",
+        "8上\\新版\\【3】8上音频（新教材）\\【5】八上新教材单词默写表\\单词默写\\单词背诵默写7个表（版本1）\\课本单词表\\122.jpg"
+      ]
+    },
+    {
+      "book_id": "pep-g8-vol2",
+      "grade_level": 16,
+      "source_root": "C:\\Users\\zhong\\Desktop\\Eng资料\\8下",
+      "word_pdfs": [
+        "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\2026春人教版八下单词表背诵版（参考版）.pdf",
+        "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\2026春人教版八下单词表默写版（参考版）.pdf"
+      ],
+      "textbook_pdfs": [
+        "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\2026春人教版八下新教材.pdf"
+      ],
+      "audio_full": [
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 1.MP3",
+          "name": "8下 Reading Plus Unit 1.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 2.MP3",
+          "name": "8下 Reading Plus Unit 2.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 3.MP3",
+          "name": "8下 Reading Plus Unit 3.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 4.MP3",
+          "name": "8下 Reading Plus Unit 4.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 5.MP3",
+          "name": "8下 Reading Plus Unit 5.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 6.MP3",
+          "name": "8下 Reading Plus Unit 6.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 7.MP3",
+          "name": "8下 Reading Plus Unit 7.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Reading Plus Unit 8.MP3",
+          "name": "8下 Reading Plus Unit 8.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 1 Time to Relax.MP3",
+          "name": "8下 Unit 1 Time to Relax.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 2 Stay Healthy.MP3",
+          "name": "8下 Unit 2 Stay Healthy.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 3 Growing Up.MP3",
+          "name": "8下 Unit 3 Growing Up.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 4 The Wonders of Nature.MP3",
+          "name": "8下 Unit 4 The Wonders of Nature.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 5 Nature's Temper.MP3",
+          "name": "8下 Unit 5 Nature's Temper.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 6 Crossing Cultures.MP3",
+          "name": "8下 Unit 6 Crossing Cultures.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 7 A Good Read.MP3",
+          "name": "8下 Unit 7 A Good Read.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 Unit 8 Making a Difference.MP3",
+          "name": "8下 Unit 8 Making a Difference.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 不规则动词.MP3",
+          "name": "8下 不规则动词.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 不规则动词.MP3",
+          "name": "8下 不规则动词.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 1.MP3",
+          "name": "8下 单词表 Unit 1.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 1.MP3",
+          "name": "8下 单词表 Unit 1.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 2.MP3",
+          "name": "8下 单词表 Unit 2.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 2.MP3",
+          "name": "8下 单词表 Unit 2.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 3.MP3",
+          "name": "8下 单词表 Unit 3.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 3.MP3",
+          "name": "8下 单词表 Unit 3.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 4.MP3",
+          "name": "8下 单词表 Unit 4.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 4.MP3",
+          "name": "8下 单词表 Unit 4.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 5.MP3",
+          "name": "8下 单词表 Unit 5.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 5.MP3",
+          "name": "8下 单词表 Unit 5.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 6.MP3",
+          "name": "8下 单词表 Unit 6.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 6.MP3",
+          "name": "8下 单词表 Unit 6.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 7.MP3",
+          "name": "8下 单词表 Unit 7.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 7.MP3",
+          "name": "8下 单词表 Unit 7.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 Unit 8.MP3",
+          "name": "8下 单词表 Unit 8.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 Unit 8.MP3",
+          "name": "8下 单词表 Unit 8.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【1】8下 音频 （2026春正式版）\\8下 单词表 小学部分.MP3",
+          "name": "8下 单词表 小学部分.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【2】8下 单词音频 新正式版\\8下 单词表 小学部分.MP3",
+          "name": "8下 单词表 小学部分.MP3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P113 8下 Vocabulary Unit1.mp3",
+          "name": "P113 8下 Vocabulary Unit1.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P114 8下 Vocabulary Unit2.mp3",
+          "name": "P114 8下 Vocabulary Unit2.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P115 8下 Vocabulary Unit3.mp3",
+          "name": "P115 8下 Vocabulary Unit3.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P117 8下 Vocabulary Unit4.mp3",
+          "name": "P117 8下 Vocabulary Unit4.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P118 8下 Vocabulary Unit5.mp3",
+          "name": "P118 8下 Vocabulary Unit5.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P120 8下 Vocabulary Unit6.mp3",
+          "name": "P120 8下 Vocabulary Unit6.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P121 8下 Vocabulary Unit7.mp3",
+          "name": "P121 8下 Vocabulary Unit7.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\P123 8下 Vocabulary Unit8.mp3",
+          "name": "P123 8下 Vocabulary Unit8.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文听力 1b.mp3",
+          "name": "Unit 1 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文听力 1c.mp3",
+          "name": "Unit 1 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文听力 2b.mp3",
+          "name": "Unit 1 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文听力 2c.mp3",
+          "name": "Unit 1 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文朗读 3a.mp3",
+          "name": "Unit 1 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section A课文朗读 3c.mp3",
+          "name": "Unit 1 Section A课文朗读 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit1课文听力朗读音频\\Unit 1 Section B课文听力 1b.mp3",
+          "name": "Unit 1 Section B课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文听力 1b.mp3",
+          "name": "Unit 2 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文听力 1c.mp3",
+          "name": "Unit 2 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文听力 2b.mp3",
+          "name": "Unit 2 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文听力 2c.mp3",
+          "name": "Unit 2 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文听力 3c.mp3",
+          "name": "Unit 2 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section A课文朗读 3a.mp3",
+          "name": "Unit 2 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit2课文听力朗读音频\\Unit 2 Section B课文朗读 1b.mp3",
+          "name": "Unit 2 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文听力 1b.mp3",
+          "name": "Unit 3 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文听力 1c.mp3",
+          "name": "Unit 3 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文听力 2b.mp3",
+          "name": "Unit 3 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文听力 2c.mp3",
+          "name": "Unit 3 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文听力 3c.mp3",
+          "name": "Unit 3 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section A课文朗读 3a.mp3",
+          "name": "Unit 3 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit3课文听力领读音频\\Unit 3 Section B课文朗读 1b.mp3",
+          "name": "Unit 3 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文听力 1b.mp3",
+          "name": "Unit 4 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文听力 1c.mp3",
+          "name": "Unit 4 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文听力 2b.mp3",
+          "name": "Unit 4 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文听力 2c.mp3",
+          "name": "Unit 4 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文听力 3c.mp3",
+          "name": "Unit 4 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section A课文朗读 3a.mp3",
+          "name": "Unit 4 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit4课文听力领读音频\\Unit 4 Section B课文朗读 1b.mp3",
+          "name": "Unit 4 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文听力 1b.mp3",
+          "name": "Unit 5 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文听力 1c.mp3",
+          "name": "Unit 5 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文听力 2b.mp3",
+          "name": "Unit 5 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文听力 2c.mp3",
+          "name": "Unit 5 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文听力 3c.mp3",
+          "name": "Unit 5 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section A课文朗读 3a.mp3",
+          "name": "Unit 5 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit5课文听力领读音频\\Unit 5 Section B课文朗读 1b.mp3",
+          "name": "Unit 5 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文听力 1b.mp3",
+          "name": "Unit 6 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文听力 1c.mp3",
+          "name": "Unit 6 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文听力 2b.mp3",
+          "name": "Unit 6 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文听力 2c.mp3",
+          "name": "Unit 6 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文听力 3c.mp3",
+          "name": "Unit 6 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section A课文朗读 3a.mp3",
+          "name": "Unit 6 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit6课文听力领读音频\\Unit 6 Section B课文朗读 1b.mp3",
+          "name": "Unit 6 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文听力 1b.mp3",
+          "name": "Unit 7 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文听力 1c.mp3",
+          "name": "Unit 7 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文听力 2b.mp3",
+          "name": "Unit 7 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文听力 2c.mp3",
+          "name": "Unit 7 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文听力 3c.mp3",
+          "name": "Unit 7 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section A课文朗读 3a.mp3",
+          "name": "Unit 7 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit7课文听力领读音频\\Unit 7 Section B课文朗读 1b.mp3",
+          "name": "Unit 7 Section B课文朗读 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文听力 1b.mp3",
+          "name": "Unit 8 Section A课文听力 1b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文听力 1c.mp3",
+          "name": "Unit 8 Section A课文听力 1c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文听力 2b.mp3",
+          "name": "Unit 8 Section A课文听力 2b.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文听力 2c.mp3",
+          "name": "Unit 8 Section A课文听力 2c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文听力 3c.mp3",
+          "name": "Unit 8 Section A课文听力 3c.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section A课文朗读 3a.mp3",
+          "name": "Unit 8 Section A课文朗读 3a.mp3"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版（2026新教材先行版）\\unit8课文听力领读音频\\Unit 8 Section B课文朗读 1b.mp3",
+          "name": "Unit 8 Section B课文朗读 1b.mp3"
+        }
+      ],
+      "audio_segments": [
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\01 P02 8下 Unit1 SectionA1b.mp3",
+          "name": "01 P02 8下 Unit1 SectionA1b.mp3",
+          "index_hint": 2,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\02 P02 8下 Unit1 SectionA1c.mp3",
+          "name": "02 P02 8下 Unit1 SectionA1c.mp3",
+          "index_hint": 2,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\03 P03 8下 Unit1 SectionA2b.mp3",
+          "name": "03 P03 8下 Unit1 SectionA2b.mp3",
+          "index_hint": 3,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\04 P03 8下 Unit1 SectionA2c.mp3",
+          "name": "04 P03 8下 Unit1 SectionA2c.mp3",
+          "index_hint": 3,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\05 P04 8下 Unit1 SectionA3c.mp3",
+          "name": "05 P04 8下 Unit1 SectionA3c.mp3",
+          "index_hint": 4,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\06 P06 8下 Unit1 SectionB1b.mp3",
+          "name": "06 P06 8下 Unit1 SectionB1b.mp3",
+          "index_hint": 6,
+          "unit_ref": "Unit 1",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\09 P13 8下Unit2SectionA2b.mp3",
+          "name": "09 P13 8下Unit2SectionA2b.mp3",
+          "index_hint": 9,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\10 P13 8下Unit2SectionA2c.mp3",
+          "name": "10 P13 8下Unit2SectionA2c.mp3",
+          "index_hint": 10,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\11 P14 8下Unit2SectionA3c.mp3",
+          "name": "11 P14 8下Unit2SectionA3c.mp3",
+          "index_hint": 11,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\07 P12 8下 Unit2 SectionA1b.mp3",
+          "name": "07 P12 8下 Unit2 SectionA1b.mp3",
+          "index_hint": 12,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\08 P12 8下 Unit2 SectionA1c.mp3",
+          "name": "08 P12 8下 Unit2 SectionA1c.mp3",
+          "index_hint": 12,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\12 P16 8下Unit2SectionB1b.mp3",
+          "name": "12 P16 8下Unit2SectionB1b.mp3",
+          "index_hint": 12,
+          "unit_ref": "Unit 2",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\13 P22 8下 Unit3 SectionA1b.mp3",
+          "name": "13 P22 8下 Unit3 SectionA1b.mp3",
+          "index_hint": 22,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\14 P22 8下 Unit3 SectionA1c.mp3",
+          "name": "14 P22 8下 Unit3 SectionA1c.mp3",
+          "index_hint": 22,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\15 P23 8下 Unit3 SectionA2b.mp3",
+          "name": "15 P23 8下 Unit3 SectionA2b.mp3",
+          "index_hint": 23,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\16 P23 8下 Unit3 SectionA2c.mp3",
+          "name": "16 P23 8下 Unit3 SectionA2c.mp3",
+          "index_hint": 23,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\17 P23 8下 Unit3 SectionA3c.mp3",
+          "name": "17 P23 8下 Unit3 SectionA3c.mp3",
+          "index_hint": 23,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\18 P26 8下 Unit3 SectionB1b.mp3",
+          "name": "18 P26 8下 Unit3 SectionB1b.mp3",
+          "index_hint": 26,
+          "unit_ref": "Unit 3",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\19 P32 8下 Unit4 SectionA1b.mp3",
+          "name": "19 P32 8下 Unit4 SectionA1b.mp3",
+          "index_hint": 32,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\20 P32 8下 Unit4 SectionA1c.mp3",
+          "name": "20 P32 8下 Unit4 SectionA1c.mp3",
+          "index_hint": 32,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\21 P33 8下 Unit4 SectionA2b.mp3",
+          "name": "21 P33 8下 Unit4 SectionA2b.mp3",
+          "index_hint": 33,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\22 P33 8下 Unit4 SectionA2c.mp3",
+          "name": "22 P33 8下 Unit4 SectionA2c.mp3",
+          "index_hint": 33,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\23 P34 8下 Unit4 SectionA3c.mp3",
+          "name": "23 P34 8下 Unit4 SectionA3c.mp3",
+          "index_hint": 34,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\24 P36 8下 Unit4 SectionB1b.mp3",
+          "name": "24 P36 8下 Unit4 SectionB1b.mp3",
+          "index_hint": 36,
+          "unit_ref": "Unit 4",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\25 P42 8下 Unit5SectionA1b.mp3",
+          "name": "25 P42 8下 Unit5SectionA1b.mp3",
+          "index_hint": 42,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\26 P42 8下 Unit5 SectionA1c.mp3",
+          "name": "26 P42 8下 Unit5 SectionA1c.mp3",
+          "index_hint": 42,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\27 P43 8下 Unit5 SectionA2b.mp3",
+          "name": "27 P43 8下 Unit5 SectionA2b.mp3",
+          "index_hint": 43,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\28 P43 8下 Unit5 SectionA2c.mp3",
+          "name": "28 P43 8下 Unit5 SectionA2c.mp3",
+          "index_hint": 43,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\29 P44 8下 Unit5 SectionA3c.mp3",
+          "name": "29 P44 8下 Unit5 SectionA3c.mp3",
+          "index_hint": 44,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\30 P46 8下 Unit5 SectionB1b.mp3",
+          "name": "30 P46 8下 Unit5 SectionB1b.mp3",
+          "index_hint": 46,
+          "unit_ref": "Unit 5",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\31 P52 8下 Unit6 SectionA1b.mp3",
+          "name": "31 P52 8下 Unit6 SectionA1b.mp3",
+          "index_hint": 52,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\32 P52 8下 Unit6 SectionA1c.mp3",
+          "name": "32 P52 8下 Unit6 SectionA1c.mp3",
+          "index_hint": 52,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\33 P53 8下 Unit6 SectionA2b.mp3",
+          "name": "33 P53 8下 Unit6 SectionA2b.mp3",
+          "index_hint": 53,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\34 P53 8下 Unit6 SectionA2c.mp3",
+          "name": "34 P53 8下 Unit6 SectionA2c.mp3",
+          "index_hint": 53,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\35 P54 8下 Unit6 SectionA3c.mp3",
+          "name": "35 P54 8下 Unit6 SectionA3c.mp3",
+          "index_hint": 54,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\36 P56 8下 Unit6 SectionB1b.mp3",
+          "name": "36 P56 8下 Unit6 SectionB1b.mp3",
+          "index_hint": 56,
+          "unit_ref": "Unit 6",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\28 P62 8下 Unit7 SectionA1c.mp3",
+          "name": "28 P62 8下 Unit7 SectionA1c.mp3",
+          "index_hint": 62,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\37 P62 8下 Unit7 SectionA1b.mp3",
+          "name": "37 P62 8下 Unit7 SectionA1b.mp3",
+          "index_hint": 62,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\38 P63 8下 Unit7SectionA2b.mp3",
+          "name": "38 P63 8下 Unit7SectionA2b.mp3",
+          "index_hint": 63,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\39 P63 8下 Unit7 SectionA2c.mp3",
+          "name": "39 P63 8下 Unit7 SectionA2c.mp3",
+          "index_hint": 63,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\40 P64 8下 Unit7 SectionA3c.mp3",
+          "name": "40 P64 8下 Unit7 SectionA3c.mp3",
+          "index_hint": 64,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\41 P66 8下 Unit7 SectionB1b.mp3",
+          "name": "41 P66 8下 Unit7 SectionB1b.mp3",
+          "index_hint": 66,
+          "unit_ref": "Unit 7",
+          "section_ref": "Section B 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\42 P72 8下 Unit8 SectionA1b.mp3",
+          "name": "42 P72 8下 Unit8 SectionA1b.mp3",
+          "index_hint": 72,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\43 P72 8下 Unit8 SectionA1c.mp3",
+          "name": "43 P72 8下 Unit8 SectionA1c.mp3",
+          "index_hint": 72,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 1c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\44 P73 8下 Unit8 SectionA2b.mp3",
+          "name": "44 P73 8下 Unit8 SectionA2b.mp3",
+          "index_hint": 73,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2b"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\45 P73 8下 Unit8 SectionA2c.mp3",
+          "name": "45 P73 8下 Unit8 SectionA2c.mp3",
+          "index_hint": 73,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 2c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\46 P74 8下 Unit8 SectionA3c.mp3",
+          "name": "46 P74 8下 Unit8 SectionA3c.mp3",
+          "index_hint": 74,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section A 3c"
+        },
+        {
+          "relpath": "8下\\新版\\【4】8下音频（新教材）\\【1】8下26年春季最新版音频\\【3】8下 听力 细分版 正式版 2026新\\47 P76 8下 Unit8 SectionB1b.mp3",
+          "name": "47 P76 8下 Unit8 SectionB1b.mp3",
+          "index_hint": 76,
+          "unit_ref": "Unit 8",
+          "section_ref": "Section B 1b"
+        }
+      ],
+      "listening_docs": [],
+      "other_files": []
+    },
+    {
+      "book_id": "pep-g9-vol2",
+      "grade_level": 18,
+      "source_root": "C:\\Users\\zhong\\Desktop\\Eng资料\\9下",
+      "word_pdfs": [],
+      "textbook_pdfs": [],
+      "audio_full": [
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\001 Unit1 section A1b.mp3",
+          "name": "001 Unit1 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\002 Unit1 section A2a.mp3",
+          "name": "002 Unit1 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\003 Unit1 section A2b.mp3",
+          "name": "003 Unit1 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\004 Unit1 section A2d.mp3",
+          "name": "004 Unit1 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\005 Unit1 section A3a.mp3",
+          "name": "005 Unit1 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\006 Unit1 section B1c.mp3",
+          "name": "006 Unit1 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\007 Unit1 section B1d.mp3",
+          "name": "007 Unit1 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\008 Unit1 section B2b.mp3",
+          "name": "008 Unit1 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\009 Unit1 Words.mp3",
+          "name": "009 Unit1 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\009 Unit1 Words.lrc\\009 Unit1 Words.mp3",
+          "name": "009 Unit1 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\009 Unit1 Words.mp3",
+          "name": "009 Unit1 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\010 Unit2 section A1b.mp3",
+          "name": "010 Unit2 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\011 Unit2 section A2a.mp3",
+          "name": "011 Unit2 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\012 Unit2 section A2b.mp3",
+          "name": "012 Unit2 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\013 Unit2 section A2d.mp3",
+          "name": "013 Unit2 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\014 Unit2 section A3a.mp3",
+          "name": "014 Unit2 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\015 Unit2 section B1b.mp3",
+          "name": "015 Unit2 section B1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\016 Unit2 section B1c.mp3",
+          "name": "016 Unit2 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\017 Unit2 section B2b.mp3",
+          "name": "017 Unit2 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\018 Unit2 Words.mp3",
+          "name": "018 Unit2 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\018 Unit2 Words.lrc\\018 Unit2 Words.mp3",
+          "name": "018 Unit2 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\018 Unit2 Words.mp3",
+          "name": "018 Unit2 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\019 Unit3 section A1b.mp3",
+          "name": "019 Unit3 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\020 Unit3 section A2a.mp3",
+          "name": "020 Unit3 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\021 Unit3 section A2b.mp3",
+          "name": "021 Unit3 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\022 Unit3 section A2d.mp3",
+          "name": "022 Unit3 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\023 Unit3 section A3a.mp3",
+          "name": "023 Unit3 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\024 Unit3 section B1c.mp3",
+          "name": "024 Unit3 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\025 Unit3 section B1d.mp3",
+          "name": "025 Unit3 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\026 Unit3 section B2b.mp3",
+          "name": "026 Unit3 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\027 Unit3 Words.mp3",
+          "name": "027 Unit3 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\027 Unit3 Words.lrc\\027 Unit3 Words.mp3",
+          "name": "027 Unit3 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\027 Unit3 Words.mp3",
+          "name": "027 Unit3 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\028 Unit4 section A1b.mp3",
+          "name": "028 Unit4 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\029 Unit4 section A2a.mp3",
+          "name": "029 Unit4 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\030 Unit4 section A2b.mp3",
+          "name": "030 Unit4 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\031 Unit4 section A2d.mp3",
+          "name": "031 Unit4 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\032 Unit4 section A3a.mp3",
+          "name": "032 Unit4 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\033 Unit4 section B1c.mp3",
+          "name": "033 Unit4 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\034 Unit4 section B1d.mp3",
+          "name": "034 Unit4 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\035 Unit4 section B2b.mp3",
+          "name": "035 Unit4 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\036 Unit4 Words.mp3",
+          "name": "036 Unit4 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\036 Unit4 Words.lrc\\036 Unit4 Words.mp3",
+          "name": "036 Unit4 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\036 Unit4 Words.mp3",
+          "name": "036 Unit4 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\037 Unit5 section A1b.mp3",
+          "name": "037 Unit5 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\038 Unit5 section A2a.mp3",
+          "name": "038 Unit5 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\039 Unit5 section A2b.mp3",
+          "name": "039 Unit5 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\040 Unit5 section A2d.mp3",
+          "name": "040 Unit5 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\041 Unit5 section A3a.mp3",
+          "name": "041 Unit5 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\042 Unit5 section B1b.mp3",
+          "name": "042 Unit5 section B1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\043 Unit5 section B1c.mp3",
+          "name": "043 Unit5 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\044 Unit5 section B1d.mp3",
+          "name": "044 Unit5 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\045 Unit5 section B2b.mp3",
+          "name": "045 Unit5 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\046 Unit5 Words.mp3",
+          "name": "046 Unit5 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\046 Unit5 Words.lrc\\046 Unit5 Words.mp3",
+          "name": "046 Unit5 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\046 Unit5 Words.mp3",
+          "name": "046 Unit5 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\047 Unit6 section A1b.mp3",
+          "name": "047 Unit6 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\048 Unit6 section A2a.mp3",
+          "name": "048 Unit6 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\049 Unit6 section A2b.mp3",
+          "name": "049 Unit6 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\050 Unit6 section A2d.mp3",
+          "name": "050 Unit6 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\051 Unit6 section A3a.mp3",
+          "name": "051 Unit6 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\052 Unit6 section B1c.mp3",
+          "name": "052 Unit6 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\053 Unit6 section B1d.mp3",
+          "name": "053 Unit6 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\054 Unit6 section B2b.mp3",
+          "name": "054 Unit6 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\055 Unit6 Words.mp3",
+          "name": "055 Unit6 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\055 Unit6 Words.lrc\\055 Unit6 Words.mp3",
+          "name": "055 Unit6 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\055 Unit6 Words.mp3",
+          "name": "055 Unit6 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\056 Unit7 section A1b.mp3",
+          "name": "056 Unit7 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\057 Unit7 section A2a.mp3",
+          "name": "057 Unit7 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\058 Unit7 section A2b.mp3",
+          "name": "058 Unit7 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\059 Unit7 section A2d.mp3",
+          "name": "059 Unit7 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\060 Unit7 section A3a.mp3",
+          "name": "060 Unit7 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\061 Unit7 section B1c.mp3",
+          "name": "061 Unit7 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\062 Unit7 section B1d.mp3",
+          "name": "062 Unit7 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\063 Unit7 section B2b.mp3",
+          "name": "063 Unit7 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\064 Unit7 Words.mp3",
+          "name": "064 Unit7 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\064 Unit7 Words.lrc\\064 Unit7 Words.mp3",
+          "name": "064 Unit7 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\064 Unit7 Words.mp3",
+          "name": "064 Unit7 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\065 Unit8 section A1b.mp3",
+          "name": "065 Unit8 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\066 Unit8 section A2a.mp3",
+          "name": "066 Unit8 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\067 Unit8 section A2b.mp3",
+          "name": "067 Unit8 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\068 Unit8 section A2d.mp3",
+          "name": "068 Unit8 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\069 Unit8 section A3a.mp3",
+          "name": "069 Unit8 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\070 Unit8 section B1b.mp3",
+          "name": "070 Unit8 section B1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\071 Unit8 section B1c.mp3",
+          "name": "071 Unit8 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\072 Unit8 section B2b.mp3",
+          "name": "072 Unit8 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\073 Unit8 Words.mp3",
+          "name": "073 Unit8 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\073 Unit8 Words.lrc\\073 Unit8 Words.mp3",
+          "name": "073 Unit8 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\073 Unit8 Words.mp3",
+          "name": "073 Unit8 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\074 Unit9 section A1b.mp3",
+          "name": "074 Unit9 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\075 Unit9 section A2a.mp3",
+          "name": "075 Unit9 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\076 Unit9 section A2b.mp3",
+          "name": "076 Unit9 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\077 Unit9 section A2d.mp3",
+          "name": "077 Unit9 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\078 Unit9 section A3a.mp3",
+          "name": "078 Unit9 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\079 Unit9 section B1b.mp3",
+          "name": "079 Unit9 section B1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\080 Unit9 section B1c.mp3",
+          "name": "080 Unit9 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\081 Unit9 section B2b.mp3",
+          "name": "081 Unit9 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\082 Unit9 Words.mp3",
+          "name": "082 Unit9 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\082 Unit9 Words.lrc\\082 Unit9 Words.mp3",
+          "name": "082 Unit9 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\082 Unit9 Words.mp3",
+          "name": "082 Unit9 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\083 Unit10 section A1b.mp3",
+          "name": "083 Unit10 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\084 Unit10 section A2a.mp3",
+          "name": "084 Unit10 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\085 Unit10 section A2b.mp3",
+          "name": "085 Unit10 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\086 Unit10 section A2d.mp3",
+          "name": "086 Unit10 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\087 Unit10 section A3a.mp3",
+          "name": "087 Unit10 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\088 Unit10 section B1b.mp3",
+          "name": "088 Unit10 section B1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\089 Unit10 section B1c.mp3",
+          "name": "089 Unit10 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\090 Unit10 section B2b.mp3",
+          "name": "090 Unit10 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\091 Unit10 Words.mp3",
+          "name": "091 Unit10 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\091 Unit10 Words.lrc\\091 Unit10 Words.mp3",
+          "name": "091 Unit10 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\091 Unit10 Words.mp3",
+          "name": "091 Unit10 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\092 Unit11 section A1b.mp3",
+          "name": "092 Unit11 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\093 Unit11 section A2a.mp3",
+          "name": "093 Unit11 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\094 Unit11 section A2b.mp3",
+          "name": "094 Unit11 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\095 Unit11 section A2d.mp3",
+          "name": "095 Unit11 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\096 Unit11 section A3a.mp3",
+          "name": "096 Unit11 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\097 Unit11 section B1c.mp3",
+          "name": "097 Unit11 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\098 Unit11 section B1d.mp3",
+          "name": "098 Unit11 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\099 Unit11 section B2b.mp3",
+          "name": "099 Unit11 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\100 Unit11 Words.mp3",
+          "name": "100 Unit11 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\100 Unit11 Words.lrc\\100 Unit11 Words.mp3",
+          "name": "100 Unit11 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\100 Unit11 Words.mp3",
+          "name": "100 Unit11 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\101 Unit12 section A1b.mp3",
+          "name": "101 Unit12 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\102 Unit12 section A2a.mp3",
+          "name": "102 Unit12 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\103 Unit12 section A2b.mp3",
+          "name": "103 Unit12 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\104 Unit12 section A2d.mp3",
+          "name": "104 Unit12 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\105 Unit12 section A3a.mp3",
+          "name": "105 Unit12 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\106 Unit12 section B1c.mp3",
+          "name": "106 Unit12 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\107 Unit12 section B1d.mp3",
+          "name": "107 Unit12 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\108 Unit12 section B2b.mp3",
+          "name": "108 Unit12 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\109 Unit12 Words.mp3",
+          "name": "109 Unit12 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\109 Unit12 Words.lrc\\109 Unit12 Words.mp3",
+          "name": "109 Unit12 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\109 Unit12 Words.mp3",
+          "name": "109 Unit12 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\110 Unit13 section A1b.mp3",
+          "name": "110 Unit13 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\111 Unit13 section A2a.mp3",
+          "name": "111 Unit13 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\112 Unit13 section A2b.mp3",
+          "name": "112 Unit13 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\113 Unit13 section A2d.mp3",
+          "name": "113 Unit13 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\114 Unit13 section A3a.mp3",
+          "name": "114 Unit13 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\115 Unit13 section B1c.mp3",
+          "name": "115 Unit13 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\116 Unit13 section B1d.mp3",
+          "name": "116 Unit13 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\117 Unit13 section B2b.mp3",
+          "name": "117 Unit13 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\118 Unit13 Words.mp3",
+          "name": "118 Unit13 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\118 Unit13 Words.lrc\\118 Unit13 Words.mp3",
+          "name": "118 Unit13 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\118 Unit13 Words.mp3",
+          "name": "118 Unit13 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\119 Unit14 section A1b.mp3",
+          "name": "119 Unit14 section A1b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\120 Unit14 section A2a.mp3",
+          "name": "120 Unit14 section A2a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\121 Unit14 section A2b.mp3",
+          "name": "121 Unit14 section A2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\122 Unit14 section A2d.mp3",
+          "name": "122 Unit14 section A2d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\123 Unit14 section A3a.mp3",
+          "name": "123 Unit14 section A3a.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\124 Unit14 section B1c.mp3",
+          "name": "124 Unit14 section B1c.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\125 Unit14 section B1d.mp3",
+          "name": "125 Unit14 section B1d.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\126 Unit14 section B2b.mp3",
+          "name": "126 Unit14 section B2b.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\英语9年级单词（无字幕）\\127 Unit14 Words.mp3",
+          "name": "127 Unit14 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\127 Unit14 Words.lrc\\127 Unit14 Words.mp3",
+          "name": "127 Unit14 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\127 Unit14 Words.mp3",
+          "name": "127 Unit14 Words.mp3"
+        },
+        {
+          "relpath": "9下\\九年级全课文单词音频（字幕版）\\128 Irregular Verbs.mp3",
+          "name": "128 Irregular Verbs.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\26个英语字母.mp3",
+          "name": "26个英语字母.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\双元音.mp3",
+          "name": "双元音.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\浊辅音.mp3",
+          "name": "浊辅音.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\清辅音.mp3",
+          "name": "清辅音.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\短元音.mp3",
+          "name": "短元音.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\英语字母歌.mp3",
+          "name": "英语字母歌.mp3"
+        },
+        {
+          "relpath": "9下\\英语音标\\长元音.mp3",
+          "name": "长元音.mp3"
+        }
+      ],
+      "audio_segments": [],
+      "listening_docs": [
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\Unit 7.doc"
+      ],
+      "other_files": [
+        "9下\\九年级全课文单词音频（字幕版）\\128 Irregular Verbs.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\009 Unit1 Words.lrc\\009 Unit1 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\018 Unit2 Words.lrc\\018 Unit2 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\027 Unit3 Words.lrc\\027 Unit3 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\036 Unit4 Words.lrc\\036 Unit4 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\046 Unit5 Words.lrc\\046 Unit5 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\055 Unit6 Words.lrc\\055 Unit6 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\064 Unit7 Words.lrc\\064 Unit7 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\073 Unit8 Words.lrc\\073 Unit8 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\082 Unit9 Words.lrc\\082 Unit9 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\091 Unit10 Words.lrc\\091 Unit10 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\100 Unit11 Words.lrc\\100 Unit11 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\109 Unit12 Words.lrc\\109 Unit12 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\118 Unit13 Words.lrc\\118 Unit13 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\2 人教英语9单词（字幕版）\\127 Unit14 Words.lrc\\127 Unit14 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\083 Unit10 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\084 Unit10 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\085 Unit10 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\086 Unit10 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\087 Unit10 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\088 Unit10 section B1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\089 Unit10 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\090 Unit10 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\10单元\\091 Unit10 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\092 Unit11 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\093 Unit11 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\094 Unit11 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\095 Unit11 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\096 Unit11 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\097 Unit11 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\098 Unit11 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\099 Unit11 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\11单元\\100 Unit11 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\101 Unit12 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\102 Unit12 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\103 Unit12 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\104 Unit12 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\105 Unit12 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\106 Unit12 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\107 Unit12 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\108 Unit12 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\12单元\\109 Unit12 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\110 Unit13 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\111 Unit13 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\112 Unit13 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\113 Unit13 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\114 Unit13 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\115 Unit13 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\116 Unit13 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\117 Unit13 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\13单元\\118 Unit13 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\119 Unit14 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\120 Unit14 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\121 Unit14 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\122 Unit14 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\123 Unit14 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\124 Unit14 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\125 Unit14 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\126 Unit14 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\14单元\\127 Unit14 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\001 unit1 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\002 unit1 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\003 unit1 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\004 Unit1 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\005 Unit1 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\006 unit1 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\007 unit1 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\008 Unit1 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\1单元\\009 Unit1 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\010 unit2 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\011 unit2 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\012 unit2 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\013 Unit2 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\014 Unit2 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\015 unit2 section B1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\016 unit2 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\017 Unit2 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\2单元\\018 Unit2 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\019 unit3 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\020 unit3 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\021 unit3 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\022 Unit3 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\023 Unit3 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\024 unit3 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\025 unit3 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\026 Unit3 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\3单元\\027 Unit3 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\028 unit4 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\029 unit4 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\030 unit4 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\031 Unit4 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\032 Unit4 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\033 unit4 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\034 unit4 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\035 Unit4 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\4单元\\036 Unit4 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\037 unit5 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\038 unit5 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\039 unit5 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\040 Unit5 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\041 Unit5 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\042 unit5 section B1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\043 unit5 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\044 unit5 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\045 Unit5 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\5单元\\046 Unit5 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\047 unit6 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\048 unit6 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\049 unit6 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\050 Unit6 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\051 Unit6 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\053 unit6 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\054 Unit6 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\6单元\\055 Unit6 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\056 unit7 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\057 unit7 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\058 Unit7 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\059 Unit7 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\060 Unit7 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\061 Unit7 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\062 Unit7 section B1d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\063 Unit7 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\7单元\\064 Unit7 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\065 Unit8 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\066 Unit8 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\067 Unit8 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\068 Unit8 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\069 Unit8 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\070 Unit8 section B1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\071 Unit8 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\072 Unit8 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\8单元\\073 Unit8 Words.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\074 Unit9 section A1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\075 Unit9 section A2a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\076 Unit9 section A2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\077 Unit9 section A2d.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\078 Unit9 section A3a.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\079 Unit9 section B1b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\080 Unit9 section B1c.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\081 Unit9 section B2b.lrc",
+        "9下\\九年级全课文单词音频（字幕版）\\1 九年级全课文音频（字幕版）\\9单元\\082 Unit9 Words.lrc"
+      ]
+    }
+  ]
+}

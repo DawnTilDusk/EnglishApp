@@ -62,7 +62,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.GardenSpeciesCatalog
@@ -630,7 +629,9 @@ private fun PromptCard(
                 } else {
                     MaterialTheme.typography.bodyLarge
                 },
-                color = if (isContextPrompt) Color(0xFF7A5230) else MaterialTheme.colorScheme.onSurface,
+                // 情境例句题的高亮文字：改用主题次色（WarmTaupe 温暖驼），
+                // 相比原硬编码棕色更贴合 Seedie 自然木质调，且深浅主题都读得清
+                color = if (isContextPrompt) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
                 maxLines = if (isContextPrompt) {
                     if (isAuxPanelExpanded) 3 else 2
                 } else {

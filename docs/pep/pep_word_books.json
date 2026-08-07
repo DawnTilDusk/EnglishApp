@@ -1,0 +1,16 @@
+{
+  "$schema_version": 1,
+  "generated_at": 2026080616,
+  "notes": "由 scripts/extract_pep_words.py 填充。books[].units[].words[] 提供 english/phonetic/senses/example_sentence/sort_order。needs_review=true 表示待人工审核。",
+  "books": [
+    {
+      "book_id": "pep-g7-vol1",
+      "title": "人教版 英语 七年级上册",
+      "description": "人教版 · 年级基准 13",
+      "language": "en-US",
+      "grade_level": 13,
+      "version": 2026080601,
+      "units": []
+    }
+  ]
+}

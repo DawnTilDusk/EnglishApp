@@ -34,6 +34,7 @@ fun BottomNavigationBar(
 
     NavigationBar(
         modifier = modifier.fillMaxWidth(),
+        // 容器底：奶油白（surface），让底栏与卡片保持同一层材质
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.primary
     ) {
@@ -48,12 +49,15 @@ fun BottomNavigationBar(
                 },
                 icon = { Icon(imageVector = tab.second, contentDescription = tab.first) },
                 label = { Text(tab.first) },
+                // 选中态：primaryContainer（Green100 新芽白绿）做胶囊底，
+                // 前景使用 onPrimaryContainer（Green800 深林绿），比原深绿反白更轻盈；
+                // 未选中：onSurfaceVariant（Green700 苍林绿）保持可读性并统一到绿色系
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.surface,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.secondary,
-                    unselectedTextColor = MaterialTheme.colorScheme.secondary
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
         }

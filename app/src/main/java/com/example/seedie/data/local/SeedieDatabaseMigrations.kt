@@ -221,6 +221,20 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_9_10 = object : Migration(9, 10) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // word_books: grade_level for numeric difficulty
+            db.execSQL("ALTER TABLE word_books ADD COLUMN gradeLevel INTEGER")
+
+            // vocabulary_words: difficulty_value + master_id
+            db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN difficultyValue INTEGER")
+            db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN masterId TEXT")
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_vocabulary_words_masterId ON vocabulary_words(masterId)"
+            )
+        }
+    }
+
     val MIGRATION_1_2 = object : Migration(1, 2) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL(
