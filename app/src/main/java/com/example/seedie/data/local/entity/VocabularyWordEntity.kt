@@ -35,5 +35,7 @@ data class VocabularyWordEntity(
      *  legacy `difficultyLevel` enum. */
     val difficultyValue: Int? = null,
     /** Reference into vocabulary_master; nullable for legacy rows. */
-    val masterId: String? = null
+    val masterId: String? = null,
+    /** 例句对应的中文；空串表示服务端尚未补齐。 */
+    val exampleTranslation: String = ""
 )

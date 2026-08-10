@@ -352,6 +352,14 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_10_11 = object : Migration(10, 11) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE vocabulary_words ADD COLUMN exampleTranslation TEXT NOT NULL DEFAULT ''"
+            )
+        }
+    }
+
     val MIGRATION_9_10 = object : Migration(9, 10) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // word_books: gradeLevel for numeric difficulty

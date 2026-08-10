@@ -16,6 +16,13 @@ class ListeningRemoteDataSource @Inject constructor(
         }.decodeList()
     }
 
+    suspend fun fetchMaterialsByBook(bookId: String): List<SupabaseListeningMaterial> {
+        return client.postgrest["listening_materials"].select {
+            filter { eq("book_id", bookId) }
+            order("sort_order", Order.ASCENDING)
+        }.decodeList()
+    }
+
     suspend fun fetchAllQuestions(): List<SupabaseListeningQuestion> {
         return client.postgrest["listening_questions"].select {
             order("sort_order", Order.ASCENDING)

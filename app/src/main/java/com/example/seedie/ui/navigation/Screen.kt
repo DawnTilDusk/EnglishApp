@@ -21,4 +21,10 @@ sealed class Screen(val route: String) {
     object ListeningMode : Screen("listening_mode")
     object ReadingCatalog : Screen("reading_catalog")
     object ListeningCatalog : Screen("listening_catalog")
+    object ListeningTextbookBooks : Screen("listening_textbook_books")
+    object ListeningTextbookUnits : Screen("listening_textbook_units/{bookId}") {
+        fun buildRoute(bookId: String) = "listening_textbook_units/$bookId"
+        const val ARG_BOOK_ID = "bookId"
+    }
+    object ListeningImmersion : Screen("listening_immersion")
 }

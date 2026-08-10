@@ -178,7 +178,8 @@ private fun SupabaseVocabularyWord.toEntity(): VocabularyWordEntity {
         audioUrl = audio_url,
         sensesJson = sensesJson,
         difficultyValue = difficulty_value,
-        masterId = master_id
+        masterId = master_id,
+        exampleTranslation = example_translation.orEmpty()
     )
 }
 

@@ -103,6 +103,7 @@ data class SupabaseVocabularyWord(
     @SerialName("part_of_speech") val part_of_speech: String? = null,
     val translation: String? = null,
     @SerialName("example_sentence") val example_sentence: String? = null,
+    @SerialName("example_translation") val example_translation: String? = null,
     @SerialName("difficulty_level") val difficulty_level: String? = null,
     @SerialName("difficulty_value") val difficulty_value: Int? = null,
     @SerialName("reward_token") val reward_token: Int = 0,

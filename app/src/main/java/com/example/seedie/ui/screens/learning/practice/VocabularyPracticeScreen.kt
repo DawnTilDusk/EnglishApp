@@ -602,6 +602,13 @@ private fun PromptCard(
         VocabularyQuestionType.StudyContextChoice -> currentPrompt.promptTitle
         VocabularyQuestionType.ReviewSpelling -> currentPrompt.promptBody
     }
+    // 例句中文只在展示例句的两种题型下出现；情境选择题会挖空目标词，
+    // 给出中文等于泄题，所以那里不显示。
+    val exampleTranslation = when (currentPrompt.questionType) {
+        VocabularyQuestionType.StudyEnglishToChinese,
+        VocabularyQuestionType.StudyChineseToEnglish -> currentPrompt.word.exampleTranslation
+        else -> ""
+    }
     val overlayText = when (currentPrompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese -> ""
         VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示例句"
@@ -619,26 +626,41 @@ private fun PromptCard(
                 .heightIn(min = if (isContextPrompt) 72.dp else 0.dp)
                 .padding(horizontal = 16.dp, vertical = if (isContextPrompt) 10.dp else 12.dp)
         ) {
-            Text(
-                text = promptText,
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
-                style = if (isContextPrompt) {
-                    MaterialTheme.typography.titleLarge
-                } else {
-                    MaterialTheme.typography.bodyLarge
-                },
-                // 情境例句题的高亮文字：改用主题次色（WarmTaupe 温暖驼），
-                // 相比原硬编码棕色更贴合 Seedie 自然木质调，且深浅主题都读得清
-                color = if (isContextPrompt) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
-                maxLines = if (isContextPrompt) {
-                    if (isAuxPanelExpanded) 3 else 2
-                } else {
-                    if (isAuxPanelExpanded) 4 else 2
-                },
-                overflow = TextOverflow.Ellipsis
-            )
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = promptText,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = if (isContextPrompt) {
+                        MaterialTheme.typography.titleLarge
+                    } else {
+                        MaterialTheme.typography.bodyLarge
+                    },
+                    // 情境例句题的高亮文字：改用主题次色（WarmTaupe 温暖驼），
+                    // 相比原硬编码棕色更贴合 Seedie 自然木质调，且深浅主题都读得清
+                    color = if (isContextPrompt) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                    maxLines = if (isContextPrompt) {
+                        if (isAuxPanelExpanded) 3 else 2
+                    } else {
+                        if (isAuxPanelExpanded) 4 else 2
+                    },
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (exampleTranslation.isNotBlank()) {
+                    Text(
+                        text = exampleTranslation,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
             if (overlayText.isNotBlank() && uiState.stage != VocabularyPracticeStage.AnswerEvaluated) {
                 Box(
                     modifier = Modifier

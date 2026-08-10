@@ -22,6 +22,9 @@ import com.example.seedie.ui.screens.learning.catalog.PracticeModeChooserRoute
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeArgs
 import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
+import com.example.seedie.ui.screens.learning.listening.immersion.ListeningImmersionRoute
+import com.example.seedie.ui.screens.learning.listening.textbook.ListeningTextbookBooksRoute
+import com.example.seedie.ui.screens.learning.listening.textbook.ListeningTextbookUnitsRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
 import com.example.seedie.ui.screens.learning.reading.ReadingPracticeRoute
 import com.example.seedie.ui.screens.learning.writing.WritingConnectorDrillRoute
@@ -57,6 +60,9 @@ fun SeedieNavHost(
             Screen.ListeningPractice.route,
             Screen.ListeningAssignments.route,
             Screen.ListeningMode.route,
+            Screen.ListeningTextbookBooks.route,
+            Screen.ListeningTextbookUnits.route,
+            Screen.ListeningImmersion.route,
             Screen.ListeningCatalog.route -> ActivityModule.ListeningPractice
             Screen.ReadingPractice.route,
             Screen.ReadingAssignments.route,
@@ -149,7 +155,33 @@ fun SeedieNavHost(
                 moduleId = "listening",
                 onNavigateBack = { navController.popBackStack() },
                 onSelectFree = { navController.navigate(Screen.ListeningCatalog.route) },
-                onSelectHomework = { navController.navigate(Screen.ListeningAssignments.route) }
+                onSelectHomework = { navController.navigate(Screen.ListeningAssignments.route) },
+                onSelectTextbook = { navController.navigate(Screen.ListeningTextbookBooks.route) },
+                onSelectImmersion = { navController.navigate(Screen.ListeningImmersion.route) }
+            )
+        }
+        composable(route = Screen.ListeningTextbookBooks.route) {
+            ListeningTextbookBooksRoute(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenBook = { bookId ->
+                    navController.navigate(Screen.ListeningTextbookUnits.buildRoute(bookId))
+                }
+            )
+        }
+        composable(route = Screen.ListeningTextbookUnits.route) {
+            ListeningTextbookUnitsRoute(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenSection = { materialId ->
+                    currentListeningFreeArgs =
+                        FreePracticeArgs(moduleId = "listening", itemRef = materialId)
+                    currentListeningAssignmentArgs = null
+                    navController.navigate(Screen.ListeningPractice.route)
+                }
+            )
+        }
+        composable(route = Screen.ListeningImmersion.route) {
+            ListeningImmersionRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(route = Screen.ReadingCatalog.route) {

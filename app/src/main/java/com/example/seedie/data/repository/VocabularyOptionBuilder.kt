@@ -31,6 +31,7 @@ class VocabularyOptionBuilder @Inject constructor() {
             translation = entity.translation,
             senseDisplayLabel = label,
             exampleSentence = entity.exampleSentence,
+            exampleTranslation = entity.exampleTranslation,
             difficultyLevel = entity.difficultyLevel,
             rewardToken = entity.rewardToken,
             estimatedDurationSec = entity.estimatedDurationSec,

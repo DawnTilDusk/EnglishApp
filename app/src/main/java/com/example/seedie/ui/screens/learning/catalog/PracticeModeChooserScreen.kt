@@ -31,7 +31,9 @@ fun PracticeModeChooserRoute(
     moduleId: String,
     onNavigateBack: () -> Unit,
     onSelectFree: () -> Unit,
-    onSelectHomework: () -> Unit
+    onSelectHomework: () -> Unit,
+    onSelectTextbook: (() -> Unit)? = null,
+    onSelectImmersion: (() -> Unit)? = null
 ) {
     val title = when (moduleId) {
         "listening" -> "听力训练"
@@ -63,8 +65,22 @@ fun PracticeModeChooserRoute(
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(Modifier.height(8.dp))
+            val showTextbookAndImmersion =
+                moduleId == "listening" && onSelectTextbook != null && onSelectImmersion != null
+            if (showTextbookAndImmersion) {
+                ModeCard(
+                    title = "教材听力",
+                    subtitle = "跟着课本音频精听精练",
+                    onClick = onSelectTextbook!!
+                )
+                ModeCard(
+                    title = "磨耳朵",
+                    subtitle = "沉浸式外刊听读",
+                    onClick = onSelectImmersion!!
+                )
+            }
             ModeCard(
-                title = "自由刷题",
+                title = "自主刷题",
                 subtitle = "从题库中选题练习",
                 onClick = onSelectFree
             )

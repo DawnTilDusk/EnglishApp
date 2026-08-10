@@ -77,6 +77,7 @@ private fun SupabaseVocabularyWord.toQuizEntity(): VocabularyWordEntity {
         sortOrder = sort_order,
         moduleId = module_id,
         audioUrl = audio_url,
-        sensesJson = sensesJson
+        sensesJson = sensesJson,
+        exampleTranslation = example_translation.orEmpty()
     )
 }
