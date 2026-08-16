@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,7 +56,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -596,14 +599,13 @@ private fun PromptCard(
     val isContextPrompt = currentPrompt.questionType == VocabularyQuestionType.StudyContextChoice
     val shouldBlur = uiState.stage != VocabularyPracticeStage.AnswerEvaluated &&
         currentPrompt.questionType == VocabularyQuestionType.StudyChineseToEnglish
+    val answerEvaluated = uiState.stage == VocabularyPracticeStage.AnswerEvaluated
     val promptText = when (currentPrompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese,
         VocabularyQuestionType.StudyChineseToEnglish -> currentPrompt.word.exampleSentence
         VocabularyQuestionType.StudyContextChoice -> currentPrompt.promptTitle
         VocabularyQuestionType.ReviewSpelling -> currentPrompt.promptBody
     }
-    // 例句中文只在展示例句的两种题型下出现；情境选择题会挖空目标词，
-    // 给出中文等于泄题，所以那里不显示。
     val exampleTranslation = when (currentPrompt.questionType) {
         VocabularyQuestionType.StudyEnglishToChinese,
         VocabularyQuestionType.StudyChineseToEnglish -> currentPrompt.word.exampleTranslation
@@ -614,6 +616,23 @@ private fun PromptCard(
         VocabularyQuestionType.StudyChineseToEnglish -> "作答之后展示例句"
         VocabularyQuestionType.StudyContextChoice -> ""
         VocabularyQuestionType.ReviewSpelling -> "5 秒无操作将提示首字母"
+    }
+    // 只在答题完成后，且真的有中文译文时，例句行才可点击展开。
+    // 答题前保持原样：不显示中文，避免干扰也避免提前泄题。
+    val canExpandTranslation = answerEvaluated && exampleTranslation.isNotBlank()
+    var translationExpanded by rememberSaveable(currentPrompt, answerEvaluated) { mutableStateOf(false) }
+    val expandRotation by animateFloatAsState(
+        targetValue = if (translationExpanded) 180f else 0f,
+        animationSpec = tween(durationMillis = 220),
+        label = "translationArrow"
+    )
+    val sentenceRowModifier = if (canExpandTranslation) {
+        Modifier
+            .fillMaxWidth()
+            .clickable(role = Role.Button) { translationExpanded = !translationExpanded }
+            .animateContentSize()
+    } else {
+        Modifier.fillMaxWidth()
     }
 
     Surface(
@@ -632,31 +651,47 @@ private fun PromptCard(
                     .then(if (shouldBlur) Modifier.blur(10.dp) else Modifier),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(
-                    text = promptText,
-                    modifier = Modifier.fillMaxWidth(),
-                    style = if (isContextPrompt) {
-                        MaterialTheme.typography.titleLarge
-                    } else {
-                        MaterialTheme.typography.bodyLarge
-                    },
-                    // 情境例句题的高亮文字：改用主题次色（WarmTaupe 温暖驼），
-                    // 相比原硬编码棕色更贴合 Seedie 自然木质调，且深浅主题都读得清
-                    color = if (isContextPrompt) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
-                    maxLines = if (isContextPrompt) {
-                        if (isAuxPanelExpanded) 3 else 2
-                    } else {
-                        if (isAuxPanelExpanded) 4 else 2
-                    },
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (exampleTranslation.isNotBlank()) {
+                Row(
+                    modifier = sentenceRowModifier,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = promptText,
+                        modifier = Modifier.weight(1f),
+                        style = if (isContextPrompt) {
+                            MaterialTheme.typography.titleLarge
+                        } else {
+                            MaterialTheme.typography.bodyLarge
+                        },
+                        // 情境例句题的高亮文字：改用主题次色（WarmTaupe 温暖驼），
+                        // 相比原硬编码棕色更贴合 Seedie 自然木质调，且深浅主题都读得清
+                        color = if (isContextPrompt) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                        maxLines = if (isContextPrompt) {
+                            if (isAuxPanelExpanded) 3 else 2
+                        } else {
+                            if (isAuxPanelExpanded) 4 else 2
+                        },
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (canExpandTranslation) {
+                        Icon(
+                            imageVector = Icons.Default.ExpandMore,
+                            contentDescription = if (translationExpanded) "收起译文" else "展开译文",
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier
+                                .size(20.dp)
+                                .rotate(expandRotation)
+                        )
+                    }
+                }
+                AnimatedVisibility(visible = translationExpanded && canExpandTranslation) {
                     Text(
                         text = exampleTranslation,
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        maxLines = if (isAuxPanelExpanded) 3 else 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
