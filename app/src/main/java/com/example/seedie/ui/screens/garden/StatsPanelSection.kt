@@ -110,9 +110,12 @@ fun StatsPanelSection(
     vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
     vocabularyTrendRange: VocabularyTrendRange = VocabularyTrendRange.Last7Days,
     vocabularyTrendMetric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate,
+    vocabularyTrendIsLoading: Boolean = false,
+    vocabularyTrendErrorMessage: String? = null,
     trendReplayKey: Int = 0,
     onVocabularyTrendRangeChange: (VocabularyTrendRange) -> Unit = {},
-    onVocabularyTrendMetricChange: (VocabularyTrendMetric) -> Unit = {}
+    onVocabularyTrendMetricChange: (VocabularyTrendMetric) -> Unit = {},
+    onRetryVocabularyTrend: () -> Unit = {}
 ) {
     val donutData = remember(learningDistribution.items) {
         learningDistribution.items.mapIndexed { index, item ->
@@ -161,7 +164,7 @@ fun StatsPanelSection(
         DonutFocusCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.9f),
+                .weight(1f),
             distribution = learningDistribution,
             slices = donutData,
             selectedIndex = selectedDonutIndex,
@@ -174,15 +177,18 @@ fun StatsPanelSection(
         TrendFocusCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1.1f),
+                .weight(1f),
             points = trendPoints,
             selectedRange = vocabularyTrendRange,
             selectedMetric = vocabularyTrendMetric,
+            isLoading = vocabularyTrendIsLoading,
+            errorMessage = vocabularyTrendErrorMessage,
             selectedIndex = selectedTrendIndex,
             refreshKey = trendRefreshKey,
             onSelectionChange = { selectedTrendIndex = it },
             onRangeChange = onVocabularyTrendRangeChange,
-            onMetricChange = onVocabularyTrendMetricChange
+            onMetricChange = onVocabularyTrendMetricChange,
+            onRetry = onRetryVocabularyTrend
         )
     }
 }
@@ -200,7 +206,7 @@ private fun DonutFocusCard(
     val totalDurationSec = distribution.totalDurationSec
     val selectedSlice = selectedIndex?.let(slices::getOrNull)
     val leadingSlice = slices.maxByOrNull { it.durationSec }
-    var detailsExpanded by rememberSaveable { mutableStateOf(false) }
+    var detailsExpanded by rememberSaveable { mutableStateOf(true) }
     val hasDetails = detailsExpanded && distribution.hasData
     val legendScrollState = rememberScrollState()
     var chartHostSize by remember { mutableStateOf(IntSize.Zero) }
@@ -227,9 +233,7 @@ private fun DonutFocusCard(
     }
 
     LaunchedEffect(distribution.hasData) {
-        if (!distribution.hasData) {
-            detailsExpanded = false
-        }
+        detailsExpanded = distribution.hasData
     }
 
     TabSectionSurface(
@@ -272,6 +276,7 @@ private fun DonutFocusCard(
                     Text(
                         text = when {
                             !distribution.hasData -> "等待记录"
+                            detailsExpanded -> "收起分类"
                             else -> "详细分类"
                         },
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -365,11 +370,14 @@ private fun TrendFocusCard(
     points: List<TrendPointData>,
     selectedRange: VocabularyTrendRange,
     selectedMetric: VocabularyTrendMetric,
+    isLoading: Boolean,
+    errorMessage: String?,
     selectedIndex: Int,
     refreshKey: Int,
     onSelectionChange: (Int) -> Unit,
     onRangeChange: (VocabularyTrendRange) -> Unit,
-    onMetricChange: (VocabularyTrendMetric) -> Unit
+    onMetricChange: (VocabularyTrendMetric) -> Unit,
+    onRetry: () -> Unit
 ) {
     val cardShape = RoundedCornerShape(28.dp)
     var rangeMenuExpanded by rememberSaveable { mutableStateOf(false) }
@@ -399,15 +407,6 @@ private fun TrendFocusCard(
                         text = "词汇量趋势",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = if (selectedMetric == VocabularyTrendMetric.Estimate) {
-                            "当日取最高检测值；虚线为未测评日期的趋势估算"
-                        } else {
-                            "仅比较相邻真实测评，不生成虚构的每日增长"
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Box {
@@ -497,11 +496,41 @@ private fun TrendFocusCard(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "完成词汇测验后显示趋势",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    when {
+                        isLoading -> Text(
+                            text = "正在加载词汇量趋势…",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        errorMessage != null -> Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Text(
+                                text = errorMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "重新加载",
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .clickable(onClick = onRetry)
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                ),
+                                color = AccentOrange
+                            )
+                        }
+
+                        else -> Text(
+                            text = "当前范围内暂无词汇测评记录",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             } else {
                 val safeSelectedIndex = selectedIndex.coerceIn(points.indices)

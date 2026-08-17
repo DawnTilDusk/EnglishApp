@@ -68,12 +68,12 @@ class GardenViewModel @Inject constructor(
     private val vocabularyTrendMetric = MutableStateFlow(VocabularyTrendMetric.Estimate)
     private val vocabularyTrendPoints = MutableStateFlow<List<VocabularyTrendPointUiState>>(emptyList())
     private val vocabularyTrendRefreshTick = MutableStateFlow(0)
+    private val vocabularyTrendLoadState = MutableStateFlow(VocabularyTrendLoadState())
 
     init {
         viewModelScope.launch {
             gardenEngine.ensureDefaultUnlocks()
         }
-        refreshVocabularyTrend()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -122,18 +122,32 @@ class GardenViewModel @Inject constructor(
 
     val removeMessage: StateFlow<String?> = _removeMessage
 
-    val statsUiState: StateFlow<GardenStatsUiState> = combine(
-        activityTrackingRepository.observeTodayModuleSummaries(),
+    private val vocabularyTrendContent = combine(
         vocabularyTrendPoints,
         vocabularyTrendRefreshTick,
         vocabularyTrendRange,
         vocabularyTrendMetric
-    ) { summaries, trendPoints, refreshTick, trendRange, trendMetric ->
-        toGardenStatsUiState(summaries).copy(
+    ) { trendPoints, refreshTick, trendRange, trendMetric ->
+        VocabularyTrendContentState(
             vocabularyTrendPoints = trendPoints,
             vocabularyTrendRefreshTick = refreshTick,
             vocabularyTrendRange = trendRange,
             vocabularyTrendMetric = trendMetric
+        )
+    }
+
+    val statsUiState: StateFlow<GardenStatsUiState> = combine(
+        activityTrackingRepository.observeTodayModuleSummaries(),
+        vocabularyTrendContent,
+        vocabularyTrendLoadState
+    ) { summaries, trendContent, loadState ->
+        toGardenStatsUiState(summaries).copy(
+            vocabularyTrendPoints = trendContent.vocabularyTrendPoints,
+            vocabularyTrendRefreshTick = trendContent.vocabularyTrendRefreshTick,
+            vocabularyTrendRange = trendContent.vocabularyTrendRange,
+            vocabularyTrendMetric = trendContent.vocabularyTrendMetric,
+            vocabularyTrendIsLoading = loadState.isLoading,
+            vocabularyTrendErrorMessage = loadState.errorMessage
         )
     }.stateIn(
         scope = viewModelScope,
@@ -146,8 +160,9 @@ class GardenViewModel @Inject constructor(
         val selectedMetric = vocabularyTrendMetric.value
         val zoneId = ZoneId.systemDefault()
         val dateRange = selectedRange.resolveDateRange(LocalDate.now(zoneId))
+        vocabularyTrendLoadState.value = VocabularyTrendLoadState(isLoading = true)
         viewModelScope.launch {
-            val records = runCatching {
+            val result = runCatching {
                 profileRepository.listMyVocabularyTrendEstimates(
                     rangeStartInclusive = dateRange.startDate.atStartOfDay(zoneId).toInstant(),
                     rangeEndExclusive = dateRange.endDateInclusive
@@ -156,20 +171,25 @@ class GardenViewModel @Inject constructor(
                         .toInstant()
                 )
             }
-                .getOrDefault(emptyList())
-            val points = buildVocabularyTrendPoints(
-                records = records,
-                range = selectedRange,
-                metric = selectedMetric,
-                dateRange = dateRange,
-                zoneId = zoneId
-            )
             if (
                 vocabularyTrendRange.value == selectedRange &&
                 vocabularyTrendMetric.value == selectedMetric
             ) {
-                vocabularyTrendPoints.value = points
-                vocabularyTrendRefreshTick.update { it + 1 }
+                result.onSuccess { records ->
+                    vocabularyTrendPoints.value = buildVocabularyTrendPoints(
+                        records = records,
+                        range = selectedRange,
+                        metric = selectedMetric,
+                        dateRange = dateRange,
+                        zoneId = zoneId
+                    )
+                    vocabularyTrendLoadState.value = VocabularyTrendLoadState()
+                    vocabularyTrendRefreshTick.update { it + 1 }
+                }.onFailure {
+                    vocabularyTrendLoadState.value = VocabularyTrendLoadState(
+                        errorMessage = "词汇量趋势加载失败，请点击重试"
+                    )
+                }
             }
         }
     }
@@ -257,7 +277,21 @@ data class GardenStatsUiState(
     val vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
     val vocabularyTrendRefreshTick: Int = 0,
     val vocabularyTrendRange: VocabularyTrendRange = VocabularyTrendRange.Last7Days,
-    val vocabularyTrendMetric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate
+    val vocabularyTrendMetric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate,
+    val vocabularyTrendIsLoading: Boolean = false,
+    val vocabularyTrendErrorMessage: String? = null
+)
+
+private data class VocabularyTrendContentState(
+    val vocabularyTrendPoints: List<VocabularyTrendPointUiState>,
+    val vocabularyTrendRefreshTick: Int,
+    val vocabularyTrendRange: VocabularyTrendRange,
+    val vocabularyTrendMetric: VocabularyTrendMetric
+)
+
+private data class VocabularyTrendLoadState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
 
 enum class VocabularyTrendRange(val label: String) {

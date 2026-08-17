@@ -37,9 +37,12 @@ fun DataGardenScreen(
             vocabularyTrendPoints = statsUiState.vocabularyTrendPoints,
             vocabularyTrendRange = statsUiState.vocabularyTrendRange,
             vocabularyTrendMetric = statsUiState.vocabularyTrendMetric,
+            vocabularyTrendIsLoading = statsUiState.vocabularyTrendIsLoading,
+            vocabularyTrendErrorMessage = statsUiState.vocabularyTrendErrorMessage,
             trendReplayKey = trendReplayKey + statsUiState.vocabularyTrendRefreshTick,
             onVocabularyTrendRangeChange = viewModel::setVocabularyTrendRange,
-            onVocabularyTrendMetricChange = viewModel::setVocabularyTrendMetric
+            onVocabularyTrendMetricChange = viewModel::setVocabularyTrendMetric,
+            onRetryVocabularyTrend = viewModel::refreshVocabularyTrend
         )
 
         ForestPanel(
