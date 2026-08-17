@@ -15,7 +15,9 @@ data class StudyResult(
     val wrongWordIds: List<String>,
     val estimatedVocabulary: Int? = null,
     val selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID,
-    val earnedDews: Int = 0
+    val earnedDews: Int = 0,
+    /** Wall-clock when the practice session opened (after plant pick). 0 = no grace. */
+    val sessionOpenedAtMillis: Long = 0L
 ) {
     val studyTimeMinutes: Int
         get() = if (studyDurationSec <= 0) 0 else (studyDurationSec + 59) / 60

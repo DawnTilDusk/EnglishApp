@@ -104,7 +104,7 @@ fun PlantSpeciesPickerScreen(
             color = MaterialTheme.colorScheme.primary
         )
         Text(
-            text = "完成练习后，这棵树会种进你的花园；中途退出可能变成枯苗。",
+            text = "完成练习后，这棵树会种进你的花园。开练约一分钟内退出不会留下记录；超时再退出会变成枯苗。",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(top = 8.dp)
@@ -390,9 +390,32 @@ private fun SpeciesCard(
 @Composable
 fun GardenExitConfirmDialog(
     answeredQuestionCount: Int,
+    withinAbandonGrace: Boolean,
     onConfirmExit: () -> Unit,
     onContinue: () -> Unit
 ) {
+    // Grace path uses its own copy — do not reuse the withered-tree warning framing.
+    if (withinAbandonGrace) {
+        AlertDialog(
+            onDismissRequest = {},
+            confirmButton = {
+                Button(onClick = onConfirmExit) {
+                    Text("退出练习")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = onContinue) {
+                    Text("继续练习")
+                }
+            },
+            title = { Text("确定要退出练习吗？") },
+            text = {
+                Text("现在还在开练后的短时容错里，退出不会在花园里留下记录。确定现在离开吗？")
+            }
+        )
+        return
+    }
+
     AlertDialog(
         onDismissRequest = {},
         confirmButton = {
@@ -405,9 +428,7 @@ fun GardenExitConfirmDialog(
                 Text("继续学习")
             }
         },
-        title = {
-            Text("中途退出会种下枯苗")
-        },
+        title = { Text("中途退出会种下枯苗") },
         text = {
             Text(
                 if (answeredQuestionCount > 0) {

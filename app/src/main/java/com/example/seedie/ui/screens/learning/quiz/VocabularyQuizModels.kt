@@ -52,6 +52,7 @@ data class VocabularyQuizUiState(
     val estimatedVocabulary: Int? = null,
     val wrongWords: List<VocabularyQuizWrongWord> = emptyList(),
     val showExitConfirmDialog: Boolean = false,
+    val sessionOpenedAtMillis: Long = 0L,
     val errorMessage: String? = null,
     val bandIndex: Int = 0,
     val bandCount: Int = 0,

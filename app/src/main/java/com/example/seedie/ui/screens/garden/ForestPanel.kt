@@ -16,14 +16,21 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +41,7 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.seedie.data.local.entity.GardenPlantEntity
 import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.activityModuleLabel
+import com.example.seedie.domain.usecase.GardenForestRules
 import com.example.seedie.ui.components.TabSectionSurface
 import com.example.seedie.ui.theme.PrimaryGreen
 
@@ -45,8 +53,12 @@ fun ForestPanel(
     onTreeClick: (com.example.seedie.domain.usecase.PlacedTree) -> Unit,
     onOpenGardenerHut: () -> Unit,
     onCloseGardenerHut: () -> Unit,
+    onRemoveWithered: () -> Unit = {},
+    removeMessage: String? = null,
+    onClearRemoveMessage: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var showRemoveConfirm by remember { mutableStateOf(false) }
     val cardShape = RoundedCornerShape(28.dp)
     TabSectionSurface(
         modifier = modifier.fillMaxSize(),
@@ -160,11 +172,55 @@ fun ForestPanel(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.secondary
                             )
+                            if (tree.status == GardenPlantEntity.STATUS_WITHERED) {
+                                TextButton(
+                                    onClick = { showRemoveConfirm = true },
+                                    modifier = Modifier.padding(top = 4.dp)
+                                ) {
+                                    Text("铲除（${GardenForestRules.REMOVE_WITHERED_COST} 代币）")
+                                }
+                            }
+                            if (!removeMessage.isNullOrBlank()) {
+                                Text(
+                                    text = removeMessage,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    if (showRemoveConfirm) {
+        AlertDialog(
+            onDismissRequest = { showRemoveConfirm = false },
+            title = { Text("用代币铲除这棵枯苗？") },
+            text = {
+                Text(
+                    "花费 ${GardenForestRules.REMOVE_WITHERED_COST} 代币后，这棵枯苗会从森林里移除，格子会空出来。确定铲除吗？"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showRemoveConfirm = false
+                        onClearRemoveMessage()
+                        onRemoveWithered()
+                    }
+                ) {
+                    Text("花费 ${GardenForestRules.REMOVE_WITHERED_COST} 代币铲除")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRemoveConfirm = false }) {
+                    Text("先留着")
+                }
+            }
+        )
     }
 
     if (state.showGardenerHut) {

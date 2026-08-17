@@ -41,9 +41,26 @@ interface GardenPlantDao {
     )
     suspend fun findBySessionId(userId: String, sessionId: String): GardenPlantEntity?
 
+    @Query(
+        """
+        SELECT * FROM garden_plants
+        WHERE userId = :userId AND id = :plantId
+        LIMIT 1
+        """
+    )
+    suspend fun findById(userId: String, plantId: String): GardenPlantEntity?
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPlant(plant: GardenPlantEntity): Long
 
     @Update
     suspend fun updatePlant(plant: GardenPlantEntity)
+
+    @Query(
+        """
+        DELETE FROM garden_plants
+        WHERE userId = :userId AND id = :plantId AND status = 'WITHERED'
+        """
+    )
+    suspend fun deleteWitheredPlant(userId: String, plantId: String): Int
 }

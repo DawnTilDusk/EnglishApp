@@ -6,12 +6,18 @@ import com.example.seedie.domain.model.ActivityModuleIds
 import com.example.seedie.domain.model.ActivityModuleSummary
 import com.example.seedie.domain.model.activityModuleLabel
 import com.example.seedie.domain.repository.ActivityTrackingRepository
+import com.example.seedie.domain.repository.ProfileRepository
+import com.example.seedie.domain.repository.VocabularyEstimateRecord
 import com.example.seedie.domain.usecase.ForestGridCell
 import com.example.seedie.domain.usecase.ForestLayout
 import com.example.seedie.domain.usecase.GardenEngine
 import com.example.seedie.domain.usecase.PlacedTree
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -22,8 +28,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 enum class ForestRangeMode { Day, Week }
@@ -43,7 +49,8 @@ data class ForestPanelUiState(
 @HiltViewModel
 class GardenViewModel @Inject constructor(
     private val gardenEngine: GardenEngine,
-    private val activityTrackingRepository: ActivityTrackingRepository
+    private val activityTrackingRepository: ActivityTrackingRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -51,11 +58,15 @@ class GardenViewModel @Inject constructor(
     private val anchorDate = MutableStateFlow(todayString())
     private val selectedPlantId = MutableStateFlow<String?>(null)
     private val showGardenerHut = MutableStateFlow(false)
+    private val _removeMessage = MutableStateFlow<String?>(null)
+    private val vocabularyTrendPoints = MutableStateFlow<List<VocabularyTrendPointUiState>>(emptyList())
+    private val vocabularyTrendRefreshTick = MutableStateFlow(0)
 
     init {
         viewModelScope.launch {
             gardenEngine.ensureDefaultUnlocks()
         }
+        refreshVocabularyTrend()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -102,14 +113,32 @@ class GardenViewModel @Inject constructor(
         initialValue = ForestPanelUiState()
     )
 
-    val statsUiState: StateFlow<GardenStatsUiState> = activityTrackingRepository
-        .observeTodayModuleSummaries()
-        .map(::toGardenStatsUiState)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = GardenStatsUiState()
+    val removeMessage: StateFlow<String?> = _removeMessage
+
+    val statsUiState: StateFlow<GardenStatsUiState> = combine(
+        activityTrackingRepository.observeTodayModuleSummaries(),
+        vocabularyTrendPoints,
+        vocabularyTrendRefreshTick
+    ) { summaries, trendPoints, refreshTick ->
+        toGardenStatsUiState(summaries).copy(
+            vocabularyTrendPoints = trendPoints,
+            vocabularyTrendRefreshTick = refreshTick
         )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = GardenStatsUiState()
+    )
+
+    fun refreshVocabularyTrend() {
+        viewModelScope.launch {
+            val points = runCatching { profileRepository.listMyVocabularyEstimates(limit = 30) }
+                .getOrDefault(emptyList())
+                .map(::toTrendPoint)
+            vocabularyTrendPoints.value = points
+            vocabularyTrendRefreshTick.update { it + 1 }
+        }
+    }
 
     fun setRangeMode(mode: ForestRangeMode) {
         rangeMode.value = mode
@@ -128,6 +157,33 @@ class GardenViewModel @Inject constructor(
 
     fun onTreeClick(tree: PlacedTree) {
         selectedPlantId.value = if (selectedPlantId.value == tree.plantId) null else tree.plantId
+        _removeMessage.value = null
+    }
+
+    fun removeSelectedWitheredPlant() {
+        val plantId = selectedPlantId.value ?: return
+        viewModelScope.launch {
+            when (gardenEngine.removeWitheredPlant(plantId)) {
+                GardenEngine.RemoveWitheredResult.Success -> {
+                    selectedPlantId.value = null
+                    _removeMessage.value = null
+                }
+                GardenEngine.RemoveWitheredResult.InsufficientTokens -> {
+                    _removeMessage.value = "代币不足，无法铲除枯苗"
+                }
+                GardenEngine.RemoveWitheredResult.NotFound,
+                GardenEngine.RemoveWitheredResult.NotWithered -> {
+                    _removeMessage.value = "这棵树现在不能铲除"
+                }
+                GardenEngine.RemoveWitheredResult.NotLoggedIn -> {
+                    _removeMessage.value = "请先登录后再铲除"
+                }
+            }
+        }
+    }
+
+    fun clearRemoveMessage() {
+        _removeMessage.value = null
     }
 
     fun openGardenerHut() {
@@ -151,7 +207,15 @@ class GardenViewModel @Inject constructor(
 }
 
 data class GardenStatsUiState(
-    val learningDistribution: LearningDistributionUiState = LearningDistributionUiState()
+    val learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
+    val vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
+    val vocabularyTrendRefreshTick: Int = 0
+)
+
+data class VocabularyTrendPointUiState(
+    val label: String,
+    val shortLabel: String,
+    val value: Int
 )
 
 data class LearningDistributionUiState(
@@ -193,6 +257,8 @@ private val learningDistributionLabels = mapOf(
     ActivityModuleIds.LEARNING_HUB to "学习中心"
 )
 
+private val trendDateFormatter = DateTimeFormatter.ofPattern("M/d")
+
 internal fun toGardenStatsUiState(
     summaries: List<ActivityModuleSummary>
 ): GardenStatsUiState {
@@ -224,6 +290,37 @@ internal fun toGardenStatsUiState(
             totalDurationSec = items.sumOf { it.durationSec }
         )
     )
+}
+
+internal fun toTrendPoint(record: VocabularyEstimateRecord): VocabularyTrendPointUiState {
+    val label = formatEstimateDateLabel(record.createdAt)
+    return VocabularyTrendPointUiState(
+        label = label,
+        shortLabel = label,
+        value = record.vocabularySize
+    )
+}
+
+internal fun formatEstimateDateLabel(
+    createdAt: String,
+    zoneId: ZoneId = ZoneId.systemDefault(),
+    today: LocalDate = LocalDate.now(zoneId)
+): String {
+    val date = runCatching {
+        Instant.parse(normalizeInstantString(createdAt)).atZone(zoneId).toLocalDate()
+    }.getOrNull() ?: return createdAt.take(10)
+
+    return if (date == today) "今天" else date.format(trendDateFormatter)
+}
+
+private fun normalizeInstantString(raw: String): String {
+    val trimmed = raw.trim()
+    if (trimmed.endsWith("Z") || trimmed.contains('+') ||
+        Regex("""T\d{2}:\d{2}:\d{2}.*-\d{2}:\d{2}$""").containsMatchIn(trimmed)
+    ) {
+        return trimmed
+    }
+    return "${trimmed}Z"
 }
 
 private fun todayString(): String =

@@ -126,7 +126,7 @@ fltrp-g7-vol1	America	[{"part_of_speech": "n.", "translation": "美国；美洲"
 fltrp-g7-vol1	not	[{"part_of_speech": "n.", "translation": "不，不是，没有"}]
 fltrp-g7-vol1	England	[{"part_of_speech": "n.", "translation": "英格兰"}]
 fltrp-g7-vol1	China	[{"part_of_speech": "n.", "translation": "中国"}]
-fltrp-g7-vol1	woman	[{"part_of_speech": "n.", "translation": "(pl. women ['wimin])"}]
+fltrp-g7-vol1	woman	[{"part_of_speech": "n.", "translation": "女人"}]
 fltrp-g7-vol1	oh	[{"part_of_speech": "n.", "translation": "int. 唉，嗷"}]
 fltrp-g7-vol1	meat	[{"part_of_speech": "n.", "translation": "肉"}]
 fltrp-g7-vol1	has	[{"part_of_speech": "aux.", "translation": "（have的第三人称单数现在式）"}]

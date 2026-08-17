@@ -354,8 +354,59 @@ object SeedieDatabaseMigrations {
 
     val MIGRATION_10_11 = object : Migration(10, 11) {
         override fun migrate(db: SupportSQLiteDatabase) {
+            // Some v10 databases never received 9→10 column adds (schema drift).
+            // Make 10→11 repair those before validating against entity v11.
+            if (!tableHasColumn(db, "word_books", "gradeLevel")) {
+                db.execSQL("ALTER TABLE word_books ADD COLUMN gradeLevel INTEGER")
+            }
+            if (!tableHasColumn(db, "vocabulary_words", "difficultyValue")) {
+                db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN difficultyValue INTEGER")
+            }
+            if (!tableHasColumn(db, "vocabulary_words", "masterId")) {
+                db.execSQL("ALTER TABLE vocabulary_words ADD COLUMN masterId TEXT")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS index_vocabulary_words_masterId ON vocabulary_words(masterId)"
+                )
+            }
+            if (!tableHasColumn(db, "vocabulary_words", "exampleTranslation")) {
+                db.execSQL(
+                    "ALTER TABLE vocabulary_words ADD COLUMN exampleTranslation TEXT NOT NULL DEFAULT ''"
+                )
+            }
             db.execSQL(
-                "ALTER TABLE vocabulary_words ADD COLUMN exampleTranslation TEXT NOT NULL DEFAULT ''"
+                """
+                CREATE TABLE IF NOT EXISTS garden_plants (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    sessionId TEXT NOT NULL,
+                    moduleId TEXT NOT NULL,
+                    speciesId TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    completedQuestionCount INTEGER NOT NULL,
+                    correctCount INTEGER NOT NULL,
+                    studyDurationSec INTEGER NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    localDate TEXT NOT NULL,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_garden_plants_userId_sessionId ON garden_plants(userId, sessionId)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_garden_plants_userId_localDate ON garden_plants(userId, localDate)"
+            )
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS garden_unlocks (
+                    userId TEXT NOT NULL,
+                    speciesId TEXT NOT NULL,
+                    unlockedAt INTEGER NOT NULL,
+                    PRIMARY KEY(userId, speciesId)
+                )
+                """.trimIndent()
             )
         }
     }
@@ -443,5 +494,20 @@ object SeedieDatabaseMigrations {
                 "CREATE UNIQUE INDEX IF NOT EXISTS index_daily_tasks_userId_date_taskKey ON daily_tasks(userId, date, taskKey)"
             )
         }
+    }
+
+    private fun tableHasColumn(
+        db: SupportSQLiteDatabase,
+        tableName: String,
+        columnName: String
+    ): Boolean {
+        db.query("PRAGMA table_info(`$tableName`)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            if (nameIndex < 0) return false
+            while (cursor.moveToNext()) {
+                if (cursor.getString(nameIndex) == columnName) return true
+            }
+        }
+        return false
     }
 }

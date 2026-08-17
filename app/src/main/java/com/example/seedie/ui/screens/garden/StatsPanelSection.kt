@@ -97,32 +97,11 @@ private data class TrendPointData(
     val value: Int
 )
 
-private data class TrendSeriesData(
-    val points: List<TrendPointData>
-)
-
-private enum class TrendRangeOption(val label: String) {
-    Last7Days("近 7 天"),
-    Last30Days("近 30 天"),
-    LastYear("近 1 年"),
-    ThisMonth("本月"),
-    ThisYear("本年度")
-}
-
-private enum class TrendMetricOption(val label: String) {
-    Cumulative("累计掌握"),
-    Growth("增长区间")
-}
-
-private enum class TrendFilterMenuType {
-    Range,
-    Metric
-}
-
 @Composable
 fun StatsPanelSection(
     modifier: Modifier = Modifier,
     learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
+    vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
     trendReplayKey: Int = 0,
     forestAliveCount: Int = 0,
     forestWitheredCount: Int = 0
@@ -136,18 +115,20 @@ fun StatsPanelSection(
             )
         }
     }
-    val trendCatalog = remember { buildTrendSeriesCatalog() }
+    val trendPoints = remember(vocabularyTrendPoints) {
+        vocabularyTrendPoints.map { point ->
+            TrendPointData(
+                label = point.label,
+                shortLabel = point.shortLabel,
+                value = point.value
+            )
+        }
+    }
 
     var selectedDonutIndex by remember { mutableStateOf<Int?>(null) }
-    var selectedRange by remember { mutableStateOf(TrendRangeOption.Last7Days) }
-    var selectedMetric by remember { mutableStateOf(TrendMetricOption.Cumulative) }
-    var expandedMenu by remember { mutableStateOf<TrendFilterMenuType?>(null) }
     var trendRefreshKey by remember { mutableIntStateOf(0) }
-    val trendSeries = remember(selectedRange, selectedMetric) {
-        trendCatalog.getValue(selectedRange to selectedMetric)
-    }
-    var selectedTrendIndex by remember(trendSeries.points) {
-        mutableIntStateOf(trendSeries.points.lastIndex.coerceAtLeast(0))
+    var selectedTrendIndex by remember(trendPoints) {
+        mutableIntStateOf(trendPoints.lastIndex.coerceAtLeast(0))
     }
 
     LaunchedEffect(trendReplayKey) {
@@ -189,33 +170,10 @@ fun StatsPanelSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
-            selectedRange = selectedRange,
-            selectedMetric = selectedMetric,
-            expandedMenu = expandedMenu,
-            points = trendSeries.points,
+            points = trendPoints,
             selectedIndex = selectedTrendIndex,
             refreshKey = trendRefreshKey,
-            onSelectionChange = { selectedTrendIndex = it },
-            onMenuToggle = { menuType ->
-                expandedMenu = if (expandedMenu == menuType) null else menuType
-            },
-            onMenuDismiss = { expandedMenu = null },
-            onRangeSelect = { nextRange ->
-                expandedMenu = null
-                if (nextRange != selectedRange) {
-                    selectedRange = nextRange
-                    selectedTrendIndex = 0
-                    trendRefreshKey += 1
-                }
-            },
-            onMetricSelect = { nextMetric ->
-                expandedMenu = null
-                if (nextMetric != selectedMetric) {
-                    selectedMetric = nextMetric
-                    selectedTrendIndex = 0
-                    trendRefreshKey += 1
-                }
-            }
+            onSelectionChange = { selectedTrendIndex = it }
         )
     }
 }
@@ -395,243 +353,61 @@ private fun DonutFocusCard(
 @Composable
 private fun TrendFocusCard(
     modifier: Modifier = Modifier,
-    selectedRange: TrendRangeOption,
-    selectedMetric: TrendMetricOption,
-    expandedMenu: TrendFilterMenuType?,
     points: List<TrendPointData>,
     selectedIndex: Int,
     refreshKey: Int,
-    onSelectionChange: (Int) -> Unit,
-    onMenuToggle: (TrendFilterMenuType) -> Unit,
-    onMenuDismiss: () -> Unit,
-    onRangeSelect: (TrendRangeOption) -> Unit,
-    onMetricSelect: (TrendMetricOption) -> Unit
+    onSelectionChange: (Int) -> Unit
 ) {
     val cardShape = RoundedCornerShape(28.dp)
-    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
-    val density = LocalDensity.current
-    var cardRootPosition by remember { mutableStateOf(Offset.Zero) }
-    var rangeMenuAnchor by remember { mutableStateOf(IntOffset.Zero) }
-    var metricMenuAnchor by remember { mutableStateOf(IntOffset.Zero) }
-    var rangeMenuWidth by remember { mutableIntStateOf(0) }
-    var metricMenuWidth by remember { mutableIntStateOf(0) }
 
     TabSectionSurface(
         modifier = modifier,
         shape = cardShape,
         accentColor = AccentOrange
     ) {
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
-                .onGloballyPositioned { coordinates ->
-                    cardRootPosition = coordinates.positionInRoot()
-                }
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.Top
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = "词汇量趋势",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "按每次检测",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (points.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "词汇量趋势",
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = "完成词汇测验后显示趋势",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        TrendFilterMenuButton(
-                            label = selectedRange.label,
-                            expanded = expandedMenu == TrendFilterMenuType.Range,
-                            rootPosition = cardRootPosition,
-                            onAnchorMeasured = { anchor, width ->
-                                rangeMenuAnchor = anchor
-                                rangeMenuWidth = width
-                            },
-                            onToggle = { onMenuToggle(TrendFilterMenuType.Range) }
-                        )
-                        TrendFilterMenuButton(
-                            label = selectedMetric.label,
-                            expanded = expandedMenu == TrendFilterMenuType.Metric,
-                            rootPosition = cardRootPosition,
-                            onAnchorMeasured = { anchor, width ->
-                                metricMenuAnchor = anchor
-                                metricMenuWidth = width
-                            },
-                            onToggle = { onMenuToggle(TrendFilterMenuType.Metric) }
-                        )
-                    }
                 }
-
+            } else {
+                val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
                 LineChartSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
                     points = points,
                     selectedIndex = safeSelectedIndex,
-                    selectedMetric = selectedMetric,
                     refreshKey = refreshKey,
                     onSelectionChange = onSelectionChange
                 )
-            }
-
-            when (expandedMenu) {
-                TrendFilterMenuType.Range -> {
-                    TrendFilterOverlay(
-                        modifier = Modifier
-                            .offset { rangeMenuAnchor }
-                            .width(with(density) { rangeMenuWidth.toDp() })
-                            .zIndex(3f),
-                        options = TrendRangeOption.entries,
-                        selectedOption = selectedRange,
-                        optionLabel = { it.label },
-                        onSelect = {
-                            onRangeSelect(it)
-                            onMenuDismiss()
-                        }
-                    )
-                }
-
-                TrendFilterMenuType.Metric -> {
-                    TrendFilterOverlay(
-                        modifier = Modifier
-                            .offset { metricMenuAnchor }
-                            .width(with(density) { metricMenuWidth.toDp() })
-                            .zIndex(3f),
-                        options = TrendMetricOption.entries,
-                        selectedOption = selectedMetric,
-                        optionLabel = { it.label },
-                        onSelect = {
-                            onMetricSelect(it)
-                            onMenuDismiss()
-                        }
-                    )
-                }
-
-                null -> Unit
-            }
-        }
-    }
-}
-
-@Composable
-private fun TrendFilterMenuButton(
-    label: String,
-    expanded: Boolean,
-    rootPosition: Offset,
-    onAnchorMeasured: (IntOffset, Int) -> Unit,
-    onToggle: () -> Unit
-) {
-    val density = LocalDensity.current
-    val buttonShape = RoundedCornerShape(16.dp)
-    val buttonContainerColor = AccentOrange.copy(alpha = if (expanded) 0.18f else 0.10f)
-    val dropdownGapPx = with(density) { 8.dp.roundToPx() }
-
-    Box(
-        modifier = Modifier.zIndex(if (expanded) 2f else 0f),
-        contentAlignment = Alignment.TopEnd
-    ) {
-        Surface(
-            modifier = Modifier
-                .clip(buttonShape)
-                .clickable(onClick = onToggle)
-                .onGloballyPositioned { coordinates ->
-                    val position = coordinates.positionInRoot()
-                    onAnchorMeasured(
-                        IntOffset(
-                            x = (position.x - rootPosition.x).roundToInt(),
-                            y = (position.y - rootPosition.y).roundToInt() + coordinates.size.height + dropdownGapPx
-                        ),
-                        coordinates.size.width
-                    )
-                },
-            shape = buttonShape,
-            color = buttonContainerColor
-        ) {
-            Row(
-                modifier = Modifier
-                    .border(
-                        width = 1.dp,
-                        color = AccentOrange.copy(alpha = if (expanded) 0.26f else 0.16f),
-                        shape = buttonShape
-                    )
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = if (expanded) "^" else "v",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = AccentOrange
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun <T> TrendFilterOverlay(
-    modifier: Modifier = Modifier,
-    options: List<T>,
-    selectedOption: T,
-    optionLabel: (T) -> String,
-    onSelect: (T) -> Unit
-) {
-    val selectedRowColor = AccentOrange.copy(alpha = 0.12f)
-
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 3.dp,
-        shadowElevation = 6.dp
-    ) {
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-            options.forEach { option ->
-                val selected = option == selectedOption
-                val interactionSource = remember { MutableInteractionSource() }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (selected) selectedRowColor else Color.Transparent)
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null
-                        ) { onSelect(option) }
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = optionLabel(option),
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-                        ),
-                        color = if (selected) AccentOrange else MaterialTheme.colorScheme.onSurface
-                    )
-                    if (selected) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(AccentOrange)
-                        )
-                    }
-                }
             }
         }
     }
@@ -844,7 +620,6 @@ private fun LineChartSection(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
     selectedIndex: Int,
-    selectedMetric: TrendMetricOption,
     refreshKey: Int,
     onSelectionChange: (Int) -> Unit
 ) {
@@ -906,7 +681,7 @@ private fun LineChartSection(
                         shadowElevation = 2.dp
                     ) {
                         Text(
-                            text = formatTrendValue(selectedMetric, selectedPoint.value),
+                            text = "${selectedPoint.value} 词",
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                             style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                             color = PrimaryGreen
@@ -1208,117 +983,6 @@ private fun rememberSelectedTrendOffset(
     return offsets.getOrNull(selectedIndex)
 }
 
-private fun buildTrendSeriesCatalog(): Map<Pair<TrendRangeOption, TrendMetricOption>, TrendSeriesData> {
-    val cumulative = mapOf(
-        TrendRangeOption.Last7Days to listOf(
-            TrendPointData("6/23", "6/23", 126),
-            TrendPointData("6/24", "6/24", 138),
-            TrendPointData("6/25", "6/25", 152),
-            TrendPointData("6/26", "6/26", 160),
-            TrendPointData("6/27", "6/27", 166),
-            TrendPointData("6/28", "6/28", 174),
-            TrendPointData("今天", "今天", 188)
-        ),
-        TrendRangeOption.Last30Days to listOf(
-            TrendPointData("5/31", "05/31", 82),
-            TrendPointData("6/05", "06/05", 96),
-            TrendPointData("6/10", "06/10", 118),
-            TrendPointData("6/15", "06/15", 134),
-            TrendPointData("6/20", "06/20", 158),
-            TrendPointData("6/25", "06/25", 173),
-            TrendPointData("今天", "今天", 188)
-        ),
-        TrendRangeOption.LastYear to listOf(
-            TrendPointData("7 月", "7月", 24),
-            TrendPointData("9 月", "9月", 51),
-            TrendPointData("11 月", "11月", 79),
-            TrendPointData("1 月", "1月", 103),
-            TrendPointData("3 月", "3月", 137),
-            TrendPointData("5 月", "5月", 166),
-            TrendPointData("本月", "本月", 188)
-        ),
-        TrendRangeOption.ThisMonth to listOf(
-            TrendPointData("6/01", "6/01", 92),
-            TrendPointData("6/06", "6/06", 104),
-            TrendPointData("6/11", "6/11", 121),
-            TrendPointData("6/16", "6/16", 139),
-            TrendPointData("6/21", "6/21", 159),
-            TrendPointData("6/26", "6/26", 177),
-            TrendPointData("今天", "今天", 188)
-        ),
-        TrendRangeOption.ThisYear to listOf(
-            TrendPointData("1 月", "1月", 62),
-            TrendPointData("2 月", "2月", 81),
-            TrendPointData("3 月", "3月", 106),
-            TrendPointData("4 月", "4月", 129),
-            TrendPointData("5 月", "5月", 147),
-            TrendPointData("6 月", "6月", 169),
-            TrendPointData("本月", "本月", 188)
-        )
-    )
-
-    val growth = mapOf(
-        TrendRangeOption.Last7Days to listOf(
-            TrendPointData("6/23", "6/23", 8),
-            TrendPointData("6/24", "6/24", 12),
-            TrendPointData("6/25", "6/25", 14),
-            TrendPointData("6/26", "6/26", 9),
-            TrendPointData("6/27", "6/27", 17),
-            TrendPointData("6/28", "6/28", 11),
-            TrendPointData("今天", "今天", 15)
-        ),
-        TrendRangeOption.Last30Days to listOf(
-            TrendPointData("5/31", "05/31", 6),
-            TrendPointData("6/05", "06/05", 10),
-            TrendPointData("6/10", "06/10", 14),
-            TrendPointData("6/15", "06/15", 9),
-            TrendPointData("6/20", "06/20", 18),
-            TrendPointData("6/25", "06/25", 12),
-            TrendPointData("今天", "今天", 15)
-        ),
-        TrendRangeOption.LastYear to listOf(
-            TrendPointData("7 月", "7月", 5),
-            TrendPointData("9 月", "9月", 7),
-            TrendPointData("11 月", "11月", 9),
-            TrendPointData("1 月", "1月", 11),
-            TrendPointData("3 月", "3月", 13),
-            TrendPointData("5 月", "5月", 10),
-            TrendPointData("本月", "本月", 15)
-        ),
-        TrendRangeOption.ThisMonth to listOf(
-            TrendPointData("6/01", "6/01", 7),
-            TrendPointData("6/06", "6/06", 9),
-            TrendPointData("6/11", "6/11", 12),
-            TrendPointData("6/16", "6/16", 10),
-            TrendPointData("6/21", "6/21", 16),
-            TrendPointData("6/26", "6/26", 13),
-            TrendPointData("今天", "今天", 15)
-        ),
-        TrendRangeOption.ThisYear to listOf(
-            TrendPointData("1 月", "1月", 6),
-            TrendPointData("2 月", "2月", 8),
-            TrendPointData("3 月", "3月", 11),
-            TrendPointData("4 月", "4月", 9),
-            TrendPointData("5 月", "5月", 14),
-            TrendPointData("6 月", "6月", 12),
-            TrendPointData("本月", "本月", 15)
-        )
-    )
-
-    return buildMap {
-        TrendRangeOption.entries.forEach { range ->
-            put(range to TrendMetricOption.Cumulative, TrendSeriesData(cumulative.getValue(range)))
-            put(range to TrendMetricOption.Growth, TrendSeriesData(growth.getValue(range)))
-        }
-    }
-}
-
-private fun formatTrendValue(metric: TrendMetricOption, value: Int): String {
-    return when (metric) {
-        TrendMetricOption.Cumulative -> "$value 词"
-        TrendMetricOption.Growth -> "+$value 词"
-    }
-}
 
 private fun buildVisibleTrendPoints(points: List<Offset>, revealProgress: Float): List<Offset> {
     if (points.isEmpty()) return emptyList()

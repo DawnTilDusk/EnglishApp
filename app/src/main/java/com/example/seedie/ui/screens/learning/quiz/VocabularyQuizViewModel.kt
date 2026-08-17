@@ -47,6 +47,7 @@ class VocabularyQuizViewModel @Inject constructor(
     private var timerJob: Job? = null
     private val wrongWordIds = linkedSetOf<String>()
     private val wrongWords = mutableListOf<VocabularyQuizWrongWord>()
+    private var sessionOpenedAtMillis: Long = 0L
 
     fun setSelectedSpeciesId(speciesId: String) {
         selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
@@ -161,7 +162,11 @@ class VocabularyQuizViewModel @Inject constructor(
     private fun loadPool(id: String) {
         resetSession()
         sessionId = id
-        _uiState.value = VocabularyQuizUiState(stage = VocabularyQuizStage.Loading)
+        sessionOpenedAtMillis = System.currentTimeMillis()
+        _uiState.value = VocabularyQuizUiState(
+            stage = VocabularyQuizStage.Loading,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
+        )
         viewModelScope.launch {
             runCatching {
                 repository.loadWordPool(sessionId = id)
@@ -172,6 +177,7 @@ class VocabularyQuizViewModel @Inject constructor(
             }.onFailure { throwable ->
                 _uiState.value = VocabularyQuizUiState(
                     stage = VocabularyQuizStage.Error,
+                    sessionOpenedAtMillis = sessionOpenedAtMillis,
                     errorMessage = throwable.message ?: "词汇测验加载失败"
                 )
             }
@@ -289,7 +295,8 @@ class VocabularyQuizViewModel @Inject constructor(
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
             estimatedVocabulary = estimated,
-            selectedSpeciesId = selectedSpeciesId
+            selectedSpeciesId = selectedSpeciesId,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
         )
         viewModelScope.launch {
             _studyResults.emit(result)
@@ -314,6 +321,7 @@ class VocabularyQuizViewModel @Inject constructor(
     private fun resetSession() {
         stopTimer()
         sessionId = null
+        sessionOpenedAtMillis = 0L
         wordsByBookId = emptyMap()
         bandQuestions = emptyList()
         bandIndex = 0
