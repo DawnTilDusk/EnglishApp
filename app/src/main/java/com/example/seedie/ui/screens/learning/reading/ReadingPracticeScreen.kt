@@ -114,6 +114,8 @@ private fun ReadingPracticeScreen(
         } else {
             GardenExitConfirmDialog(
                 answeredQuestionCount = uiState.correctCount + uiState.wrongCount,
+                withinAbandonGrace = com.example.seedie.domain.usecase.GardenForestRules
+                    .isWithinAbandonGrace(uiState.sessionOpenedAtMillis),
                 onConfirmExit = onConfirmExit,
                 onContinue = onDismissExitDialog
             )

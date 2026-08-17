@@ -144,11 +144,15 @@ class GardenEngine @Inject constructor(
      * @return status written, or null if skipped / duplicate.
      */
     suspend fun recordFromStudyResult(result: StudyResult): String? {
-        val status = when {
-            !result.isCompleted -> GardenPlantEntity.STATUS_WITHERED
-            result.completedQuestionCount > 0 -> GardenPlantEntity.STATUS_ALIVE
-            else -> return null
-        }
+        val now = System.currentTimeMillis()
+        val status = GardenForestRules.statusFor(
+            isCompleted = result.isCompleted,
+            questionCount = result.completedQuestionCount,
+            abandonElapsedMs = GardenForestRules.abandonElapsedMs(
+                sessionOpenedAtMillis = result.sessionOpenedAtMillis,
+                nowMillis = now
+            )
+        ) ?: return null
         val userId = authService.currentSession.value?.userId ?: return null
         val speciesId = resolveSpeciesId(result.selectedSpeciesId)
         val existing = gardenPlantDao.findBySessionId(userId, result.sessionId)
@@ -172,7 +176,6 @@ class GardenEngine @Inject constructor(
             return null
         }
 
-        val now = System.currentTimeMillis()
         val plant = GardenPlantEntity(
             id = UUID.randomUUID().toString(),
             userId = userId,
@@ -192,6 +195,32 @@ class GardenEngine @Inject constructor(
         if (inserted == -1L) return null
         rewardEventBus.emit(RewardEvent.PlantGrown(speciesId = speciesId, status = status))
         return status
+    }
+
+    sealed class RemoveWitheredResult {
+        data object Success : RemoveWitheredResult()
+        data object NotFound : RemoveWitheredResult()
+        data object NotWithered : RemoveWitheredResult()
+        data object InsufficientTokens : RemoveWitheredResult()
+        data object NotLoggedIn : RemoveWitheredResult()
+    }
+
+    suspend fun removeWitheredPlant(plantId: String): RemoveWitheredResult {
+        val userId = authService.currentSession.value?.userId
+            ?: return RemoveWitheredResult.NotLoggedIn
+        val plant = gardenPlantDao.findById(userId, plantId)
+            ?: return RemoveWitheredResult.NotFound
+        if (plant.status != GardenPlantEntity.STATUS_WITHERED) {
+            return RemoveWitheredResult.NotWithered
+        }
+        val spent = economyManager.spendTokens(
+            amount = GardenForestRules.REMOVE_WITHERED_COST,
+            item = "Remove withered plant ${plant.id}",
+            refId = "garden_remove:$userId:${plant.id}"
+        )
+        if (!spent) return RemoveWitheredResult.InsufficientTokens
+        gardenPlantDao.deleteWitheredPlant(userId, plantId)
+        return RemoveWitheredResult.Success
     }
 
     private suspend fun resolveSpeciesId(requested: String): String {

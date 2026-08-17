@@ -31,6 +31,14 @@ displayed = if (cloudCache known) cloudBalance + sum(PENDING)
 
 实现：`projectDisplayedTokenBalance`（`domain/model/EconomyBalance.kt`），由 `EconomyManagerImpl.totalTokens` / `refreshBalanceFromCloud` 使用。
 
+**拉取时机（2026-08-17）：** `cloudBalanceCache` 在以下时机写入：
+
+1. **登录 / session 用户变化** → `EconomyManagerImpl` 自动 `hydrateCloudBalance`（先推 PENDING，再 `get_my_token_balance`）
+2. `addTokens` / `spendTokens` 同步后
+3. 显式 `refreshBalanceFromCloud`（商城等）
+
+此前仅 (2)(3)，Profile / 花园只订阅 `totalTokens`：清本地库后云端有币也会一直显示 0。
+
 ## 4. refId 约定
 
 | 场景 | refId |
@@ -38,6 +46,7 @@ displayed = if (cloudCache known) cloudBalance + sum(PENDING)
 | 学习结算（背单词/复习） | `study:{sessionId}` |
 | 每日任务领取 | `task:{userId}:{yyyy-MM-dd}:{normalizedTitle}` |
 | 园丁解锁物种 | `garden_unlock:{userId}:{speciesId}` |
+| 铲除枯苗 | `garden_remove:{userId}:{plantId}` |
 | 听/读/写作业（若仍写流水） | `assignment:{sessionId}` 或 `free_*`（当前客户端对这些模块 `earnedTokens=0`） |
 | 其它消费 | 可空（无业务幂等键时） |
 

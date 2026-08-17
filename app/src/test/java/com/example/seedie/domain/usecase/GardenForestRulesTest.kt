@@ -3,6 +3,7 @@ package com.example.seedie.domain.usecase
 import com.example.seedie.data.local.entity.GardenPlantEntity
 import com.example.seedie.domain.model.GardenSpeciesCatalog
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -10,23 +11,104 @@ import org.junit.Test
 class GardenForestRulesTest {
 
     @Test
-    fun recordDecision_skipsCompletedWithZeroQuestions() {
-        assertNull(statusFor(completed = true, questions = 0))
+    fun statusFor_skipsCompletedWithZeroQuestions() {
+        assertNull(
+            GardenForestRules.statusFor(
+                isCompleted = true,
+                questionCount = 0,
+                abandonElapsedMs = GardenForestRules.ABANDON_GRACE_MS
+            )
+        )
     }
 
     @Test
-    fun recordDecision_witheredOnAbandonEvenWithZeroQuestions() {
-        assertEquals(GardenPlantEntity.STATUS_WITHERED, statusFor(completed = false, questions = 0))
+    fun statusFor_skipsAbandonWithinGraceEvenWithAnswers() {
+        assertNull(
+            GardenForestRules.statusFor(
+                isCompleted = false,
+                questionCount = 3,
+                abandonElapsedMs = GardenForestRules.ABANDON_GRACE_MS - 1
+            )
+        )
     }
 
     @Test
-    fun recordDecision_aliveWhenCompletedWithQuestions() {
-        assertEquals(GardenPlantEntity.STATUS_ALIVE, statusFor(completed = true, questions = 3))
+    fun statusFor_skipsAbandonWithinGraceWithZeroQuestions() {
+        assertNull(
+            GardenForestRules.statusFor(
+                isCompleted = false,
+                questionCount = 0,
+                abandonElapsedMs = 0L
+            )
+        )
     }
 
     @Test
-    fun recordDecision_witheredWhenAbandonedWithQuestions() {
-        assertEquals(GardenPlantEntity.STATUS_WITHERED, statusFor(completed = false, questions = 2))
+    fun statusFor_witheredWhenAbandonPastGraceWithZeroQuestions() {
+        assertEquals(
+            GardenPlantEntity.STATUS_WITHERED,
+            GardenForestRules.statusFor(
+                isCompleted = false,
+                questionCount = 0,
+                abandonElapsedMs = GardenForestRules.ABANDON_GRACE_MS
+            )
+        )
+    }
+
+    @Test
+    fun statusFor_witheredWhenAbandonPastGraceWithAnswers() {
+        assertEquals(
+            GardenPlantEntity.STATUS_WITHERED,
+            GardenForestRules.statusFor(
+                isCompleted = false,
+                questionCount = 2,
+                abandonElapsedMs = GardenForestRules.ABANDON_GRACE_MS
+            )
+        )
+    }
+
+    @Test
+    fun statusFor_aliveWhenCompletedWithQuestionsRegardlessOfElapsed() {
+        assertEquals(
+            GardenPlantEntity.STATUS_ALIVE,
+            GardenForestRules.statusFor(
+                isCompleted = true,
+                questionCount = 3,
+                abandonElapsedMs = 0L
+            )
+        )
+        assertEquals(
+            GardenPlantEntity.STATUS_ALIVE,
+            GardenForestRules.statusFor(
+                isCompleted = true,
+                questionCount = 3,
+                abandonElapsedMs = GardenForestRules.ABANDON_GRACE_MS * 2
+            )
+        )
+    }
+
+    @Test
+    fun isWithinAbandonGrace_falseWhenOpenedAtZero() {
+        assertFalse(GardenForestRules.isWithinAbandonGrace(0L, nowMillis = 1_000L))
+    }
+
+    @Test
+    fun isWithinAbandonGrace_trueInsideWindow() {
+        val opened = 1_000L
+        assertTrue(
+            GardenForestRules.isWithinAbandonGrace(
+                sessionOpenedAtMillis = opened,
+                nowMillis = opened + GardenForestRules.ABANDON_GRACE_MS - 1
+            )
+        )
+    }
+
+    @Test
+    fun abandonElapsedMs_treatsZeroAsPastGrace() {
+        assertEquals(
+            GardenForestRules.ABANDON_GRACE_MS,
+            GardenForestRules.abandonElapsedMs(0L, nowMillis = 5_000L)
+        )
     }
 
     @Test
@@ -85,14 +167,6 @@ class GardenForestRulesTest {
     @Test
     fun defaultSpeciesExists() {
         assertEquals("嫩芽", GardenSpeciesCatalog.requireById(GardenSpeciesCatalog.DEFAULT_SPECIES_ID).displayName)
-    }
-
-    private fun statusFor(completed: Boolean, questions: Int): String? {
-        return when {
-            !completed -> GardenPlantEntity.STATUS_WITHERED
-            questions > 0 -> GardenPlantEntity.STATUS_ALIVE
-            else -> null
-        }
     }
 
     private fun plant(id: String, sessionId: String, createdAt: Long = 1L) = GardenPlantEntity(

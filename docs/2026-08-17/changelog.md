@@ -1,5 +1,46 @@
 # Changelog 2026-08-17
 
+## 修复登录后云端代币不展示（仅显示本地 0）
+
+### 做了什么
+
+- 根因：展示余额依赖内存 `cloudBalanceCache`；Profile/花园只订阅 `totalTokens`，从未在登录时拉取云端。清数据/重装后本地流水为空 → 一直显示 0（`3@3.com` 云端仍约 8 万）
+- 修复：`EconomyManagerImpl` 在 session 用户变化时自动 hydrate；同步上传失败时仍尽量缓存已读到的云端余额
+
+### 关键路径
+
+- [`EconomyManagerImpl.kt`](../../app/src/main/java/com/example/seedie/data/repository/EconomyManagerImpl.kt)
+
+### 文档
+
+- 修订 [economy_token_system.md](../2026-07-24/economy_token_system.md) §3
+
+---
+
+## 枯苗铲除 + 种树 1 分钟容错
+
+### 做了什么
+
+- 确认选树开练后 **60 秒内**中途退出不记账（不种枯苗）；超时退出仍种枯苗；完成且有题仍种活苗
+- 点选枯苗可花 **50** 代币铲除腾格（`refId = garden_remove:{userId}:{plantId}`）；余额不足不删树；活苗不可铲
+- 退出确认 Dialog：**容错内用独立练习退出文案**（不复用枯苗警告）；容错外仍用枯苗警告；选树页与铲除确认/失败提示一并写清
+
+### 关键路径
+
+- [`GardenForestRules.kt`](../../app/src/main/java/com/example/seedie/domain/usecase/GardenForestRules.kt)
+- [`GardenEngine.kt`](../../app/src/main/java/com/example/seedie/domain/usecase/GardenEngine.kt)
+- [`GardenPlantDao.kt`](../../app/src/main/java/com/example/seedie/data/local/dao/GardenPlantDao.kt)
+- [`ForestPanel.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/ForestPanel.kt) / [`GardenViewModel.kt`](../../app/src/main/java/com/example/seedie/ui/screens/garden/GardenViewModel.kt)
+- 听/读/背单词/词汇测验：`sessionOpenedAtMillis` + `GardenExitConfirmDialog`
+
+### 文档
+
+- 修订 [garden_forest_mvp.md](../2026-08-06/garden_forest_mvp.md)
+- 修订 [economy_token_system.md](../2026-07-24/economy_token_system.md) refId 表
+- 修订 [project_overview.md](../2026-06-28/project_overview.md) §5.6
+
+---
+
 ## 修复 woman 汉译（词汇检测显示音标/复数注）
 
 ### 做了什么

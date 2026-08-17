@@ -58,6 +58,7 @@ class GardenViewModel @Inject constructor(
     private val anchorDate = MutableStateFlow(todayString())
     private val selectedPlantId = MutableStateFlow<String?>(null)
     private val showGardenerHut = MutableStateFlow(false)
+    private val _removeMessage = MutableStateFlow<String?>(null)
     private val vocabularyTrendPoints = MutableStateFlow<List<VocabularyTrendPointUiState>>(emptyList())
     private val vocabularyTrendRefreshTick = MutableStateFlow(0)
 
@@ -112,6 +113,8 @@ class GardenViewModel @Inject constructor(
         initialValue = ForestPanelUiState()
     )
 
+    val removeMessage: StateFlow<String?> = _removeMessage
+
     val statsUiState: StateFlow<GardenStatsUiState> = combine(
         activityTrackingRepository.observeTodayModuleSummaries(),
         vocabularyTrendPoints,
@@ -154,6 +157,33 @@ class GardenViewModel @Inject constructor(
 
     fun onTreeClick(tree: PlacedTree) {
         selectedPlantId.value = if (selectedPlantId.value == tree.plantId) null else tree.plantId
+        _removeMessage.value = null
+    }
+
+    fun removeSelectedWitheredPlant() {
+        val plantId = selectedPlantId.value ?: return
+        viewModelScope.launch {
+            when (gardenEngine.removeWitheredPlant(plantId)) {
+                GardenEngine.RemoveWitheredResult.Success -> {
+                    selectedPlantId.value = null
+                    _removeMessage.value = null
+                }
+                GardenEngine.RemoveWitheredResult.InsufficientTokens -> {
+                    _removeMessage.value = "代币不足，无法铲除枯苗"
+                }
+                GardenEngine.RemoveWitheredResult.NotFound,
+                GardenEngine.RemoveWitheredResult.NotWithered -> {
+                    _removeMessage.value = "这棵树现在不能铲除"
+                }
+                GardenEngine.RemoveWitheredResult.NotLoggedIn -> {
+                    _removeMessage.value = "请先登录后再铲除"
+                }
+            }
+        }
+    }
+
+    fun clearRemoveMessage() {
+        _removeMessage.value = null
     }
 
     fun openGardenerHut() {

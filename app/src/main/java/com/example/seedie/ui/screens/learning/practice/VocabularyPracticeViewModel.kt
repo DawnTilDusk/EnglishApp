@@ -40,6 +40,7 @@ class VocabularyPracticeViewModel @Inject constructor(
 
     private var initializedArgs: VocabularyPracticeArgs? = null
     private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+    private var sessionOpenedAtMillis: Long = 0L
 
     fun setSelectedSpeciesId(speciesId: String) {
         selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
@@ -244,13 +245,20 @@ class VocabularyPracticeViewModel @Inject constructor(
         resetSessionState()
         currentEntryMode = args.entryMode
         stopTimer()
-        _uiState.value = VocabularyPracticeUiState(stage = VocabularyPracticeStage.Loading)
+        sessionOpenedAtMillis = System.currentTimeMillis()
+        _uiState.value = VocabularyPracticeUiState(
+            stage = VocabularyPracticeStage.Loading,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
+        )
         viewModelScope.launch {
             runCatching {
                 repository.getPracticeSession(args)
             }.onSuccess { session ->
                 if (session.studyWords.isEmpty() && session.reviewWords.isEmpty()) {
-                    _uiState.value = VocabularyPracticeUiState(stage = VocabularyPracticeStage.Empty)
+                    _uiState.value = VocabularyPracticeUiState(
+                        stage = VocabularyPracticeStage.Empty,
+                        sessionOpenedAtMillis = sessionOpenedAtMillis
+                    )
                 } else {
                     currentSession = session
                     currentBookId = session.resumeSnapshot?.bookId
@@ -288,7 +296,8 @@ class VocabularyPracticeViewModel @Inject constructor(
                         reviewQueueSize = reviewQueue.size,
                         introducedStudyCount = introducedStudyCount,
                         studyTargetCount = studyTargetCount,
-                        masteredStudyCount = masteredStudyCount
+                        masteredStudyCount = masteredStudyCount,
+                        sessionOpenedAtMillis = sessionOpenedAtMillis
                     )
                     startTimer()
                     if (currentEntryMode == VocabularyPracticeMode.Study) {
@@ -299,6 +308,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             }.onFailure { throwable ->
                 _uiState.value = VocabularyPracticeUiState(
                     stage = VocabularyPracticeStage.Error,
+                    sessionOpenedAtMillis = sessionOpenedAtMillis,
                     errorMessage = throwable.message ?: "词包加载失败，请稍后重试"
                 )
             }
@@ -1045,6 +1055,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         completedReviewCount = 0
         sentBackToStudyCount = 0
         sessionFinished = false
+        sessionOpenedAtMillis = 0L
     }
 
     private fun buildStudyResult(
@@ -1067,7 +1078,9 @@ class VocabularyPracticeViewModel @Inject constructor(
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
-            selectedSpeciesId = selectedSpeciesId
+            selectedSpeciesId = selectedSpeciesId,
+            sessionOpenedAtMillis = sessionOpenedAtMillis.takeIf { it > 0L }
+                ?: state.sessionOpenedAtMillis
         )
     }
 
@@ -1094,7 +1107,13 @@ class VocabularyPracticeViewModel @Inject constructor(
             vocabularyDelta = baseResult.vocabularyDelta + currentResult.vocabularyDelta,
             wrongWordIds = (baseResult.wrongWordIds + currentResult.wrongWordIds).distinct(),
             estimatedVocabulary = currentResult.estimatedVocabulary ?: baseResult.estimatedVocabulary,
-            selectedSpeciesId = baseResult.selectedSpeciesId.ifBlank { currentResult.selectedSpeciesId }
+            selectedSpeciesId = baseResult.selectedSpeciesId.ifBlank { currentResult.selectedSpeciesId },
+            sessionOpenedAtMillis = when {
+                baseResult.sessionOpenedAtMillis > 0L && currentResult.sessionOpenedAtMillis > 0L ->
+                    minOf(baseResult.sessionOpenedAtMillis, currentResult.sessionOpenedAtMillis)
+                baseResult.sessionOpenedAtMillis > 0L -> baseResult.sessionOpenedAtMillis
+                else -> currentResult.sessionOpenedAtMillis
+            }
         )
     }
 

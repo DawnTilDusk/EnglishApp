@@ -193,5 +193,6 @@ data class VocabularyPracticeUiState(
     val canGoNext: Boolean = false,
     val showExitConfirmDialog: Boolean = false,
     val showFinishDialog: Boolean = false,
+    val sessionOpenedAtMillis: Long = 0L,
     val errorMessage: String? = null
 )

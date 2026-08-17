@@ -19,6 +19,7 @@ fun DataGardenScreen(
 ) {
     val forestUiState by viewModel.forestUiState.collectAsState()
     val statsUiState by viewModel.statsUiState.collectAsState()
+    val removeMessage by viewModel.removeMessage.collectAsState()
 
     LaunchedEffect(trendReplayKey) {
         viewModel.refreshVocabularyTrend()
@@ -46,7 +47,10 @@ fun DataGardenScreen(
             onShiftRange = viewModel::shiftRange,
             onTreeClick = viewModel::onTreeClick,
             onOpenGardenerHut = viewModel::openGardenerHut,
-            onCloseGardenerHut = viewModel::closeGardenerHut
+            onCloseGardenerHut = viewModel::closeGardenerHut,
+            onRemoveWithered = viewModel::removeSelectedWitheredPlant,
+            removeMessage = removeMessage,
+            onClearRemoveMessage = viewModel::clearRemoveMessage
         )
     }
 }

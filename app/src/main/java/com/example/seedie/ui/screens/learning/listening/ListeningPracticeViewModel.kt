@@ -42,6 +42,7 @@ class ListeningPracticeViewModel @Inject constructor(
     val studyResults = _studyResults.asSharedFlow()
 
     private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
+    private var sessionOpenedAtMillis: Long = 0L
 
     fun setSelectedSpeciesId(speciesId: String) {
         selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
@@ -222,7 +223,11 @@ class ListeningPracticeViewModel @Inject constructor(
 
     private fun loadFree(args: FreePracticeArgs) {
         resetSession()
-        _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
+        sessionOpenedAtMillis = System.currentTimeMillis()
+        _uiState.value = ListeningPracticeUiState(
+            stage = ListeningPracticeStage.Loading,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
+        )
         viewModelScope.launch {
             runCatching {
                 val attemptSessionId = "${args.sessionId}:${UUID.randomUUID()}"
@@ -236,6 +241,7 @@ class ListeningPracticeViewModel @Inject constructor(
                 ) {
                     _uiState.value = ListeningPracticeUiState(
                         stage = ListeningPracticeStage.Error,
+                        sessionOpenedAtMillis = sessionOpenedAtMillis,
                         errorMessage = "题目不存在或已下架"
                     )
                 } else {
@@ -246,6 +252,7 @@ class ListeningPracticeViewModel @Inject constructor(
                         sessionId = loadedSession.sessionId,
                         totalMaterialCount = loadedSession.materials.size,
                         totalQuestionCount = totalQuestionCount,
+                        sessionOpenedAtMillis = sessionOpenedAtMillis,
                         isReviewMode = false
                     )
                     startTimer()
@@ -254,6 +261,7 @@ class ListeningPracticeViewModel @Inject constructor(
             }.onFailure { throwable ->
                 _uiState.value = ListeningPracticeUiState(
                     stage = ListeningPracticeStage.Error,
+                    sessionOpenedAtMillis = sessionOpenedAtMillis,
                     errorMessage = throwable.message?.takeIf { it.isNotBlank() }
                         ?: "听力练习加载失败"
                 )
@@ -263,7 +271,11 @@ class ListeningPracticeViewModel @Inject constructor(
 
     private fun loadAssignment(args: PracticeAssignmentArgs) {
         resetSession()
-        _uiState.value = ListeningPracticeUiState(stage = ListeningPracticeStage.Loading)
+        sessionOpenedAtMillis = System.currentTimeMillis()
+        _uiState.value = ListeningPracticeUiState(
+            stage = ListeningPracticeStage.Loading,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
+        )
         viewModelScope.launch {
             runCatching {
                 val detail = assignmentRepository.getDetail(args.submissionId)
@@ -306,6 +318,7 @@ class ListeningPracticeViewModel @Inject constructor(
                 ) {
                     _uiState.value = ListeningPracticeUiState(
                         stage = ListeningPracticeStage.Error,
+                        sessionOpenedAtMillis = sessionOpenedAtMillis,
                         errorMessage = "作业题目为空"
                     )
                 } else {
@@ -336,6 +349,7 @@ class ListeningPracticeViewModel @Inject constructor(
                             correctCount = detail.correctCount.takeIf { it > 0 } ?: correct,
                             wrongCount = wrong,
                             earnedTokens = detail.earnedTokens.takeIf { it > 0 } ?: tokens,
+                            sessionOpenedAtMillis = sessionOpenedAtMillis,
                             isReviewMode = true
                         )
                         showQuestion(loadedSession, 0, 0, forceReview = true)
@@ -345,6 +359,7 @@ class ListeningPracticeViewModel @Inject constructor(
                             sessionId = loadedSession.sessionId,
                             totalMaterialCount = loadedSession.materials.size,
                             totalQuestionCount = totalQuestionCount,
+                            sessionOpenedAtMillis = sessionOpenedAtMillis,
                             isReviewMode = false
                         )
                         startTimer()
@@ -354,6 +369,7 @@ class ListeningPracticeViewModel @Inject constructor(
             }.onFailure { throwable ->
                 _uiState.value = ListeningPracticeUiState(
                     stage = ListeningPracticeStage.Error,
+                    sessionOpenedAtMillis = sessionOpenedAtMillis,
                     errorMessage = throwable.message?.takeIf { it.isNotBlank() }
                         ?: "听力作业加载失败"
                 )
@@ -539,7 +555,8 @@ class ListeningPracticeViewModel @Inject constructor(
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongQuestionIds.toList(),
-            selectedSpeciesId = selectedSpeciesId
+            selectedSpeciesId = selectedSpeciesId,
+            sessionOpenedAtMillis = sessionOpenedAtMillis
         )
         viewModelScope.launch {
             _studyResults.emit(result)
@@ -566,6 +583,7 @@ class ListeningPracticeViewModel @Inject constructor(
         session = null
         sessionFinished = false
         submittedSuccessfully = false
+        sessionOpenedAtMillis = 0L
         wrongQuestionIds.clear()
         allAnswers.clear()
     }

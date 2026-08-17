@@ -670,18 +670,20 @@ data class StudyResult(
 
 | 子功能 | 状态 | 说明 |
 |--------|------|------|
-| 历史林写入 | **已实现** | `StudyResult` → `recordFromStudyResult`；中途退出必种枯苗；透视土格摆树 |
+| 历史林写入 | **已实现** | `StudyResult` → `recordFromStudyResult`；开练 60s 内退出不记账，超时种枯苗；透视土格摆树 |
 | 开题前选树 | **已实现** | `PlantSessionGate`；`selectedSpeciesId` |
 | 日/周回看 + 菱形均匀格 | **已实现** | `ForestPanel` / `ForestScene`（6×6 等距+透视，稳定随机占格） |
 | 园丁解锁物种 | **已实现** | 代币 + `garden_unlocks` |
-| 枯树退出确认 | **已实现** | `GardenExitConfirmDialog`（统一枯苗文案） |
+| 枯苗铲除 | **已实现** | 50 代币；`refId=garden_remove:…` |
+| 枯树退出确认 | **已实现** | `GardenExitConfirmDialog`（容错内独立练习退出文案；容错外枯苗警告） |
 | 旧 16 格点种浇水 | **已降级** | 不再作为主 UI |
 | 花园云同步 | **未实现** | Entity 有 syncStatus，无 Syncer |
 
 **GardenEngine 核心逻辑：**
 
 ```
-recordFromStudyResult → !完成→WITHERED（含0题）；完成且有题→ALIVE；完成0题跳过；sessionId 幂等
+recordFromStudyResult → GardenForestRules（完成有题→ALIVE；放弃<60s跳过；超时→WITHERED；完成0题跳过；sessionId 幂等）
+removeWitheredPlant → spendTokens(50, refId=garden_remove:…) → 删除 WITHERED 行
 unlockSpecies → spendTokens(refId=garden_unlock:…) → garden_unlocks
 observePlantsForDate / Between → 日/周森林
 ForestLayout.build → 6×6 均匀格 + 稳定随机占格；ForestScene 菱形透视绘制
