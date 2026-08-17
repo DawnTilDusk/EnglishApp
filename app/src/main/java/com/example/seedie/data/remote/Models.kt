@@ -22,6 +22,14 @@ data class Profile(
 )
 
 @Serializable
+data class UserVocabularyEstimate(
+    val id: String,
+    @SerialName("user_id") val user_id: String,
+    @SerialName("vocabulary_size") val vocabulary_size: Int,
+    @SerialName("created_at") val created_at: String
+)
+
+@Serializable
 data class Student(
     val id: String,
     @SerialName("agency_id") val agency_id: String,

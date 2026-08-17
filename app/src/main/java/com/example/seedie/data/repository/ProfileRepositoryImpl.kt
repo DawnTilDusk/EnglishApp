@@ -2,12 +2,15 @@ package com.example.seedie.data.repository
 
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.Profile
+import com.example.seedie.data.remote.UserVocabularyEstimate
 import com.example.seedie.domain.profile.ProfileGradeOptions
 import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.UserProfile
+import com.example.seedie.domain.repository.VocabularyEstimateRecord
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
+import io.github.jan.supabase.postgrest.query.Order
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -70,6 +73,28 @@ class ProfileRepositoryImpl @Inject constructor(
             buildJsonObject { put("p_size", size) }
         )
         getMyProfile()
+    }
+
+    override suspend fun listMyVocabularyEstimates(limit: Int): List<VocabularyEstimateRecord> {
+        val userId = requireCurrentUserId()
+        val capped = limit.coerceIn(1, 100)
+        // Fetch newest first then reverse so chart is chronological with at most [capped] points.
+        val rows = client.postgrest["user_vocabulary_estimates"]
+            .select {
+                filter { eq("user_id", userId) }
+                order("created_at", Order.DESCENDING)
+                limit(capped.toLong())
+            }
+            .decodeList<UserVocabularyEstimate>()
+        return rows
+            .asReversed()
+            .map { row ->
+                VocabularyEstimateRecord(
+                    id = row.id,
+                    vocabularySize = row.vocabulary_size,
+                    createdAt = row.created_at
+                )
+            }
     }
 
     private suspend fun fetchProfile(userId: String): UserProfile {

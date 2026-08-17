@@ -23,20 +23,20 @@ class VocabularyQuizRepositoryImpl @Inject constructor(
         val missing = mutableListOf<String>()
 
         for (bookId in VocabularyQuizConstants.QUIZ_BOOK_IDS) {
-            var local = vocabularyWordDao.getWordsByBook(bookId)
-            if (local.size < VocabularyQuizConstants.WORDS_PER_BAND) {
-                val remote = runCatching { remoteDataSource.fetchWordsByBook(bookId) }
-                    .getOrElse { emptyList() }
-                if (remote.isNotEmpty()) {
-                    local = remote.map { it.toQuizEntity() }
-                    // Cache into Room without flipping active book
-                    vocabularyWordDao.insertWords(local)
-                }
+            // Prefer remote so gloss/senses fixes (e.g. woman) refresh Room cache.
+            val remote = runCatching { remoteDataSource.fetchWordsByBook(bookId) }
+                .getOrElse { emptyList() }
+            val words = if (remote.isNotEmpty()) {
+                val entities = remote.map { it.toQuizEntity() }
+                vocabularyWordDao.insertWords(entities)
+                entities
+            } else {
+                vocabularyWordDao.getWordsByBook(bookId)
             }
-            if (local.size < VocabularyQuizConstants.WORDS_PER_BAND) {
+            if (words.size < VocabularyQuizConstants.WORDS_PER_BAND) {
                 missing += bookId
             } else {
-                wordsByBookId[bookId] = local
+                wordsByBookId[bookId] = words
             }
         }
 

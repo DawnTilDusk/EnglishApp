@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -19,6 +20,10 @@ fun DataGardenScreen(
     val forestUiState by viewModel.forestUiState.collectAsState()
     val statsUiState by viewModel.statsUiState.collectAsState()
 
+    LaunchedEffect(trendReplayKey) {
+        viewModel.refreshVocabularyTrend()
+    }
+
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -28,7 +33,8 @@ fun DataGardenScreen(
         StatsPanelSection(
             modifier = Modifier.weight(0.4f),
             learningDistribution = statsUiState.learningDistribution,
-            trendReplayKey = trendReplayKey,
+            vocabularyTrendPoints = statsUiState.vocabularyTrendPoints,
+            trendReplayKey = trendReplayKey + statsUiState.vocabularyTrendRefreshTick,
             forestAliveCount = forestUiState.aliveCount,
             forestWitheredCount = forestUiState.witheredCount
         )

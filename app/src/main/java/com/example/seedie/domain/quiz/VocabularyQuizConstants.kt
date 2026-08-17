@@ -10,7 +10,7 @@ data class GradeBand(
 object VocabularyQuizConstants {
     const val MODULE_ID = "quiz"
     const val WORDS_PER_BAND = 12
-    const val ADVANCE_MIN_CORRECT = 11
+    const val ADVANCE_MIN_CORRECT = 7
     const val ESTIMATE_CAP = 1800
     const val COMPLETION_BONUS = 5
     const val ESTIMATE_DISCLAIMER = "按外研分册随机抽样估测，上限参照 1800"

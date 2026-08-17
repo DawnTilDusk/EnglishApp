@@ -68,7 +68,7 @@ flowchart TB
 | 表 | 用途 | 谁读写 | 交互 |
 |----|------|--------|------|
 | `agencies` | 机构根；一机构一店 | 平台用 `service_role` / `create_agency_admin` 建；Web `/agency` 隐含依赖 | `teachers.agency_id`、`students.agency_id`、`shop_*.agency_id` FK |
-| `profiles` | Auth 用户资料、`role`、手机号、设备、**词汇量估测**（`vocabulary_size` / `vocabulary_estimated_at`） | App / Web 读；`set_my_profile` / `set_my_phone` / `set_my_device_id` / `set_my_vocabulary_estimate` 写 | `id` = `auth.users.id`；与 `students`/`teachers` 同 id；词汇量为最近一次分档检测结果，非背单词累计 |
+| `profiles` | Auth 用户资料、`role`、手机号、设备、**词汇量估测**（`vocabulary_size` / `vocabulary_estimated_at`） | App / Web 读；`set_my_profile` / `set_my_phone` / `set_my_device_id` / `set_my_vocabulary_estimate` 写 | `id` = `auth.users.id`；与 `students`/`teachers` 同 id；词汇量为最近一次分档检测结果，非背单词累计；历史点见 `user_vocabulary_estimates` |
 | `students` | 学生扩展（姓名、教师绑定、机构） | App 登录恢复；Web 机构绑学生；教师看名下学生 | `teacher_id`、`agency_id`；商城按机构可见商品 |
 | `teachers` | 教师扩展、所属机构 | Web 机构建教师 / 列表 | `agency_id`；同机构约束见 `010` |
 
@@ -121,6 +121,7 @@ flowchart TB
 | `user_vocabulary_word_learning_progress` | 单词学习状态 | App | `VocabularyProgressSyncer` |
 | `user_vocabulary_study_rounds` | 学习轮次 | App | 同上 |
 | `user_vocabulary_book_progress` | 词书进度光标 | App | 同上 |
+| `user_vocabulary_estimates` | 词汇量检测历史（每次估测一行） | RPC `set_my_vocabulary_estimate`（DEFINER insert）；本人 SELECT | 无 Room Syncer；App 直读 |
 
 教师 / 机构通过 RLS +（教师）`get_teacher_student_stats` 只读汇总，不直接改这些表。
 
@@ -244,7 +245,7 @@ flowchart TB
 | `reconcile_my_token_balance` | 仅 `service_role` 运维 |
 | `get_teacher_student_stats` | 教师看学生统计 |
 | `set_my_profile` / `set_my_phone` / `set_my_device_id` | 资料 / 设备 |
-| `set_my_vocabulary_estimate` | 写入词汇量估测 |
+| `set_my_vocabulary_estimate` | 写入词汇量估测（更新 `profiles` 并 append `user_vocabulary_estimates`） |
 | `mark_my_practice_items_completed` | 自由刷题标记阅读/听力 item 已做过 |
 
 EXECUTE / `search_path` 硬化见 [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql) 与 [permission_model.md](./permission_model.md)。

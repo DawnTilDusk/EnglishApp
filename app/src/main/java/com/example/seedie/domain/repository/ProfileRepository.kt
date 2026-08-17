@@ -11,6 +11,13 @@ data class UserProfile(
     val hasVocabularyEstimate: Boolean = false
 )
 
+data class VocabularyEstimateRecord(
+    val id: String,
+    val vocabularySize: Int,
+    /** ISO-8601 timestamptz from Supabase. */
+    val createdAt: String
+)
+
 interface ProfileRepository {
     suspend fun getMyProfile(): UserProfile
 
@@ -23,4 +30,7 @@ interface ProfileRepository {
     suspend fun bindMyPhone(phone: String): Result<UserProfile>
 
     suspend fun setMyVocabularyEstimate(size: Int): Result<UserProfile>
+
+    /** Latest [limit] estimates ascending by created_at (for garden trend). */
+    suspend fun listMyVocabularyEstimates(limit: Int = 30): List<VocabularyEstimateRecord>
 }

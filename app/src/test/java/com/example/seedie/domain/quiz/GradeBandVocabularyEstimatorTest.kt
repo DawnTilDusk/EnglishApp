@@ -21,36 +21,49 @@ class GradeBandVocabularyEstimatorTest {
     }
 
     @Test
-    fun estimate_sevenOfTwelveOnFirstBand_isProportional() {
+    fun estimate_sevenOfTwelveOnFirstBand_isProportional_andAdvances() {
         val quota = VocabularyQuizConstants.GRADE_BANDS[0].quota
         val expected = ((7f / 12f) * quota).toInt()
         val result = GradeBandVocabularyEstimator.estimate(
             listOf(GradeBandVocabularyEstimator.BandScore(0, correct = 7, total = 12))
         )
         assertEquals(expected, result)
-        assertFalse(GradeBandVocabularyEstimator.shouldAdvance(7, 12))
+        assertTrue(GradeBandVocabularyEstimator.shouldAdvance(7, 12))
+        assertFalse(GradeBandVocabularyEstimator.shouldAdvance(6, 12))
     }
 
     @Test
-    fun estimate_elevenOfTwelveAdvancesFullQuotaThenStopsNext() {
-        assertTrue(GradeBandVocabularyEstimator.shouldAdvance(11, 12))
+    fun estimate_sevenAdvancesThenStopsNext_bothProportional() {
+        assertTrue(GradeBandVocabularyEstimator.shouldAdvance(7, 12))
         val result = GradeBandVocabularyEstimator.estimate(
             listOf(
-                GradeBandVocabularyEstimator.BandScore(0, 11, 12),
+                GradeBandVocabularyEstimator.BandScore(0, 7, 12),
                 GradeBandVocabularyEstimator.BandScore(1, 5, 12)
             )
         )
-        val expected = VocabularyQuizConstants.GRADE_BANDS[0].quota +
+        val expected = ((7f / 12f) * VocabularyQuizConstants.GRADE_BANDS[0].quota).toInt() +
             ((5f / 12f) * VocabularyQuizConstants.GRADE_BANDS[1].quota).toInt()
         assertEquals(expected, result)
     }
 
     @Test
-    fun estimate_allSixBandsPassed_returnsCap() {
+    fun estimate_allSixBandsPerfect_returnsCap() {
         val scores = VocabularyQuizConstants.GRADE_BANDS.indices.map { index ->
             GradeBandVocabularyEstimator.BandScore(index, correct = 12, total = 12)
         }
         assertEquals(1800, GradeBandVocabularyEstimator.estimate(scores))
+    }
+
+    @Test
+    fun estimate_allSixBandsSevenOfTwelve_isProportionalSum_notCap() {
+        val scores = VocabularyQuizConstants.GRADE_BANDS.indices.map { index ->
+            GradeBandVocabularyEstimator.BandScore(index, correct = 7, total = 12)
+        }
+        val expected = VocabularyQuizConstants.GRADE_BANDS.sumOf { band ->
+            ((7f / 12f) * band.quota).toInt()
+        }
+        assertEquals(expected, GradeBandVocabularyEstimator.estimate(scores))
+        assertTrue(expected < VocabularyQuizConstants.ESTIMATE_CAP)
     }
 
     @Test
