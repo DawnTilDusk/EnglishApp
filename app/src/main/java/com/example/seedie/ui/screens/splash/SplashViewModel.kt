@@ -74,12 +74,14 @@ class SplashViewModel @Inject constructor(
                 )
                 val streakDay = computeStreakDay(userId, today)
                 val dewAmount = DewConstants.dewForStreakDay(streakDay)
-                dewManager.addDews(
+                val grantedDews = dewManager.addDews(
                     amount = dewAmount,
                     reason = "Daily Check-In",
                     refId = "dew:checkin:$userId:$today"
                 )
-                rewardEventBus.emit(RewardEvent.DewDropped(dewAmount))
+                if (grantedDews > 0) {
+                    rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
+                }
                 syncManager.syncNow(SyncScope.CHECK_IN)
             }
             _uiState.value = SplashUiState(

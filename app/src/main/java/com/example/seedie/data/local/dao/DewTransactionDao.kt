@@ -66,14 +66,14 @@ interface DewTransactionDao {
 
     @Query(
         """
-        SELECT COALESCE(SUM(CASE WHEN amount < 0 THEN -amount ELSE 0 END), 0)
+        SELECT COALESCE(SUM(amount), 0)
         FROM dew_transactions
         WHERE userId = :userId
-          AND reason LIKE 'Convert: %'
+          AND reason LIKE 'Convert: %' AND amount > 0
           AND timestamp >= :dayStartMillis AND timestamp < :dayEndMillis
         """
     )
-    suspend fun getTodayConvertTokenEquivalent(
+    suspend fun getTodayConvertedDewSum(
         userId: String,
         dayStartMillis: Long,
         dayEndMillis: Long

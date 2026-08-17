@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.AuthSession
 import com.example.seedie.domain.profile.ProfileGradeOptions
+import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ManagedWordBook
 import com.example.seedie.domain.repository.ProfileRepository
@@ -58,6 +59,7 @@ data class LearningTargetUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     economyManager: EconomyManager,
+    dewManager: DewManager,
     private val userSessionRepository: UserSessionRepository,
     private val authService: AuthService,
     private val profileRepository: ProfileRepository,
@@ -79,6 +81,13 @@ class ProfileViewModel @Inject constructor(
     val message: StateFlow<String?> = _message.asStateFlow()
 
     val totalTokens: StateFlow<Int> = economyManager.totalTokens
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
+    val totalDews: StateFlow<Int> = dewManager.totalDews
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

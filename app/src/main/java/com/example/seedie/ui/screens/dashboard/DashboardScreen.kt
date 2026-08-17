@@ -29,8 +29,7 @@ fun DashboardScreen(
         // Right side: Daily Missions (takes 40% of width)
         DailyMissionSection(
             modifier = Modifier.weight(0.4f),
-            tasks = tasks,
-            onTaskClick = { task -> viewModel.onTaskClicked(task) }
+            tasks = tasks
         )
     }
 }

@@ -39,9 +39,8 @@ fun DailyMissionSection(
     tasks: List<DailyTaskEntity> = listOf(
         DailyTaskEntity(id = 1, userId = "preview", date = "2024-01-01", title = "背诵 20 个单词", rewardAmount = 8),
         DailyTaskEntity(id = 2, userId = "preview", date = "2024-01-01", title = "完成一次语法测验", rewardAmount = 15, isCompleted = true, taskKey = "daily_vocabulary", rewardType = "dew", autoClaim = true),
-        DailyTaskEntity(id = 3, userId = "preview", date = "2024-01-01", title = "提交一次作文", rewardAmount = 0, tokenReward = 10, autoClaim = false, rewardType = "token", taskKey = "daily_writing")
-    ),
-    onTaskClick: (DailyTaskEntity) -> Unit = {}
+        DailyTaskEntity(id = 3, userId = "preview", date = "2024-01-01", title = "提交一次作文", rewardAmount = 0, tokenReward = 10, autoClaim = true, rewardType = "token", taskKey = "daily_writing")
+    )
 ) {
     TabSectionSurface(
         modifier = modifier.fillMaxSize()
@@ -65,7 +64,7 @@ fun DailyMissionSection(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(tasks) { task ->
-                    TaskCard(task = task, onClick = { onTaskClick(task) })
+                    TaskCard(task = task)
                 }
             }
         }
@@ -74,8 +73,7 @@ fun DailyMissionSection(
 
 @Composable
 fun TaskCard(
-    task: DailyTaskEntity,
-    onClick: () -> Unit
+    task: DailyTaskEntity
 ) {
     val isTokenTask = task.tokenReward > 0
     val rewardValue = if (isTokenTask) task.tokenReward else task.rewardAmount
@@ -90,9 +88,9 @@ fun TaskCard(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
-            onClick = onClick,
+            onClick = {},
             modifier = Modifier.size(24.dp),
-            enabled = !task.autoClaim
+            enabled = false
         ) {
             Icon(
                 imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Outlined.CheckCircle,
@@ -115,7 +113,7 @@ fun TaskCard(
             )
             if (!task.autoClaim && !task.isCompleted) {
                 Text(
-                    text = "完成后点击领取",
+                    text = "完成后系统自动发放",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )

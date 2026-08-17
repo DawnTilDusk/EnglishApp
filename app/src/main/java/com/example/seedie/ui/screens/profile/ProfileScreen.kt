@@ -35,6 +35,7 @@ fun ProfileScreen(
 ) {
     val context = LocalContext.current
     val totalTokens by viewModel.totalTokens.collectAsState()
+    val totalDews by viewModel.totalDews.collectAsState()
     val badges by viewModel.badges.collectAsState()
     val profileEditorUiState by viewModel.profileEditorUiState.collectAsState()
     val learningTargetUiState by viewModel.learningTargetUiState.collectAsState()
@@ -81,6 +82,7 @@ fun ProfileScreen(
             AssetGallerySection(
                 modifier = Modifier.weight(0.62f),
                 totalTokens = totalTokens,
+                totalDews = totalDews,
                 badges = badges,
                 onOpenShop = onOpenShop
             )

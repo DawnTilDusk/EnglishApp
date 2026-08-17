@@ -95,12 +95,14 @@ class MainViewModel @Inject constructor(
                     "quiz" -> "Quiz Dew"
                     else -> "Vocabulary Dew"
                 }
-                dewManager.addDews(
+                val grantedDews = dewManager.addDews(
                     amount = result.earnedDews,
                     reason = reason,
                     refId = "dew:study:${result.sessionId}"
                 )
-                rewardEventBus.emit(RewardEvent.DewDropped(result.earnedDews))
+                if (grantedDews > 0) {
+                    rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
+                }
             }
             gardenEngine.recordFromStudyResult(result)
             if (result.isCompleted) {
@@ -115,11 +117,10 @@ class MainViewModel @Inject constructor(
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
         val tasks = taskDao.getTasksByUserAndDate(userId, today).first()
         val taskKeys = when (result.moduleId) {
-            "listening" -> listOf("daily_listening", "daily_completed_2")
-            "reading" -> listOf("daily_reading", "daily_completed_2")
-            "writing" -> listOf("daily_writing", "daily_completed_2")
-            "quiz" -> listOf("daily_completed_2")
-            else -> listOf("daily_vocabulary", "daily_completed_1", "daily_completed_2")
+            "listening" -> listOf("daily_listening")
+            "reading" -> listOf("daily_reading")
+            "writing" -> listOf("daily_writing")
+            else -> listOf("daily_vocabulary")
         }
         taskKeys.forEach { taskKey ->
             val match = tasks.firstOrNull { !it.isCompleted && it.taskKey == taskKey } ?: return@forEach
@@ -136,12 +137,14 @@ class MainViewModel @Inject constructor(
         val updated = task.copy(isCompleted = true, completedAt = System.currentTimeMillis())
         taskDao.updateTask(updated)
         if (task.rewardType == "dew" && task.rewardAmount > 0) {
-            dewManager.addDews(
+            val grantedDews = dewManager.addDews(
                 amount = task.rewardAmount,
                 reason = "Task: ${task.title}",
                 refId = "dew:task:$userId:$today:${task.taskKey}"
             )
-            rewardEventBus.emit(RewardEvent.DewDropped(task.rewardAmount))
+            if (grantedDews > 0) {
+                rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
+            }
         } else if (task.tokenReward > 0) {
             economyManager.addTokens(
                 amount = task.tokenReward,

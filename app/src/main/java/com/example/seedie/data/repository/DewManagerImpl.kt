@@ -8,7 +8,6 @@ import com.example.seedie.domain.model.DewConstants
 import com.example.seedie.domain.model.shouldSkipDuplicateTokenGrant
 import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
-import dagger.hilt.android.scopes.ActivityRetainedScoped
 import java.util.Calendar
 import java.util.TimeZone
 import java.util.UUID
@@ -19,6 +18,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlin.math.min
 
 @Singleton
 class DewManagerImpl @Inject constructor(
@@ -26,6 +28,9 @@ class DewManagerImpl @Inject constructor(
     private val authService: AuthService,
     private val economyManager: EconomyManager
 ) : DewManager {
+
+    /** Serializes local balance and daily-cap changes for this process. */
+    private val dewMutex = Mutex()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override val totalDews: Flow<Int> = authService.currentSession
@@ -43,22 +48,31 @@ class DewManagerImpl @Inject constructor(
         reason: String,
         refId: String?,
         respectCap: Boolean
-    ) {
-        if (amount <= 0) return
-        val userId = authService.currentSession.value?.userId ?: return
+    ): Int = dewMutex.withLock {
+        addDewsLocked(amount, reason, refId, respectCap)
+    }
+
+    private suspend fun addDewsLocked(
+        amount: Int,
+        reason: String,
+        refId: String?,
+        respectCap: Boolean
+    ): Int {
+        if (amount <= 0) return 0
+        val userId = authService.currentSession.value?.userId ?: return 0
         val existing = if (!refId.isNullOrBlank()) {
             dewTransactionDao.findByRefId(userId, refId) != null
         } else {
             false
         }
-        if (shouldSkipDuplicateTokenGrant(refId, existing)) return
+        if (shouldSkipDuplicateTokenGrant(refId, existing)) return 0
 
         val granted = if (respectCap) {
             val (dayStart, dayEnd) = todayMillisBounds()
             val todaySoFar = dewTransactionDao.getTodayDewIncomeSum(userId, dayStart, dayEnd)
                 .coerceAtLeast(0)
             val room = (DewConstants.DAILY_DEW_CAP - todaySoFar).coerceAtLeast(0)
-            if (room <= 0) return
+            if (room <= 0) return 0
             amount.coerceAtMost(room)
         } else {
             amount
@@ -72,17 +86,17 @@ class DewManagerImpl @Inject constructor(
             reason = reason,
             refId = refId?.takeIf { it.isNotBlank() }
         )
-        dewTransactionDao.insertTransaction(transaction)
+        return if (dewTransactionDao.insertTransaction(transaction) == -1L) 0 else granted
     }
 
-    override suspend fun spendDews(amount: Int, item: String, refId: String?): Boolean {
-        if (amount <= 0) return false
-        val userId = authService.currentSession.value?.userId ?: return false
+    override suspend fun spendDews(amount: Int, item: String, refId: String?): Boolean = dewMutex.withLock {
+        if (amount <= 0) return@withLock false
+        val userId = authService.currentSession.value?.userId ?: return@withLock false
         if (!refId.isNullOrBlank() && dewTransactionDao.findByRefId(userId, refId) != null) {
-            return true
+            return@withLock true
         }
         val balance = dewTransactionDao.getTotalDewsOnce(userId)
-        if (balance < amount) return false
+        if (balance < amount) return@withLock false
 
         val transaction = DewTransactionEntity(
             id = UUID.randomUUID().toString(),
@@ -94,38 +108,53 @@ class DewManagerImpl @Inject constructor(
         )
         val inserted = dewTransactionDao.insertTransaction(transaction)
         if (inserted == -1L) {
-            return !refId.isNullOrBlank() && dewTransactionDao.findByRefId(userId, refId) != null
+            return@withLock !refId.isNullOrBlank() && dewTransactionDao.findByRefId(userId, refId) != null
         }
-        return true
+        true
     }
 
-    override suspend fun convertTokensToDews(tokenAmount: Int): ConvertTokensToDewsResult {
-        if (tokenAmount <= 0) return ConvertTokensToDewsResult.InvalidAmount
+    override suspend fun convertTokensToDews(tokenAmount: Int): ConvertTokensToDewsResult = dewMutex.withLock {
+        if (tokenAmount <= 0) return@withLock ConvertTokensToDewsResult.InvalidAmount
         val userId = authService.currentSession.value?.userId
-            ?: return ConvertTokensToDewsResult.NotLoggedIn
+            ?: return@withLock ConvertTokensToDewsResult.NotLoggedIn
         val (dayStart, dayEnd) = todayMillisBounds()
-        val todayTokenEquivalent = dewTransactionDao
-            .getTodayConvertTokenEquivalent(userId, dayStart, dayEnd)
-        if (todayTokenEquivalent + tokenAmount > DewConstants.DAILY_CONVERT_TOKEN_MAX) {
-            return ConvertTokensToDewsResult.DailyConvertCapReached
+        val todayConvertedDews = dewTransactionDao
+            .getTodayConvertedDewSum(userId, dayStart, dayEnd)
+            .coerceAtLeast(0)
+        val todayConvertedTokens = todayConvertedDews / DewConstants.TOKEN_TO_DEW_RATE
+        val tokenAllowance = (DewConstants.DAILY_CONVERT_TOKEN_MAX - todayConvertedTokens)
+            .coerceAtLeast(0)
+        if (tokenAmount > tokenAllowance) {
+            return@withLock ConvertTokensToDewsResult.DailyConvertCapReached
         }
-        val convertRefId = "convert_token_to_dew:$userId:${todayDateString()}:$tokenAmount:$todayTokenEquivalent"
+
+        val todayDewIncome = dewTransactionDao
+            .getTodayDewIncomeSum(userId, dayStart, dayEnd)
+            .coerceAtLeast(0)
+        val dewAllowance = (DewConstants.DAILY_DEW_CAP - todayDewIncome)
+            .coerceAtLeast(0) / DewConstants.TOKEN_TO_DEW_RATE
+        if (tokenAmount > min(tokenAllowance, dewAllowance)) {
+            return@withLock ConvertTokensToDewsResult.DailyDewCapReached
+        }
+
+        val convertRefId = "convert_token_to_dew:$userId:${todayDateString()}:$todayConvertedDews:$tokenAmount"
         val spent = economyManager.spendTokens(
             amount = tokenAmount,
             item = "Convert to dew ($tokenAmount tokens)",
             refId = convertRefId
         )
         if (!spent) {
-            return ConvertTokensToDewsResult.NotEnoughTokens
+            return@withLock ConvertTokensToDewsResult.NotEnoughTokens
         }
         val dewsAmount = tokenAmount * DewConstants.TOKEN_TO_DEW_RATE
         try {
-            addDews(
+            val granted = addDewsLocked(
                 amount = dewsAmount,
                 reason = "Convert: $tokenAmount tokens",
                 refId = "dew:$convertRefId",
-                respectCap = true
+                respectCap = false
             )
+            check(granted == dewsAmount) { "Dew conversion grant was not recorded" }
         } catch (t: Throwable) {
             economyManager.addTokens(
                 amount = tokenAmount,
@@ -134,7 +163,7 @@ class DewManagerImpl @Inject constructor(
             )
             throw t
         }
-        return ConvertTokensToDewsResult.Success
+        ConvertTokensToDewsResult.Success
     }
 
     private fun todayMillisBounds(): Pair<Long, Long> {

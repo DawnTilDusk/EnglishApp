@@ -49,7 +49,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.GardenSpeciesCatalog
-import com.example.seedie.domain.usecase.Currency
 import com.example.seedie.domain.usecase.GardenSpeciesUi
 import com.example.seedie.domain.usecase.GardenUnlockResult
 import com.example.seedie.ui.theme.PrimaryGreen
@@ -87,7 +86,6 @@ fun PlantSpeciesPickerScreen(
     val scope = rememberCoroutineScope()
     var pendingUnlock by remember { mutableStateOf<GardenSpeciesUi?>(null) }
     var showConvert by remember { mutableStateOf(false) }
-    var unlockCurrency by remember { mutableStateOf(Currency.DEW) }
 
     LaunchedEffect(Unit) {
         viewModel.bootstrap()
@@ -138,7 +136,6 @@ fun PlantSpeciesPickerScreen(
             selectedId = selectedId,
             onSelect = { viewModel.selectSpecies(it) },
             onLockedClick = {
-                unlockCurrency = Currency.DEW
                 pendingUnlock = it
             }
         )
@@ -188,61 +185,28 @@ fun PlantSpeciesPickerScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "用代币解锁：${item.species.unlockCost} 枚（稀有流通）",
+                        text = "露水用于解锁花园树种；代币可在商城兑换奖励。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                    Text(
-                        text = when (unlockCurrency) {
-                            Currency.DEW -> "当前选择：露水"
-                            Currency.TOKEN -> "当前选择：代币"
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(top = 12.dp)
-                    )
                 }
             },
             confirmButton = {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { unlockCurrency = Currency.DEW }
-                        ) {
-                            Text("用露水")
-                        }
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = { unlockCurrency = Currency.TOKEN }
-                        ) {
-                            Text("用代币")
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            scope.launch {
-                                val result = viewModel.unlockSpecies(
-                                    item.species.id,
-                                    unlockCurrency
-                                )
-                                pendingUnlock = null
-                                if (result == GardenUnlockResult.Success ||
-                                    result == GardenUnlockResult.AlreadyUnlocked
-                                ) {
-                                    viewModel.selectSpecies(item.species.id)
-                                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        scope.launch {
+                            val result = viewModel.unlockSpecies(item.species.id)
+                            pendingUnlock = null
+                            if (result == GardenUnlockResult.Success ||
+                                result == GardenUnlockResult.AlreadyUnlocked
+                            ) {
+                                viewModel.selectSpecies(item.species.id)
                             }
                         }
-                    ) {
-                        Text("确认解锁")
                     }
-                }
+                ) { Text("花费露水解锁") }
             },
             dismissButton = {
                 TextButton(onClick = { pendingUnlock = null }) {
@@ -378,7 +342,7 @@ private fun SpeciesCard(
                     modifier = Modifier.padding(top = 4.dp)
                 )
                 Text(
-                    text = "或 ${item.species.unlockCost} 枚代币",
+                    text = "花园专属解锁",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
@@ -453,7 +417,6 @@ fun GardenerHutSheetContent(
     var pendingUnlock by remember { mutableStateOf<GardenSpeciesUi?>(null) }
     val unlockMessage by viewModel.unlockMessage.collectAsState()
     val convertMessage by viewModel.convertMessage.collectAsState()
-    var unlockCurrency by remember { mutableStateOf(Currency.DEW) }
     var showConvert by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.bootstrap() }
@@ -509,7 +472,6 @@ fun GardenerHutSheetContent(
                     selected = false,
                     onClick = {
                         if (!item.unlocked) {
-                            unlockCurrency = Currency.DEW
                             pendingUnlock = item
                         }
                     }
@@ -535,47 +497,23 @@ fun GardenerHutSheetContent(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "用代币解锁：${item.species.unlockCost} 枚（稀有流通）",
+                        text = "露水用于解锁花园树种；代币可在商城兑换奖励。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.padding(top = 4.dp)
                     )
-                    Text(
-                        text = when (unlockCurrency) {
-                            Currency.DEW -> "当前选择：露水"
-                            Currency.TOKEN -> "当前选择：代币"
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        modifier = Modifier.padding(top = 12.dp)
-                    )
                 }
             },
             confirmButton = {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { unlockCurrency = Currency.DEW }
-                        ) { Text("用露水") }
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = { unlockCurrency = Currency.TOKEN }
-                        ) { Text("用代币") }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            scope.launch {
-                                viewModel.unlockSpecies(item.species.id, unlockCurrency)
-                                pendingUnlock = null
-                            }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        scope.launch {
+                            viewModel.unlockSpecies(item.species.id)
+                            pendingUnlock = null
                         }
-                    ) { Text("确认解锁") }
-                }
+                    }
+                ) { Text("花费露水解锁") }
             },
             dismissButton = {
                 TextButton(onClick = { pendingUnlock = null }) { Text("取消") }

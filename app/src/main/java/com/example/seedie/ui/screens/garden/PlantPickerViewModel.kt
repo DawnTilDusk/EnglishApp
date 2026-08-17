@@ -6,7 +6,6 @@ import com.example.seedie.domain.model.ConvertTokensToDewsResult
 import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
-import com.example.seedie.domain.usecase.Currency
 import com.example.seedie.domain.usecase.GardenEngine
 import com.example.seedie.domain.usecase.GardenSpeciesUi
 import com.example.seedie.domain.usecase.GardenUnlockResult
@@ -62,12 +61,11 @@ class PlantPickerViewModel @Inject constructor(
         gardenEngine.setLastSelectedSpeciesId(id)
     }
 
-    suspend fun unlockSpecies(speciesId: String, currency: Currency = Currency.DEW): GardenUnlockResult {
-        val result = gardenEngine.unlockSpecies(speciesId, currency)
+    suspend fun unlockSpecies(speciesId: String): GardenUnlockResult {
+        val result = gardenEngine.unlockSpecies(speciesId)
         _unlockMessage.value = when (result) {
             GardenUnlockResult.Success -> null
             GardenUnlockResult.AlreadyUnlocked -> null
-            GardenUnlockResult.InsufficientTokens -> "代币不足，先去背单词攒一些吧"
             GardenUnlockResult.InsufficientDews -> "露水不够，今天多学一会儿再来试试吧"
             GardenUnlockResult.NotLoggedIn -> "请先登录"
             GardenUnlockResult.UnknownSpecies -> "未知树种"
@@ -81,6 +79,7 @@ class PlantPickerViewModel @Inject constructor(
             ConvertTokensToDewsResult.Success -> "兑换成功"
             ConvertTokensToDewsResult.NotEnoughTokens -> "代币不足"
             ConvertTokensToDewsResult.DailyConvertCapReached -> "今日兑换额度已用完（最多 10 代币）"
+            ConvertTokensToDewsResult.DailyDewCapReached -> "今日露水额度不足，无法完成本次兑换"
             ConvertTokensToDewsResult.NotLoggedIn -> "请先登录"
             ConvertTokensToDewsResult.InvalidAmount -> "数量无效"
         }

@@ -4,6 +4,7 @@ enum class ConvertTokensToDewsResult {
     Success,
     NotEnoughTokens,
     DailyConvertCapReached,
+    DailyDewCapReached,
     NotLoggedIn,
     InvalidAmount
 }

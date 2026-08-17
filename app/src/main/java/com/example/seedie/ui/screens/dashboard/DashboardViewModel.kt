@@ -5,10 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.entity.DailyTaskEntity
 import com.example.seedie.data.remote.AuthService
-import com.example.seedie.domain.model.RewardEvent
-import com.example.seedie.domain.repository.DewManager
-import com.example.seedie.domain.repository.EconomyManager
-import com.example.seedie.domain.usecase.RewardEventBus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,10 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     private val taskDao: DailyTaskDao,
-    private val authService: AuthService,
-    private val economyManager: EconomyManager,
-    private val dewManager: DewManager,
-    private val rewardEventBus: RewardEventBus
+    private val authService: AuthService
 ) : ViewModel() {
 
     private val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -63,7 +56,6 @@ class DashboardViewModel @Inject constructor(
         val tasks = taskDao.getTasksByUserAndDate(userId, todayDate).first()
         if (tasks.isNotEmpty()) return
         val dewDefaults = listOf(
-            Triple("daily_checkin", "每日签到", 5),
             Triple("daily_vocabulary", "学习单词 20 个", 8),
             Triple("daily_listening", "完成一次听力训练", 8),
             Triple("daily_reading", "完成一次阅读训练", 8)
@@ -78,15 +70,12 @@ class DashboardViewModel @Inject constructor(
                     rewardAmount = amount,
                     tokenReward = 0,
                     autoClaim = true,
-                    taskKey = key,
-                    isCompleted = key == "daily_checkin" && tasks.none { it.taskKey == key } && false
+                    taskKey = key
                 )
             )
         }
         val tokenChallenges = listOf(
-            Triple("daily_writing", "提交一次作文", 10),
-            Triple("daily_completed_1", "完成 2 场训练", 15),
-            Triple("daily_completed_2", "完成 4 场训练", 20)
+            Triple("daily_writing", "提交一次作文", 10)
         )
         tokenChallenges.forEach { (key, title, tokens) ->
             taskDao.insertTask(
@@ -97,45 +86,11 @@ class DashboardViewModel @Inject constructor(
                     rewardType = "token",
                     rewardAmount = 0,
                     tokenReward = tokens,
-                    autoClaim = false,
+                    autoClaim = true,
                     taskKey = key
                 )
             )
         }
     }
 
-    fun onTaskClicked(task: DailyTaskEntity) {
-        if (task.isCompleted) return
-        if (task.autoClaim) return
-
-        viewModelScope.launch {
-            val userId = authService.currentSession.value?.userId ?: return@launch
-            if (task.userId != userId) return@launch
-
-            taskDao.updateTask(
-                task.copy(isCompleted = true, completedAt = System.currentTimeMillis())
-            )
-
-            if (task.tokenReward > 0) {
-                economyManager.addTokens(
-                    amount = task.tokenReward,
-                    reason = "Completed: ${task.title}",
-                    refId = "task:$userId:$todayDate:${task.taskKey.ifBlank { normalizeTaskKey(task.title) }}"
-                )
-                rewardEventBus.emit(RewardEvent.TokenDropped(task.tokenReward))
-            }
-            if (task.rewardType == "dew" && task.rewardAmount > 0) {
-                dewManager.addDews(
-                    amount = task.rewardAmount,
-                    reason = "Task: ${task.title}",
-                    refId = "dew:task:$userId:$todayDate:${task.taskKey.ifBlank { normalizeTaskKey(task.title) }}"
-                )
-                rewardEventBus.emit(RewardEvent.DewDropped(task.rewardAmount))
-            }
-        }
-    }
-
-    private fun normalizeTaskKey(title: String): String {
-        return title.trim().lowercase(Locale.ROOT).replace(Regex("\\s+"), "_")
-    }
 }

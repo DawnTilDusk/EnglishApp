@@ -11,7 +11,7 @@ interface DewManager {
         reason: String,
         refId: String? = null,
         respectCap: Boolean = true
-    )
+    ): Int
 
     suspend fun spendDews(
         amount: Int,
