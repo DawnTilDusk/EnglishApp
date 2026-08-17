@@ -17,7 +17,9 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -31,6 +33,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.math.sin
 
 enum class ForestRangeMode { Day, Week }
 
@@ -59,6 +64,8 @@ class GardenViewModel @Inject constructor(
     private val selectedPlantId = MutableStateFlow<String?>(null)
     private val showGardenerHut = MutableStateFlow(false)
     private val _removeMessage = MutableStateFlow<String?>(null)
+    private val vocabularyTrendRange = MutableStateFlow(VocabularyTrendRange.Last7Days)
+    private val vocabularyTrendMetric = MutableStateFlow(VocabularyTrendMetric.Estimate)
     private val vocabularyTrendPoints = MutableStateFlow<List<VocabularyTrendPointUiState>>(emptyList())
     private val vocabularyTrendRefreshTick = MutableStateFlow(0)
 
@@ -118,11 +125,15 @@ class GardenViewModel @Inject constructor(
     val statsUiState: StateFlow<GardenStatsUiState> = combine(
         activityTrackingRepository.observeTodayModuleSummaries(),
         vocabularyTrendPoints,
-        vocabularyTrendRefreshTick
-    ) { summaries, trendPoints, refreshTick ->
+        vocabularyTrendRefreshTick,
+        vocabularyTrendRange,
+        vocabularyTrendMetric
+    ) { summaries, trendPoints, refreshTick, trendRange, trendMetric ->
         toGardenStatsUiState(summaries).copy(
             vocabularyTrendPoints = trendPoints,
-            vocabularyTrendRefreshTick = refreshTick
+            vocabularyTrendRefreshTick = refreshTick,
+            vocabularyTrendRange = trendRange,
+            vocabularyTrendMetric = trendMetric
         )
     }.stateIn(
         scope = viewModelScope,
@@ -131,13 +142,48 @@ class GardenViewModel @Inject constructor(
     )
 
     fun refreshVocabularyTrend() {
+        val selectedRange = vocabularyTrendRange.value
+        val selectedMetric = vocabularyTrendMetric.value
+        val zoneId = ZoneId.systemDefault()
+        val dateRange = selectedRange.resolveDateRange(LocalDate.now(zoneId))
         viewModelScope.launch {
-            val points = runCatching { profileRepository.listMyVocabularyEstimates(limit = 30) }
+            val records = runCatching {
+                profileRepository.listMyVocabularyTrendEstimates(
+                    rangeStartInclusive = dateRange.startDate.atStartOfDay(zoneId).toInstant(),
+                    rangeEndExclusive = dateRange.endDateInclusive
+                        .plusDays(1)
+                        .atStartOfDay(zoneId)
+                        .toInstant()
+                )
+            }
                 .getOrDefault(emptyList())
-                .map(::toTrendPoint)
-            vocabularyTrendPoints.value = points
-            vocabularyTrendRefreshTick.update { it + 1 }
+            val points = buildVocabularyTrendPoints(
+                records = records,
+                range = selectedRange,
+                metric = selectedMetric,
+                dateRange = dateRange,
+                zoneId = zoneId
+            )
+            if (
+                vocabularyTrendRange.value == selectedRange &&
+                vocabularyTrendMetric.value == selectedMetric
+            ) {
+                vocabularyTrendPoints.value = points
+                vocabularyTrendRefreshTick.update { it + 1 }
+            }
         }
+    }
+
+    fun setVocabularyTrendRange(range: VocabularyTrendRange) {
+        if (vocabularyTrendRange.value == range) return
+        vocabularyTrendRange.value = range
+        refreshVocabularyTrend()
+    }
+
+    fun setVocabularyTrendMetric(metric: VocabularyTrendMetric) {
+        if (vocabularyTrendMetric.value == metric) return
+        vocabularyTrendMetric.value = metric
+        refreshVocabularyTrend()
     }
 
     fun setRangeMode(mode: ForestRangeMode) {
@@ -209,13 +255,45 @@ class GardenViewModel @Inject constructor(
 data class GardenStatsUiState(
     val learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
     val vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
-    val vocabularyTrendRefreshTick: Int = 0
+    val vocabularyTrendRefreshTick: Int = 0,
+    val vocabularyTrendRange: VocabularyTrendRange = VocabularyTrendRange.Last7Days,
+    val vocabularyTrendMetric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate
+)
+
+enum class VocabularyTrendRange(val label: String) {
+    Last7Days("近 7 天"),
+    Last30Days("近 30 天"),
+    LastYear("近 1 年"),
+    ThisMonth("本月"),
+    ThisYear("本年度");
+
+    val usesMonthlySampling: Boolean
+        get() = this == LastYear || this == ThisYear
+}
+
+enum class VocabularyTrendMetric(val label: String) {
+    Estimate("词汇量估算"),
+    MeasurementChange("检测区间变化")
+}
+
+enum class VocabularyTrendPointSource(val displayLabel: String) {
+    ActualMeasurement("实际测评"),
+    Interpolated("相邻测评估算"),
+    CarriedForward("沿用最近测评")
+}
+
+internal data class VocabularyTrendDateRange(
+    val startDate: LocalDate,
+    val endDateInclusive: LocalDate
 )
 
 data class VocabularyTrendPointUiState(
+    val date: LocalDate,
     val label: String,
     val shortLabel: String,
-    val value: Int
+    val value: Int,
+    val source: VocabularyTrendPointSource,
+    val actualMeasurementCount: Int = 0
 )
 
 data class LearningDistributionUiState(
@@ -292,25 +370,192 @@ internal fun toGardenStatsUiState(
     )
 }
 
-internal fun toTrendPoint(record: VocabularyEstimateRecord): VocabularyTrendPointUiState {
-    val label = formatEstimateDateLabel(record.createdAt)
+internal fun VocabularyTrendRange.resolveDateRange(
+    today: LocalDate
+): VocabularyTrendDateRange {
+    val start = when (this) {
+        VocabularyTrendRange.Last7Days -> today.minusDays(6)
+        VocabularyTrendRange.Last30Days -> today.minusDays(29)
+        VocabularyTrendRange.LastYear -> today.minusYears(1).plusDays(1)
+        VocabularyTrendRange.ThisMonth -> today.withDayOfMonth(1)
+        VocabularyTrendRange.ThisYear -> today.withDayOfYear(1)
+    }
+    return VocabularyTrendDateRange(startDate = start, endDateInclusive = today)
+}
+
+private data class DailyVocabularyAnchor(
+    val date: LocalDate,
+    val value: Int,
+    val recordId: String,
+    val measurementCount: Int
+)
+
+/**
+ * Builds a display-ready vocabulary trend from real quiz estimates.
+ *
+ * Each day with one or more measurements is a real anchor using that day's highest estimate.
+ * Gaps between anchors are linearly interpolated with a deterministic micro-variation; dates
+ * before the first anchor stay empty, while dates after the newest anchor carry it forward.
+ */
+internal fun buildVocabularyTrendPoints(
+    records: List<VocabularyEstimateRecord>,
+    range: VocabularyTrendRange,
+    metric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate,
+    dateRange: VocabularyTrendDateRange,
+    zoneId: ZoneId
+): List<VocabularyTrendPointUiState> {
+    val anchors = records
+        .mapNotNull { record ->
+            parseEstimateDate(record.createdAt, zoneId)?.let { date -> date to record }
+        }
+        .filter { (date, _) -> !date.isAfter(dateRange.endDateInclusive) }
+        .groupBy({ it.first }, { it.second })
+        .mapNotNull { (date, dailyRecords) ->
+            val highest = dailyRecords.maxWithOrNull(
+                compareBy<VocabularyEstimateRecord> { it.vocabularySize }
+                    .thenBy { it.createdAt }
+            ) ?: return@mapNotNull null
+            DailyVocabularyAnchor(
+                date = date,
+                value = highest.vocabularySize,
+                recordId = highest.id,
+                measurementCount = dailyRecords.size
+            )
+        }
+        .sortedBy { it.date }
+
+    if (anchors.isEmpty()) return emptyList()
+
+    if (metric == VocabularyTrendMetric.MeasurementChange) {
+        val changePoints = anchors.mapIndexedNotNull { index, anchor ->
+            if (anchor.date < dateRange.startDate || anchor.date > dateRange.endDateInclusive) {
+                return@mapIndexedNotNull null
+            }
+            val previous = anchors.getOrNull(index - 1)
+            anchor.date.toVocabularyTrendPoint(
+                value = anchor.value - (previous?.value ?: anchor.value),
+                source = VocabularyTrendPointSource.ActualMeasurement,
+                actualMeasurementCount = anchor.measurementCount,
+                today = dateRange.endDateInclusive
+            )
+        }
+        return sampleVocabularyTrendPoints(changePoints, range)
+    }
+
+    val anchorsByDate = anchors.associateBy { it.date }
+    val dailyPoints = buildList {
+        var date = dateRange.startDate
+        while (!date.isAfter(dateRange.endDateInclusive)) {
+            val actual = anchorsByDate[date]
+            when {
+                actual != null -> add(
+                    date.toVocabularyTrendPoint(
+                        value = actual.value,
+                        source = VocabularyTrendPointSource.ActualMeasurement,
+                        actualMeasurementCount = actual.measurementCount,
+                        today = dateRange.endDateInclusive
+                    )
+                )
+
+                else -> {
+                    val previous = anchors.lastOrNull { it.date.isBefore(date) }
+                    val next = anchors.firstOrNull { it.date.isAfter(date) }
+                    when {
+                        previous != null && next != null -> add(
+                            date.toVocabularyTrendPoint(
+                                value = interpolateVocabularyValue(previous, next, date),
+                                source = VocabularyTrendPointSource.Interpolated,
+                                today = dateRange.endDateInclusive
+                            )
+                        )
+
+                        previous != null -> add(
+                            date.toVocabularyTrendPoint(
+                                value = previous.value,
+                                source = VocabularyTrendPointSource.CarriedForward,
+                                today = dateRange.endDateInclusive
+                            )
+                        )
+
+                        // Before the first ever measurement, there is no honest value to draw.
+                        else -> Unit
+                    }
+                }
+            }
+            date = date.plusDays(1)
+        }
+    }
+
+    return sampleVocabularyTrendPoints(dailyPoints, range)
+}
+
+private fun sampleVocabularyTrendPoints(
+    points: List<VocabularyTrendPointUiState>,
+    range: VocabularyTrendRange
+): List<VocabularyTrendPointUiState> {
+    if (!range.usesMonthlySampling) return points
+    return points
+        .groupBy { YearMonth.from(it.date) }
+        .values
+        .map { it.last() }
+        .map { point ->
+            point.copy(
+                label = "${point.date.year}年${point.date.monthValue}月",
+                shortLabel = "${point.date.monthValue}月"
+            )
+        }
+}
+
+private fun LocalDate.toVocabularyTrendPoint(
+    value: Int,
+    source: VocabularyTrendPointSource,
+    today: LocalDate,
+    actualMeasurementCount: Int = 0
+): VocabularyTrendPointUiState {
+    val label = if (this == today) "今天" else format(trendDateFormatter)
     return VocabularyTrendPointUiState(
+        date = this,
         label = label,
         shortLabel = label,
-        value = record.vocabularySize
+        value = value,
+        source = source,
+        actualMeasurementCount = actualMeasurementCount
     )
 }
 
-internal fun formatEstimateDateLabel(
-    createdAt: String,
-    zoneId: ZoneId = ZoneId.systemDefault(),
-    today: LocalDate = LocalDate.now(zoneId)
-): String {
-    val date = runCatching {
-        Instant.parse(normalizeInstantString(createdAt)).atZone(zoneId).toLocalDate()
-    }.getOrNull() ?: return createdAt.take(10)
+private fun interpolateVocabularyValue(
+    start: DailyVocabularyAnchor,
+    end: DailyVocabularyAnchor,
+    date: LocalDate
+): Int {
+    val totalDays = ChronoUnit.DAYS.between(start.date, end.date).coerceAtLeast(1)
+    val elapsedDays = ChronoUnit.DAYS.between(start.date, date).coerceIn(0, totalDays)
+    val progress = elapsedDays.toDouble() / totalDays
+    val base = start.value + (end.value - start.value) * progress
+    val valueDistance = abs(end.value - start.value)
+    val amplitude = minOf(5.0, maxOf(1.0, valueDistance * 0.25))
+    val envelope = sin(Math.PI * progress)
+    val noise = stableNoise("${start.recordId}:${end.recordId}:$date:v1")
+    val lowerBound = minOf(start.value, end.value)
+    val upperBound = maxOf(start.value, end.value)
+    return (base + noise * amplitude * envelope)
+        .roundToInt()
+        .coerceIn(lowerBound, upperBound)
+}
 
-    return if (date == today) "今天" else date.format(trendDateFormatter)
+private fun stableNoise(seed: String): Double {
+    var hash = 1_125_899_906_842_597L
+    seed.forEach { character ->
+        hash = hash * 31 + character.code
+    }
+    val normalized = (hash and Long.MAX_VALUE).toDouble() / Long.MAX_VALUE.toDouble()
+    return normalized * 2 - 1
+}
+
+private fun parseEstimateDate(createdAt: String, zoneId: ZoneId): LocalDate? {
+    return runCatching {
+        Instant.parse(normalizeInstantString(createdAt)).atZone(zoneId).toLocalDate()
+    }.getOrNull()
 }
 
 private fun normalizeInstantString(raw: String): String {

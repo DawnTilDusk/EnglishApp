@@ -116,8 +116,8 @@ fun ForestPanel(
             }
 
             Text(
-                text = "活苗 ${state.aliveCount} · 枯苗 ${state.witheredCount}",
-                style = MaterialTheme.typography.labelMedium,
+                text = "所选时段森林 · 存活树苗 ${state.aliveCount} · 枯萎树苗 ${state.witheredCount}",
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)
             )

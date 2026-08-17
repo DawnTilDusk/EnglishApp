@@ -12,7 +12,7 @@
 | 晋级 | **≥7/12** 进入下一档，否则停档 |
 | 每档贡献 | 一律 `(答对 / 12) × 本档 quota`（含已晋级档；取整） |
 | Profile「词汇量」 | = 最近一次检测估测（`profiles.vocabulary_size`）；未测显示「未检测」 |
-| 花园「词汇量趋势」 | `user_vocabulary_estimates` 按次画点；横轴为测试日本地日期（`M/d` / 「今天」）；不按日合并 |
+| 花园「词汇量趋势」 | 可切换近 7 天、近 30 天、近 1 年、本月、本年度；同日取最高检测值。相邻实测点之间按日线性插值并加入稳定的轻微波动，实测/估算/延续点在图中明确区分。 |
 | 背单词 | **不**改词汇量 |
 | 选项 | 英→中四选一；约 **40%** 将第 4 项替换为「以上都不对」（保留该项原对错语义） |
 
@@ -30,7 +30,7 @@
 ## 持久化
 
 - RPC `set_my_vocabulary_estimate`：更新 `profiles.vocabulary_size` / `vocabulary_estimated_at`，并 **append** 一行 `user_vocabulary_estimates`
-- App：`MainViewModel` 在 quiz `estimatedVocabulary` 时调用；花园经 `ProfileRepository.listMyVocabularyEstimates` 读取（最近 30 次升序）
+- App：`MainViewModel` 在 quiz `estimatedVocabulary` 时调用；花园经 `ProfileRepository.listMyVocabularyTrendEstimates` 按所选范围读取历史记录及范围前最近一次检测
 
 ## 关键文件
 

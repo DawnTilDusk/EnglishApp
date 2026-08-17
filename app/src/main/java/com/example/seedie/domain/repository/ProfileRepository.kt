@@ -1,5 +1,7 @@
 package com.example.seedie.domain.repository
 
+import java.time.Instant
+
 data class UserProfile(
     val userId: String,
     val displayName: String?,
@@ -33,4 +35,14 @@ interface ProfileRepository {
 
     /** Latest [limit] estimates ascending by created_at (for garden trend). */
     suspend fun listMyVocabularyEstimates(limit: Int = 30): List<VocabularyEstimateRecord>
+
+    /**
+     * Returns every estimate in [rangeStartInclusive, rangeEndExclusive), plus the latest
+     * estimate before the range. The preceding record lets the garden interpolate the
+     * beginning of a selected range without inventing a new measurement anchor.
+     */
+    suspend fun listMyVocabularyTrendEstimates(
+        rangeStartInclusive: Instant,
+        rangeEndExclusive: Instant
+    ): List<VocabularyEstimateRecord>
 }

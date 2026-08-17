@@ -35,9 +35,11 @@ fun DataGardenScreen(
             modifier = Modifier.weight(0.4f),
             learningDistribution = statsUiState.learningDistribution,
             vocabularyTrendPoints = statsUiState.vocabularyTrendPoints,
+            vocabularyTrendRange = statsUiState.vocabularyTrendRange,
+            vocabularyTrendMetric = statsUiState.vocabularyTrendMetric,
             trendReplayKey = trendReplayKey + statsUiState.vocabularyTrendRefreshTick,
-            forestAliveCount = forestUiState.aliveCount,
-            forestWitheredCount = forestUiState.witheredCount
+            onVocabularyTrendRangeChange = viewModel::setVocabularyTrendRange,
+            onVocabularyTrendMetricChange = viewModel::setVocabularyTrendMetric
         )
 
         ForestPanel(

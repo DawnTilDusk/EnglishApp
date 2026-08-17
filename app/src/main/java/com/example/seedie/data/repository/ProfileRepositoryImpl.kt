@@ -11,6 +11,7 @@ import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
+import java.time.Instant
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import javax.inject.Inject
@@ -88,6 +89,51 @@ class ProfileRepositoryImpl @Inject constructor(
             .decodeList<UserVocabularyEstimate>()
         return rows
             .asReversed()
+            .map { row ->
+                VocabularyEstimateRecord(
+                    id = row.id,
+                    vocabularySize = row.vocabulary_size,
+                    createdAt = row.created_at
+                )
+            }
+    }
+
+    override suspend fun listMyVocabularyTrendEstimates(
+        rangeStartInclusive: Instant,
+        rangeEndExclusive: Instant
+    ): List<VocabularyEstimateRecord> {
+        require(rangeStartInclusive.isBefore(rangeEndExclusive)) {
+            "Vocabulary trend range must not be empty"
+        }
+        val userId = requireCurrentUserId()
+        val rangeStart = rangeStartInclusive.toString()
+        val rangeEnd = rangeEndExclusive.toString()
+
+        val previousRows = client.postgrest["user_vocabulary_estimates"]
+            .select {
+                filter {
+                    eq("user_id", userId)
+                    lt("created_at", rangeStart)
+                }
+                order("created_at", Order.DESCENDING)
+                limit(1)
+            }
+            .decodeList<UserVocabularyEstimate>()
+
+        val rangeRows = client.postgrest["user_vocabulary_estimates"]
+            .select {
+                filter {
+                    eq("user_id", userId)
+                    gte("created_at", rangeStart)
+                    lt("created_at", rangeEnd)
+                }
+                order("created_at", Order.ASCENDING)
+            }
+            .decodeList<UserVocabularyEstimate>()
+
+        return (previousRows + rangeRows)
+            .distinctBy { it.id }
+            .sortedBy { it.created_at }
             .map { row ->
                 VocabularyEstimateRecord(
                     id = row.id,

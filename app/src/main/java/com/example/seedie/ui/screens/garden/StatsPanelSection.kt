@@ -38,6 +38,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +57,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -92,9 +95,12 @@ private data class DonutSliceData(
 )
 
 private data class TrendPointData(
+    val date: java.time.LocalDate,
     val label: String,
     val shortLabel: String,
-    val value: Int
+    val value: Int,
+    val source: VocabularyTrendPointSource,
+    val actualMeasurementCount: Int
 )
 
 @Composable
@@ -102,9 +108,11 @@ fun StatsPanelSection(
     modifier: Modifier = Modifier,
     learningDistribution: LearningDistributionUiState = LearningDistributionUiState(),
     vocabularyTrendPoints: List<VocabularyTrendPointUiState> = emptyList(),
+    vocabularyTrendRange: VocabularyTrendRange = VocabularyTrendRange.Last7Days,
+    vocabularyTrendMetric: VocabularyTrendMetric = VocabularyTrendMetric.Estimate,
     trendReplayKey: Int = 0,
-    forestAliveCount: Int = 0,
-    forestWitheredCount: Int = 0
+    onVocabularyTrendRangeChange: (VocabularyTrendRange) -> Unit = {},
+    onVocabularyTrendMetricChange: (VocabularyTrendMetric) -> Unit = {}
 ) {
     val donutData = remember(learningDistribution.items) {
         learningDistribution.items.mapIndexed { index, item ->
@@ -118,9 +126,12 @@ fun StatsPanelSection(
     val trendPoints = remember(vocabularyTrendPoints) {
         vocabularyTrendPoints.map { point ->
             TrendPointData(
+                date = point.date,
                 label = point.label,
                 shortLabel = point.shortLabel,
-                value = point.value
+                value = point.value,
+                source = point.source,
+                actualMeasurementCount = point.actualMeasurementCount
             )
         }
     }
@@ -147,16 +158,10 @@ fun StatsPanelSection(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(
-            text = "所选时段森林：活苗 $forestAliveCount · 枯苗 $forestWitheredCount",
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = PrimaryGreen
-        )
-
         DonutFocusCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(0.9f),
             distribution = learningDistribution,
             slices = donutData,
             selectedIndex = selectedDonutIndex,
@@ -169,11 +174,15 @@ fun StatsPanelSection(
         TrendFocusCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(1.1f),
             points = trendPoints,
+            selectedRange = vocabularyTrendRange,
+            selectedMetric = vocabularyTrendMetric,
             selectedIndex = selectedTrendIndex,
             refreshKey = trendRefreshKey,
-            onSelectionChange = { selectedTrendIndex = it }
+            onSelectionChange = { selectedTrendIndex = it },
+            onRangeChange = onVocabularyTrendRangeChange,
+            onMetricChange = onVocabularyTrendMetricChange
         )
     }
 }
@@ -354,11 +363,17 @@ private fun DonutFocusCard(
 private fun TrendFocusCard(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
+    selectedRange: VocabularyTrendRange,
+    selectedMetric: VocabularyTrendMetric,
     selectedIndex: Int,
     refreshKey: Int,
-    onSelectionChange: (Int) -> Unit
+    onSelectionChange: (Int) -> Unit,
+    onRangeChange: (VocabularyTrendRange) -> Unit,
+    onMetricChange: (VocabularyTrendMetric) -> Unit
 ) {
     val cardShape = RoundedCornerShape(28.dp)
+    var rangeMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var metricMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     TabSectionSurface(
         modifier = modifier,
@@ -371,17 +386,108 @@ private fun TrendFocusCard(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = "词汇量趋势",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "按每次检测",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "词汇量趋势",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = if (selectedMetric == VocabularyTrendMetric.Estimate) {
+                            "当日取最高检测值；虚线为未测评日期的趋势估算"
+                        } else {
+                            "仅比较相邻真实测评，不生成虚构的每日增长"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Box {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { rangeMenuExpanded = true },
+                        shape = RoundedCornerShape(16.dp),
+                        color = AccentOrange.copy(alpha = 0.10f)
+                    ) {
+                        Text(
+                            text = selectedRange.label,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = AccentOrange
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = rangeMenuExpanded,
+                        onDismissRequest = { rangeMenuExpanded = false }
+                    ) {
+                        VocabularyTrendRange.entries.forEach { range ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = range.label,
+                                        color = if (range == selectedRange) {
+                                            AccentOrange
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    rangeMenuExpanded = false
+                                    onRangeChange(range)
+                                }
+                            )
+                        }
+                    }
+                }
+                Box {
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .clickable { metricMenuExpanded = true },
+                        shape = RoundedCornerShape(16.dp),
+                        color = AccentOrange.copy(alpha = 0.10f)
+                    ) {
+                        Text(
+                            text = selectedMetric.label,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                            color = AccentOrange
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = metricMenuExpanded,
+                        onDismissRequest = { metricMenuExpanded = false }
+                    ) {
+                        VocabularyTrendMetric.entries.forEach { metric ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = metric.label,
+                                        color = if (metric == selectedMetric) {
+                                            AccentOrange
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurface
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    metricMenuExpanded = false
+                                    onMetricChange(metric)
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             if (points.isEmpty()) {
@@ -405,6 +511,7 @@ private fun TrendFocusCard(
                         .weight(1f),
                     points = points,
                     selectedIndex = safeSelectedIndex,
+                    metric = selectedMetric,
                     refreshKey = refreshKey,
                     onSelectionChange = onSelectionChange
                 )
@@ -620,6 +727,7 @@ private fun LineChartSection(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
     selectedIndex: Int,
+    metric: VocabularyTrendMetric,
     refreshKey: Int,
     onSelectionChange: (Int) -> Unit
 ) {
@@ -632,6 +740,25 @@ private fun LineChartSection(
     val topPaddingPx = with(density) { 8.dp.toPx() }
     val bottomPaddingPx = with(density) { 12.dp.toPx() }
     val selectedPoint = points[safeSelectedIndex]
+    val sourceDescription = if (metric == VocabularyTrendMetric.MeasurementChange) {
+        "相对上一次真实测评"
+    } else when (selectedPoint.source) {
+        VocabularyTrendPointSource.ActualMeasurement -> {
+            if (selectedPoint.actualMeasurementCount > 1) {
+                "实际测评 · 当日 ${selectedPoint.actualMeasurementCount} 次取最高值"
+            } else {
+                "实际测评"
+            }
+        }
+        VocabularyTrendPointSource.Interpolated -> "相邻测评估算 · 含轻微稳定波动"
+        VocabularyTrendPointSource.CarriedForward -> "沿用最近一次测评"
+    }
+    val valueLabel = if (metric == VocabularyTrendMetric.MeasurementChange) {
+        val prefix = if (selectedPoint.value > 0) "+" else ""
+        "${selectedPoint.label} · $prefix${selectedPoint.value} 词"
+    } else {
+        "${selectedPoint.label} · ${selectedPoint.value} 词"
+    }
     val selectedPointOffset = rememberSelectedTrendOffset(
         chartSize = chartSizeState.value,
         points = points,
@@ -680,12 +807,21 @@ private fun LineChartSection(
                         color = MaterialTheme.colorScheme.surface,
                         shadowElevation = 2.dp
                     ) {
-                        Text(
-                            text = "${selectedPoint.value} 词",
+                        Column(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                            color = PrimaryGreen
-                        )
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                        ) {
+                            Text(
+                                text = valueLabel,
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = PrimaryGreen
+                            )
+                            Text(
+                                text = sourceDescription,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -695,6 +831,12 @@ private fun LineChartSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
+            val labelStep = when {
+                points.size <= 8 -> 1
+                points.size <= 16 -> 2
+                points.size <= 31 -> 5
+                else -> 1
+            }
             points.forEachIndexed { index, point ->
                 val selected = index == safeSelectedIndex
                 val interactionSource = remember { MutableInteractionSource() }
@@ -714,7 +856,11 @@ private fun LineChartSection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = point.shortLabel,
+                        text = if (index % labelStep == 0 || index == points.lastIndex) {
+                            point.shortLabel
+                        } else {
+                            ""
+                        },
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                         color = if (selected) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -814,7 +960,6 @@ private fun LineChart(
 
         val revealValue = revealProgress.value
         val visiblePoints = buildVisibleTrendPoints(chartPoints, revealValue)
-        val linePath = buildTrendLinePath(visiblePoints)
         val areaPath = buildTrendAreaPath(visiblePoints, baselineY)
 
         if (visiblePoints.size > 1) {
@@ -830,18 +975,35 @@ private fun LineChart(
                     endY = baselineY
                 )
             )
-            drawPath(
-                path = linePath,
-                color = PrimaryGreen,
-                style = Stroke(
-                    width = 4.dp.toPx(),
-                    cap = StrokeCap.Round,
-                    join = StrokeJoin.Round
-                )
-            )
         }
 
         val revealX = visiblePoints.last().x
+        chartPoints.zipWithNext().forEachIndexed { index, (start, end) ->
+            if (start.x > revealX) return@forEachIndexed
+            val visibleEnd = if (end.x <= revealX) {
+                end
+            } else {
+                val fraction = ((revealX - start.x) / (end.x - start.x)).coerceIn(0f, 1f)
+                Offset(
+                    x = revealX,
+                    y = start.y + (end.y - start.y) * fraction
+                )
+            }
+            val linksTwoActualMeasurements =
+                points[index].source == VocabularyTrendPointSource.ActualMeasurement &&
+                    points[index + 1].source == VocabularyTrendPointSource.ActualMeasurement
+            drawLine(
+                color = PrimaryGreen.copy(alpha = if (linksTwoActualMeasurements) 1f else 0.72f),
+                start = start,
+                end = visibleEnd,
+                strokeWidth = 4.dp.toPx(),
+                cap = StrokeCap.Round,
+                pathEffect = if (linksTwoActualMeasurements) null else {
+                    PathEffect.dashPathEffect(floatArrayOf(10.dp.toPx(), 8.dp.toPx()))
+                }
+            )
+        }
+
         val selectedPoint = chartPoints[safeSelectedIndex]
         if (selectedPoint.x <= revealX) {
             drawLine(
@@ -867,11 +1029,27 @@ private fun LineChart(
                 radius = if (isSelected) 8.dp.toPx() else 6.dp.toPx(),
                 center = point
             )
-            drawCircle(
-                color = if (isSelected) AccentOrange else PrimaryGreen,
-                radius = if (isSelected) 5.dp.toPx() else 4.dp.toPx(),
-                center = point
-            )
+            when (points[index].source) {
+                VocabularyTrendPointSource.ActualMeasurement -> drawCircle(
+                    color = if (isSelected) AccentOrange else PrimaryGreen,
+                    radius = if (isSelected) 5.dp.toPx() else 4.dp.toPx(),
+                    center = point
+                )
+
+                VocabularyTrendPointSource.Interpolated -> drawCircle(
+                    color = if (isSelected) AccentOrange else PrimaryGreen.copy(alpha = 0.76f),
+                    radius = if (isSelected) 5.dp.toPx() else 4.dp.toPx(),
+                    center = point,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+
+                VocabularyTrendPointSource.CarriedForward -> drawCircle(
+                    color = if (isSelected) AccentOrange else SageGreen,
+                    radius = if (isSelected) 5.dp.toPx() else 4.dp.toPx(),
+                    center = point,
+                    style = Stroke(width = 2.dp.toPx())
+                )
+            }
         }
     }
 }
@@ -923,13 +1101,15 @@ private fun computeTrendOffsets(
 ): List<Offset> {
     if (points.isEmpty()) return emptyList()
 
+    val minValue = min(points.minOf { it.value }, 0)
     val maxValue = max(points.maxOf { it.value }, 1)
+    val valueRange = (maxValue - minValue).coerceAtLeast(1)
     val usableHeight = max(chartSize.height - topPadding - bottomPadding, 1f)
     val usableWidth = max(chartSize.width - horizontalPadding * 2f, 1f)
     val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
 
     return points.mapIndexed { index, point ->
-        val ratio = point.value / maxValue.toFloat()
+        val ratio = (point.value - minValue) / valueRange.toFloat()
         Offset(
             x = horizontalPadding + stepX * index,
             y = chartSize.height - bottomPadding - ratio * usableHeight
