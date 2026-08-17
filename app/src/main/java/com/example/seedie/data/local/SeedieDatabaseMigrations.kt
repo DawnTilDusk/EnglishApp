@@ -409,4 +409,39 @@ object SeedieDatabaseMigrations {
             )
         }
     }
+
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN tokenReward INTEGER NOT NULL DEFAULT 0")
+            db.execSQL(
+                "ALTER TABLE daily_tasks ADD COLUMN rewardType TEXT NOT NULL DEFAULT 'dew'"
+            )
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN autoClaim INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN completedAt INTEGER")
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN taskKey TEXT NOT NULL DEFAULT ''")
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS dew_transactions (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    userId TEXT NOT NULL,
+                    timestamp INTEGER NOT NULL,
+                    amount INTEGER NOT NULL,
+                    reason TEXT NOT NULL,
+                    refId TEXT,
+                    syncStatus TEXT NOT NULL DEFAULT 'PENDING',
+                    syncedAt INTEGER
+                )
+                """.trimIndent()
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_dew_transactions_userId_refId ON dew_transactions(userId, refId)"
+            )
+            db.execSQL(
+                "CREATE INDEX IF NOT EXISTS index_dew_transactions_userId_timestamp ON dew_transactions(userId, timestamp)"
+            )
+            db.execSQL(
+                "CREATE UNIQUE INDEX IF NOT EXISTS index_daily_tasks_userId_date_taskKey ON daily_tasks(userId, date, taskKey)"
+            )
+        }
+    }
 }

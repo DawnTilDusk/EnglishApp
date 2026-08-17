@@ -5,6 +5,7 @@ import androidx.room.RoomDatabase
 import com.example.seedie.data.local.dao.ActivityDurationDao
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
+import com.example.seedie.data.local.dao.DewTransactionDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.dao.GardenPlantDao
 import com.example.seedie.data.local.dao.GardenPlotDao
@@ -19,6 +20,7 @@ import com.example.seedie.data.local.dao.WordBookDao
 import com.example.seedie.data.local.dao.WordBookModuleDao
 import com.example.seedie.data.local.entity.CheckInEntity
 import com.example.seedie.data.local.entity.DailyTaskEntity
+import com.example.seedie.data.local.entity.DewTransactionEntity
 import com.example.seedie.data.local.entity.EconomyTransactionEntity
 import com.example.seedie.data.local.entity.GardenPlantEntity
 import com.example.seedie.data.local.entity.GardenPlotEntity
@@ -41,6 +43,7 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         GardenPlantEntity::class,
         GardenUnlockEntity::class,
         EconomyTransactionEntity::class,
+        DewTransactionEntity::class,
         ActivityDurationEntity::class,
         WordBookEntity::class,
         WordBookModuleEntity::class,
@@ -51,7 +54,7 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         VocabularyStudyRoundWordEntity::class,
         SyncOperationEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 abstract class SeedieDatabase : RoomDatabase() {
@@ -62,6 +65,7 @@ abstract class SeedieDatabase : RoomDatabase() {
     abstract fun gardenPlantDao(): GardenPlantDao
     abstract fun gardenUnlockDao(): GardenUnlockDao
     abstract fun economyTransactionDao(): EconomyTransactionDao
+    abstract fun dewTransactionDao(): DewTransactionDao
     abstract fun wordBookDao(): WordBookDao
     abstract fun wordBookModuleDao(): WordBookModuleDao
     abstract fun vocabularyWordDao(): VocabularyWordDao

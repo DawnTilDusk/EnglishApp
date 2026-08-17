@@ -188,6 +188,7 @@ data class VocabularyPracticeUiState(
     val wrongCount: Int = 0,
     val skippedCount: Int = 0,
     val earnedTokens: Int = 0,
+    val earnedDews: Int = 0,
     val elapsedSeconds: Int = 0,
     val canSubmitAnswer: Boolean = false,
     val canGoNext: Boolean = false,

@@ -6,6 +6,7 @@ import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.local.entity.DailyTaskEntity
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.domain.model.RewardEvent
+import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.usecase.RewardEventBus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,7 @@ class DashboardViewModel @Inject constructor(
     private val taskDao: DailyTaskDao,
     private val authService: AuthService,
     private val economyManager: EconomyManager,
+    private val dewManager: DewManager,
     private val rewardEventBus: RewardEventBus
 ) : ViewModel() {
 
@@ -60,50 +62,76 @@ class DashboardViewModel @Inject constructor(
     private suspend fun ensureDefaultTasks(userId: String) {
         val tasks = taskDao.getTasksByUserAndDate(userId, todayDate).first()
         if (tasks.isNotEmpty()) return
-
-        taskDao.insertTask(
-            DailyTaskEntity(
-                userId = userId,
-                date = todayDate,
-                title = "背诵 20 个单词",
-                rewardAmount = 10
-            )
+        val dewDefaults = listOf(
+            Triple("daily_checkin", "每日签到", 5),
+            Triple("daily_vocabulary", "学习单词 20 个", 8),
+            Triple("daily_listening", "完成一次听力训练", 8),
+            Triple("daily_reading", "完成一次阅读训练", 8)
         )
-        taskDao.insertTask(
-            DailyTaskEntity(
-                userId = userId,
-                date = todayDate,
-                title = "完成一次语法测验",
-                rewardAmount = 15
+        dewDefaults.forEach { (key, title, amount) ->
+            taskDao.insertTask(
+                DailyTaskEntity(
+                    userId = userId,
+                    date = todayDate,
+                    title = title,
+                    rewardType = "dew",
+                    rewardAmount = amount,
+                    tokenReward = 0,
+                    autoClaim = true,
+                    taskKey = key,
+                    isCompleted = key == "daily_checkin" && tasks.none { it.taskKey == key } && false
+                )
             )
+        }
+        val tokenChallenges = listOf(
+            Triple("daily_writing", "提交一次作文", 10),
+            Triple("daily_completed_1", "完成 2 场训练", 15),
+            Triple("daily_completed_2", "完成 4 场训练", 20)
         )
-        taskDao.insertTask(
-            DailyTaskEntity(
-                userId = userId,
-                date = todayDate,
-                title = "听力训练 10 分钟",
-                rewardAmount = 20
+        tokenChallenges.forEach { (key, title, tokens) ->
+            taskDao.insertTask(
+                DailyTaskEntity(
+                    userId = userId,
+                    date = todayDate,
+                    title = title,
+                    rewardType = "token",
+                    rewardAmount = 0,
+                    tokenReward = tokens,
+                    autoClaim = false,
+                    taskKey = key
+                )
             )
-        )
+        }
     }
 
     fun onTaskClicked(task: DailyTaskEntity) {
         if (task.isCompleted) return
+        if (task.autoClaim) return
 
         viewModelScope.launch {
             val userId = authService.currentSession.value?.userId ?: return@launch
             if (task.userId != userId) return@launch
 
-            taskDao.updateTask(task.copy(isCompleted = true))
-
-            val taskKey = normalizeTaskKey(task.title)
-            economyManager.addTokens(
-                amount = task.rewardAmount,
-                reason = "Completed: ${task.title}",
-                refId = "task:$userId:$todayDate:$taskKey"
+            taskDao.updateTask(
+                task.copy(isCompleted = true, completedAt = System.currentTimeMillis())
             )
 
-            rewardEventBus.emit(RewardEvent.TokenDropped(task.rewardAmount))
+            if (task.tokenReward > 0) {
+                economyManager.addTokens(
+                    amount = task.tokenReward,
+                    reason = "Completed: ${task.title}",
+                    refId = "task:$userId:$todayDate:${task.taskKey.ifBlank { normalizeTaskKey(task.title) }}"
+                )
+                rewardEventBus.emit(RewardEvent.TokenDropped(task.tokenReward))
+            }
+            if (task.rewardType == "dew" && task.rewardAmount > 0) {
+                dewManager.addDews(
+                    amount = task.rewardAmount,
+                    reason = "Task: ${task.title}",
+                    refId = "dew:task:$userId:$todayDate:${task.taskKey.ifBlank { normalizeTaskKey(task.title) }}"
+                )
+                rewardEventBus.emit(RewardEvent.DewDropped(task.rewardAmount))
+            }
         }
     }
 

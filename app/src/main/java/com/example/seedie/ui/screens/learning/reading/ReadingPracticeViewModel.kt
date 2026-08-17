@@ -143,6 +143,7 @@ class ReadingPracticeViewModel @Inject constructor(
                 correctCount = it.correctCount + score.correctCount,
                 wrongCount = it.wrongCount + score.wrongCount,
                 earnedTokens = it.earnedTokens + score.earnedTokens,
+                earnedDews = it.earnedDews + score.earnedDews,
                 canSubmitSet = false,
                 submitHint = ""
             )
@@ -436,6 +437,7 @@ class ReadingPracticeViewModel @Inject constructor(
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
             earnedTokens = 0,
+            earnedDews = state.earnedDews,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = emptyList(),

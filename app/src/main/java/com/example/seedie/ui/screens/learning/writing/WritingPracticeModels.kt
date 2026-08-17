@@ -17,6 +17,7 @@ data class WritingPracticeUiState(
     val maxScore: Int? = null,
     val feedbackText: String? = null,
     val earnedTokens: Int = 0,
+    val earnedDews: Int = 0,
     val isPdfOriginal: Boolean = false,
     val isPdfAnnotated: Boolean = false
 )

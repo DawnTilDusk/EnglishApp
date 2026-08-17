@@ -4,6 +4,7 @@ data class GardenSpecies(
     val id: String,
     val displayName: String,
     val unlockCost: Int,
+    val unlockCostDew: Int,
     val unlockedByDefault: Boolean,
     val accentColorArgb: Long
 )
@@ -16,6 +17,7 @@ object GardenSpeciesCatalog {
             id = DEFAULT_SPECIES_ID,
             displayName = "嫩芽",
             unlockCost = 0,
+            unlockCostDew = 0,
             unlockedByDefault = true,
             accentColorArgb = 0xFF7CB342
         ),
@@ -23,6 +25,7 @@ object GardenSpeciesCatalog {
             id = "sunny_flower",
             displayName = "向日葵",
             unlockCost = 50,
+            unlockCostDew = 600,
             unlockedByDefault = false,
             accentColorArgb = 0xFFF9A825
         ),
@@ -30,6 +33,7 @@ object GardenSpeciesCatalog {
             id = "cedar_tree",
             displayName = "雪松",
             unlockCost = 120,
+            unlockCostDew = 1440,
             unlockedByDefault = false,
             accentColorArgb = 0xFF2E7D32
         ),
@@ -37,6 +41,7 @@ object GardenSpeciesCatalog {
             id = "sakura",
             displayName = "樱花",
             unlockCost = 200,
+            unlockCostDew = 2400,
             unlockedByDefault = false,
             accentColorArgb = 0xFFF48FB1
         ),
@@ -44,6 +49,7 @@ object GardenSpeciesCatalog {
             id = "bamboo",
             displayName = "青竹",
             unlockCost = 80,
+            unlockCostDew = 960,
             unlockedByDefault = false,
             accentColorArgb = 0xFF66BB6A
         )

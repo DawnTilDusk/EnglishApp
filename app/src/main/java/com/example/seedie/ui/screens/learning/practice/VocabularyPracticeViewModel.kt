@@ -842,6 +842,17 @@ class VocabularyPracticeViewModel @Inject constructor(
         earnedTokensDelta: Int
     ) {
         stopReviewHintTimer()
+        val earnedDewsDelta = if (earnedTokensDelta > 0) {
+            val state = _uiState.value
+            val totalAnswered = state.correctCount + correctDelta + state.wrongCount + wrongDelta +
+                state.skippedCount + skippedDelta
+            val currentAccuracy = if (totalAnswered == 0) 1f else {
+                (state.correctCount + correctDelta).toFloat() / totalAnswered
+            }
+            1 + if (currentAccuracy > 0.8f) 1 else 0
+        } else {
+            0
+        }
         _uiState.update {
             it.copy(
                 stage = VocabularyPracticeStage.AnswerEvaluated,
@@ -851,6 +862,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                 wrongCount = it.wrongCount + wrongDelta,
                 skippedCount = it.skippedCount + skippedDelta,
                 earnedTokens = it.earnedTokens + earnedTokensDelta,
+                earnedDews = it.earnedDews + earnedDewsDelta,
                 studyQueueSize = studyQueue.size,
                 reviewQueueSize = reviewQueue.size,
                 introducedStudyCount = introducedStudyCount,
@@ -1064,6 +1076,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             skippedCount = state.skippedCount,
             accuracy = accuracy,
             earnedTokens = state.earnedTokens,
+            earnedDews = state.earnedDews,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
@@ -1090,6 +1103,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             skippedCount = skippedCount,
             accuracy = accuracy,
             earnedTokens = baseResult.earnedTokens + currentResult.earnedTokens,
+            earnedDews = baseResult.earnedDews + currentResult.earnedDews,
             studyDurationSec = baseResult.studyDurationSec + currentResult.studyDurationSec,
             vocabularyDelta = baseResult.vocabularyDelta + currentResult.vocabularyDelta,
             wrongWordIds = (baseResult.wrongWordIds + currentResult.wrongWordIds).distinct(),

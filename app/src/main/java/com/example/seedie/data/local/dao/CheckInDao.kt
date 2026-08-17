@@ -15,6 +15,12 @@ interface CheckInDao {
     @Query("SELECT * FROM check_ins WHERE userId = :userId AND date = :date LIMIT 1")
     suspend fun getCheckInByDate(userId: String, date: String): CheckInEntity?
 
+    @Query(
+        "SELECT * FROM check_ins WHERE userId = :userId AND date <= :date " +
+            "ORDER BY date DESC LIMIT 30"
+    )
+    suspend fun getRecentCheckIns(userId: String, date: String): List<CheckInEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertOrUpdateCheckIn(checkIn: CheckInEntity)
 

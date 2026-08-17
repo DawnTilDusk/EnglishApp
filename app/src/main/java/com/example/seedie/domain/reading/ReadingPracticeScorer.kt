@@ -5,7 +5,8 @@ import com.example.seedie.ui.screens.learning.reading.ReadingSetItem
 data class ReadingSetScore(
     val correctCount: Int,
     val wrongCount: Int,
-    val earnedTokens: Int
+    val earnedTokens: Int,
+    val earnedDews: Int
 )
 
 object ReadingPracticeScorer {
@@ -13,11 +14,13 @@ object ReadingPracticeScorer {
         var correct = 0
         var wrong = 0
         var tokens = 0
+        var dews = 0
         set.questions.forEach { question ->
             val selected = answers[question.questionId]
             if (selected == question.correctOptionId) {
                 correct += 1
                 tokens += question.rewardToken
+                dews += if (question.rewardToken >= 2) 2 else 1
             } else {
                 wrong += 1
             }
@@ -25,7 +28,8 @@ object ReadingPracticeScorer {
         return ReadingSetScore(
             correctCount = correct,
             wrongCount = wrong,
-            earnedTokens = tokens
+            earnedTokens = tokens,
+            earnedDews = dews
         )
     }
 }

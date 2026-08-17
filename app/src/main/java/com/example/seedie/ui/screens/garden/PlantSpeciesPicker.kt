@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.seedie.domain.model.GardenSpeciesCatalog
+import com.example.seedie.domain.usecase.Currency
 import com.example.seedie.domain.usecase.GardenSpeciesUi
 import com.example.seedie.domain.usecase.GardenUnlockResult
 import com.example.seedie.ui.theme.PrimaryGreen
@@ -79,10 +80,14 @@ fun PlantSpeciesPickerScreen(
 ) {
     val catalog by viewModel.catalog.collectAsState()
     val tokens by viewModel.tokenBalance.collectAsState()
+    val dews by viewModel.dewBalance.collectAsState()
     val selectedId by viewModel.selectedSpeciesId.collectAsState()
     val unlockMessage by viewModel.unlockMessage.collectAsState()
+    val convertMessage by viewModel.convertMessage.collectAsState()
     val scope = rememberCoroutineScope()
     var pendingUnlock by remember { mutableStateOf<GardenSpeciesUi?>(null) }
+    var showConvert by remember { mutableStateOf(false) }
+    var unlockCurrency by remember { mutableStateOf(Currency.DEW) }
 
     LaunchedEffect(Unit) {
         viewModel.bootstrap()
@@ -104,24 +109,52 @@ fun PlantSpeciesPickerScreen(
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(top = 8.dp)
         )
-        Text(
-            text = "当前代币：$tokens",
-            style = MaterialTheme.typography.labelLarge,
-            color = PrimaryGreen,
-            modifier = Modifier.padding(top = 12.dp, bottom = 16.dp)
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "露水：$dews",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = PrimaryGreen
+                )
+                Text(
+                    text = "代币：$tokens",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            TextButton(onClick = { showConvert = true }) {
+                Text("代币 → 露水")
+            }
+        }
 
         SpeciesCatalogGrid(
             catalog = catalog,
             selectedId = selectedId,
             onSelect = { viewModel.selectSpecies(it) },
-            onLockedClick = { pendingUnlock = it }
+            onLockedClick = {
+                unlockCurrency = Currency.DEW
+                pendingUnlock = it
+            }
         )
 
         unlockMessage?.let { msg ->
             Text(
                 text = msg,
                 color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+        convertMessage?.let { msg ->
+            Text(
+                text = msg,
+                color = MaterialTheme.colorScheme.tertiary,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
@@ -149,23 +182,66 @@ fun PlantSpeciesPickerScreen(
             onDismissRequest = { pendingUnlock = null },
             title = { Text("解锁 ${item.species.displayName}") },
             text = {
-                Text("花费 ${item.species.unlockCost} 代币解锁这棵树苗？")
+                Column {
+                    Text(
+                        text = "用露水解锁：${item.species.unlockCostDew} 滴",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "用代币解锁：${item.species.unlockCost} 枚（稀有流通）",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Text(
+                        text = when (unlockCurrency) {
+                            Currency.DEW -> "当前选择：露水"
+                            Currency.TOKEN -> "当前选择：代币"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            val result = viewModel.unlockSpecies(item.species.id)
-                            pendingUnlock = null
-                            if (result == GardenUnlockResult.Success ||
-                                result == GardenUnlockResult.AlreadyUnlocked
-                            ) {
-                                viewModel.selectSpecies(item.species.id)
-                            }
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { unlockCurrency = Currency.DEW }
+                        ) {
+                            Text("用露水")
+                        }
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = { unlockCurrency = Currency.TOKEN }
+                        ) {
+                            Text("用代币")
                         }
                     }
-                ) {
-                    Text("解锁")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            scope.launch {
+                                val result = viewModel.unlockSpecies(
+                                    item.species.id,
+                                    unlockCurrency
+                                )
+                                pendingUnlock = null
+                                if (result == GardenUnlockResult.Success ||
+                                    result == GardenUnlockResult.AlreadyUnlocked
+                                ) {
+                                    viewModel.selectSpecies(item.species.id)
+                                }
+                            }
+                        }
+                    ) {
+                        Text("确认解锁")
+                    }
                 }
             },
             dismissButton = {
@@ -173,6 +249,32 @@ fun PlantSpeciesPickerScreen(
                     Text("取消")
                 }
             }
+        )
+    }
+
+    if (showConvert) {
+        AlertDialog(
+            onDismissRequest = { showConvert = false },
+            title = { Text("用代币兑换露水") },
+            text = {
+                Column {
+                    Text("当前 1 代币 = 10 露水，每日最多兑换 10 代币 = 100 露水。")
+                    Text(
+                        "兑换 10 代币 → 100 露水？",
+                        modifier = Modifier.padding(top = 8.dp),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        viewModel.convertTokensToDews(10)
+                        showConvert = false
+                    }
+                }) { Text("兑换 10 代币") }
+            },
+            dismissButton = { TextButton(onClick = { showConvert = false }) { Text("取消") } }
         )
     }
 }
@@ -261,16 +363,26 @@ private fun SpeciesCard(
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
                 textAlign = TextAlign.Center
             )
-            Text(
-                text = if (item.unlocked) {
-                    if (item.species.id == GardenSpeciesCatalog.DEFAULT_SPECIES_ID) "已解锁" else "可种植"
-                } else {
-                    "${item.species.unlockCost} 代币"
-                },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            if (item.unlocked) {
+                Text(
+                    text = if (item.species.id == GardenSpeciesCatalog.DEFAULT_SPECIES_ID) "已解锁" else "可种植",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            } else {
+                Text(
+                    text = "${item.species.unlockCostDew} 滴露水",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = PrimaryGreen,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                Text(
+                    text = "或 ${item.species.unlockCost} 枚代币",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 }
@@ -315,9 +427,13 @@ fun GardenerHutSheetContent(
 ) {
     val catalog by viewModel.catalog.collectAsState()
     val tokens by viewModel.tokenBalance.collectAsState()
+    val dews by viewModel.dewBalance.collectAsState()
     val scope = rememberCoroutineScope()
     var pendingUnlock by remember { mutableStateOf<GardenSpeciesUi?>(null) }
     val unlockMessage by viewModel.unlockMessage.collectAsState()
+    val convertMessage by viewModel.convertMessage.collectAsState()
+    var unlockCurrency by remember { mutableStateOf(Currency.DEW) }
+    var showConvert by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { viewModel.bootstrap() }
 
@@ -333,8 +449,29 @@ fun GardenerHutSheetContent(
             )
             TextButton(onClick = onClose) { Text("关闭") }
         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "露水：$dews",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = PrimaryGreen
+                )
+                Text(
+                    text = "代币：$tokens",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            TextButton(onClick = { showConvert = true }) { Text("代币 → 露水") }
+        }
         Text(
-            text = "用背单词攒下的代币解锁新树苗。当前：$tokens",
+            text = "每日学习攒下的露水，就是花园最好的养分。",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(bottom = 16.dp)
@@ -350,7 +487,10 @@ fun GardenerHutSheetContent(
                     item = item,
                     selected = false,
                     onClick = {
-                        if (!item.unlocked) pendingUnlock = item
+                        if (!item.unlocked) {
+                            unlockCurrency = Currency.DEW
+                            pendingUnlock = item
+                        }
                     }
                 )
             }
@@ -358,24 +498,86 @@ fun GardenerHutSheetContent(
         unlockMessage?.let {
             Text(text = it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
         }
+        convertMessage?.let {
+            Text(text = it, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 8.dp))
+        }
     }
 
     pendingUnlock?.let { item ->
         AlertDialog(
             onDismissRequest = { pendingUnlock = null },
             title = { Text("解锁 ${item.species.displayName}") },
-            text = { Text("花费 ${item.species.unlockCost} 代币？") },
+            text = {
+                Column {
+                    Text(
+                        text = "用露水解锁：${item.species.unlockCostDew} 滴",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "用代币解锁：${item.species.unlockCost} 枚（稀有流通）",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    Text(
+                        text = when (unlockCurrency) {
+                            Currency.DEW -> "当前选择：露水"
+                            Currency.TOKEN -> "当前选择：代币"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(top = 12.dp)
+                    )
+                }
+            },
             confirmButton = {
-                Button(onClick = {
-                    scope.launch {
-                        viewModel.unlockSpecies(item.species.id)
-                        pendingUnlock = null
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            onClick = { unlockCurrency = Currency.DEW }
+                        ) { Text("用露水") }
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            onClick = { unlockCurrency = Currency.TOKEN }
+                        ) { Text("用代币") }
                     }
-                }) { Text("解锁") }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = {
+                            scope.launch {
+                                viewModel.unlockSpecies(item.species.id, unlockCurrency)
+                                pendingUnlock = null
+                            }
+                        }
+                    ) { Text("确认解锁") }
+                }
             },
             dismissButton = {
                 TextButton(onClick = { pendingUnlock = null }) { Text("取消") }
             }
+        )
+    }
+
+    if (showConvert) {
+        AlertDialog(
+            onDismissRequest = { showConvert = false },
+            title = { Text("用代币兑换露水") },
+            text = {
+                Text("1 代币 = 10 露水，每日最多兑换 10 代币 = 100 露水。兑换 10 代币 → 100 露水？")
+            },
+            confirmButton = {
+                Button(onClick = {
+                    scope.launch {
+                        viewModel.convertTokensToDews(10)
+                        showConvert = false
+                    }
+                }) { Text("兑换 10 代币") }
+            },
+            dismissButton = { TextButton(onClick = { showConvert = false }) { Text("取消") } }
         )
     }
 }

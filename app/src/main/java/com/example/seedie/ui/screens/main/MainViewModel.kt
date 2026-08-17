@@ -6,6 +6,7 @@ import com.example.seedie.data.local.dao.DailyTaskDao
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.domain.model.RewardEvent
 import com.example.seedie.domain.model.StudyResult
+import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
@@ -33,6 +34,7 @@ data class VocabularyEntryUiState(
 class MainViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val economyManager: EconomyManager,
+    private val dewManager: DewManager,
     private val taskDao: DailyTaskDao,
     private val authService: AuthService,
     private val rewardEventBus: RewardEventBus,
@@ -57,7 +59,6 @@ class MainViewModel @Inject constructor(
             if (result.studyTimeMinutes > 0) {
                 userSessionRepository.addStudyTime(result.studyTimeMinutes)
             }
-            // vocabularyDelta from practice is ignored; quiz estimate updates vocabulary size.
             result.estimatedVocabulary?.let { estimate ->
                 userSessionRepository.setVocabularyEstimate(estimate)
                 profileRepository.setMyVocabularyEstimate(estimate)
@@ -86,15 +87,68 @@ class MainViewModel @Inject constructor(
                 )
                 rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
             }
+            if (result.earnedDews > 0) {
+                val reason = when (result.moduleId) {
+                    "listening" -> "Listening Dew"
+                    "reading" -> "Reading Dew"
+                    "writing" -> "Writing Dew"
+                    "quiz" -> "Quiz Dew"
+                    else -> "Vocabulary Dew"
+                }
+                dewManager.addDews(
+                    amount = result.earnedDews,
+                    reason = reason,
+                    refId = "dew:study:${result.sessionId}"
+                )
+                rewardEventBus.emit(RewardEvent.DewDropped(result.earnedDews))
+            }
             gardenEngine.recordFromStudyResult(result)
             if (result.isCompleted) {
-                when (result.moduleId) {
-                    "listening" -> completeTodayListeningTask()
-                    "reading", "quiz" -> Unit
-                    else -> completeTodayVocabularyTask()
-                }
+                handleCompletedTasks(result)
             }
             refreshVocabularyEntryState()
+        }
+    }
+
+    private suspend fun handleCompletedTasks(result: StudyResult) {
+        val userId = authService.currentSession.value?.userId ?: return
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val tasks = taskDao.getTasksByUserAndDate(userId, today).first()
+        val taskKeys = when (result.moduleId) {
+            "listening" -> listOf("daily_listening", "daily_completed_2")
+            "reading" -> listOf("daily_reading", "daily_completed_2")
+            "writing" -> listOf("daily_writing", "daily_completed_2")
+            "quiz" -> listOf("daily_completed_2")
+            else -> listOf("daily_vocabulary", "daily_completed_1", "daily_completed_2")
+        }
+        taskKeys.forEach { taskKey ->
+            val match = tasks.firstOrNull { !it.isCompleted && it.taskKey == taskKey } ?: return@forEach
+            autoClaimTask(userId, today, match)
+        }
+    }
+
+    private suspend fun autoClaimTask(
+        userId: String,
+        today: String,
+        task: com.example.seedie.data.local.entity.DailyTaskEntity
+    ) {
+        if (!task.autoClaim) return
+        val updated = task.copy(isCompleted = true, completedAt = System.currentTimeMillis())
+        taskDao.updateTask(updated)
+        if (task.rewardType == "dew" && task.rewardAmount > 0) {
+            dewManager.addDews(
+                amount = task.rewardAmount,
+                reason = "Task: ${task.title}",
+                refId = "dew:task:$userId:$today:${task.taskKey}"
+            )
+            rewardEventBus.emit(RewardEvent.DewDropped(task.rewardAmount))
+        } else if (task.tokenReward > 0) {
+            economyManager.addTokens(
+                amount = task.tokenReward,
+                reason = "Completed: ${task.title}",
+                refId = "task:$userId:$today:${task.taskKey}"
+            )
+            rewardEventBus.emit(RewardEvent.TokenDropped(task.tokenReward))
         }
     }
 
@@ -107,28 +161,6 @@ class MainViewModel @Inject constructor(
                     }
                 }
         }
-    }
-
-    private suspend fun completeTodayListeningTask() {
-        val userId = authService.currentSession.value?.userId ?: return
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val task = taskDao.getTasksByUserAndDate(userId, today)
-            .first()
-            .firstOrNull { !it.isCompleted && it.title.contains("听力") }
-            ?: return
-
-        taskDao.updateTask(task.copy(isCompleted = true))
-    }
-
-    private suspend fun completeTodayVocabularyTask() {
-        val userId = authService.currentSession.value?.userId ?: return
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val task = taskDao.getTasksByUserAndDate(userId, today)
-            .first()
-            .firstOrNull { !it.isCompleted && (it.title.contains("背诵") || it.title.contains("单词")) }
-            ?: return
-
-        taskDao.updateTask(task.copy(isCompleted = true))
     }
 
     fun refreshVocabularyEntryState() {

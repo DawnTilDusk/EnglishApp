@@ -108,6 +108,7 @@ class VocabularyQuizViewModel @Inject constructor(
         bandAnswered += 1
         if (selectedOption.isCorrect) {
             bandCorrect += 1
+            val dewDelta = if (question.rewardToken >= 2) 2 else 1
             _uiState.update {
                 it.copy(
                     stage = VocabularyQuizStage.AnswerEvaluated,
@@ -115,6 +116,7 @@ class VocabularyQuizViewModel @Inject constructor(
                     feedbackMessage = "回答正确",
                     correctCount = it.correctCount + 1,
                     earnedTokens = it.earnedTokens + question.rewardToken,
+                    earnedDews = it.earnedDews + dewDelta,
                     canSubmitAnswer = false
                 )
             }
@@ -282,6 +284,7 @@ class VocabularyQuizViewModel @Inject constructor(
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
             earnedTokens = 0,
+            earnedDews = state.earnedDews,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),

@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -36,9 +37,9 @@ import com.example.seedie.ui.components.TabSectionSurface
 fun DailyMissionSection(
     modifier: Modifier = Modifier,
     tasks: List<DailyTaskEntity> = listOf(
-        DailyTaskEntity(id = 1, userId = "preview", date = "2024-01-01", title = "背诵 20 个单词", rewardAmount = 10),
-        DailyTaskEntity(id = 2, userId = "preview", date = "2024-01-01", title = "完成一次语法测验", rewardAmount = 15, isCompleted = true),
-        DailyTaskEntity(id = 3, userId = "preview", date = "2024-01-01", title = "听力训练 10 分钟", rewardAmount = 20)
+        DailyTaskEntity(id = 1, userId = "preview", date = "2024-01-01", title = "背诵 20 个单词", rewardAmount = 8),
+        DailyTaskEntity(id = 2, userId = "preview", date = "2024-01-01", title = "完成一次语法测验", rewardAmount = 15, isCompleted = true, taskKey = "daily_vocabulary", rewardType = "dew", autoClaim = true),
+        DailyTaskEntity(id = 3, userId = "preview", date = "2024-01-01", title = "提交一次作文", rewardAmount = 0, tokenReward = 10, autoClaim = false, rewardType = "token", taskKey = "daily_writing")
     ),
     onTaskClick: (DailyTaskEntity) -> Unit = {}
 ) {
@@ -76,6 +77,10 @@ fun TaskCard(
     task: DailyTaskEntity,
     onClick: () -> Unit
 ) {
+    val isTokenTask = task.tokenReward > 0
+    val rewardValue = if (isTokenTask) task.tokenReward else task.rewardAmount
+    val rewardLabel = if (isTokenTask) "代币" else "露水"
+    val badgeColorTint = if (isTokenTask) Color(0xFFE6A23C) else MaterialTheme.colorScheme.primary
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,7 +91,8 @@ fun TaskCard(
     ) {
         IconButton(
             onClick = onClick,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(24.dp),
+            enabled = !task.autoClaim
         ) {
             Icon(
                 imageVector = if (task.isCompleted) Icons.Default.CheckCircle else Icons.Outlined.CheckCircle,
@@ -107,20 +113,33 @@ fun TaskCard(
                 ),
                 color = if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface
             )
+            if (!task.autoClaim && !task.isCompleted) {
+                Text(
+                    text = "完成后点击领取",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            } else if (task.autoClaim) {
+                Text(
+                    text = "自动发放",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
 
         // Reward Badge Placeholder
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f))
+                .background(badgeColorTint.copy(alpha = 0.15f))
                 .padding(horizontal = 12.dp, vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "+${task.rewardAmount}",
+                text = "+$rewardValue $rewardLabel",
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.tertiary
+                color = badgeColorTint
             )
         }
     }

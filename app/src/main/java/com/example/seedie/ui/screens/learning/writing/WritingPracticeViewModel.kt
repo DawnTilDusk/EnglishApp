@@ -59,6 +59,8 @@ class WritingPracticeViewModel @Inject constructor(
                 val annotatedUrl = detail.annotatedPath?.let { path ->
                     runCatching { repository.createWritingSignedUrl(path) }.getOrNull()
                 }
+                val baseDews = 5
+                val bonusDews = if (detail.score != null && detail.score >= 12) 5 else 0
                 WritingPracticeUiState(
                     isLoading = false,
                     title = detail.title,
@@ -70,6 +72,7 @@ class WritingPracticeViewModel @Inject constructor(
                     maxScore = detail.maxScore ?: prompt.maxScore,
                     feedbackText = detail.feedbackText,
                     earnedTokens = detail.earnedTokens,
+                    earnedDews = if (detail.status == "returned") baseDews + bonusDews else 0,
                     isPdfOriginal = detail.originalPath?.lowercase()?.endsWith(".pdf") == true,
                     isPdfAnnotated = detail.annotatedPath?.lowercase()?.endsWith(".pdf") == true
                 )
@@ -146,6 +149,7 @@ class WritingPracticeViewModel @Inject constructor(
                         originalSignedUrl = url,
                         previewUri = null,
                         selectedFileName = null,
+                        earnedDews = it.earnedDews + 5,
                         isPdfOriginal = selectedExt == "pdf"
                     )
                 }
@@ -166,6 +170,8 @@ class WritingPracticeViewModel @Inject constructor(
         if (state.status != "returned") return
         val sid = submissionId ?: return
         tokensEmitted = true
+        val baseDews = 5
+        val bonusDews = if (state.score != null && state.score >= 12) 5 else 0
         _studyResults.tryEmit(
             StudyResult(
                 sessionId = sid,
@@ -177,6 +183,7 @@ class WritingPracticeViewModel @Inject constructor(
                 skippedCount = 0,
                 accuracy = 0f,
                 earnedTokens = 0,
+                earnedDews = baseDews + bonusDews,
                 studyDurationSec = 0,
                 vocabularyDelta = 0,
                 wrongWordIds = emptyList()

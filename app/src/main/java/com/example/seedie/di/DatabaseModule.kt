@@ -7,6 +7,7 @@ import com.example.seedie.data.local.SeedieDatabaseMigrations
 import com.example.seedie.data.local.dao.ActivityDurationDao
 import com.example.seedie.data.local.dao.CheckInDao
 import com.example.seedie.data.local.dao.DailyTaskDao
+import com.example.seedie.data.local.dao.DewTransactionDao
 import com.example.seedie.data.local.dao.EconomyTransactionDao
 import com.example.seedie.data.local.dao.GardenPlantDao
 import com.example.seedie.data.local.dao.GardenPlotDao
@@ -50,6 +51,7 @@ object DatabaseModule {
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_8_9)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_9_10)
             .addMigrations(SeedieDatabaseMigrations.MIGRATION_10_11)
+            .addMigrations(SeedieDatabaseMigrations.MIGRATION_11_12)
             .build()
     }
 
@@ -103,6 +105,10 @@ object DatabaseModule {
     fun provideVocabularyStudyRoundWordDao(
         database: SeedieDatabase
     ): VocabularyStudyRoundWordDao = database.vocabularyStudyRoundWordDao()
+
+    @Provides
+    fun provideDewTransactionDao(database: SeedieDatabase): DewTransactionDao =
+        database.dewTransactionDao()
 
     @Provides
     fun provideSyncOperationDao(database: SeedieDatabase): SyncOperationDao = database.syncOperationDao()

@@ -47,6 +47,7 @@ data class VocabularyQuizUiState(
     val correctCount: Int = 0,
     val wrongCount: Int = 0,
     val earnedTokens: Int = 0,
+    val earnedDews: Int = 0,
     val elapsedSeconds: Int = 0,
     val estimatedVocabulary: Int? = null,
     val wrongWords: List<VocabularyQuizWrongWord> = emptyList(),

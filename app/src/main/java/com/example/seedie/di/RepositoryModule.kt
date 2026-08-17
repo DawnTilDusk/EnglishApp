@@ -3,6 +3,7 @@ package com.example.seedie.di
 import com.example.seedie.data.remote.EconomyCloudGateway
 import com.example.seedie.data.remote.EconomyRemoteDataSource
 import com.example.seedie.data.repository.ActivityTrackingRepositoryImpl
+import com.example.seedie.data.repository.DewManagerImpl
 import com.example.seedie.data.repository.EconomyManagerImpl
 import com.example.seedie.data.repository.ListeningPracticeRepositoryImpl
 import com.example.seedie.data.repository.PracticeAssignmentRepositoryImpl
@@ -16,6 +17,7 @@ import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
 import com.example.seedie.data.repository.WordBookRepositoryImpl
 import com.example.seedie.domain.repository.ActivityTrackingRepository
+import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
 import com.example.seedie.domain.repository.PracticeAssignmentRepository
@@ -61,6 +63,12 @@ abstract class RepositoryModule {
     abstract fun bindEconomyManager(
         economyManagerImpl: EconomyManagerImpl
     ): EconomyManager
+
+    @Binds
+    @Singleton
+    abstract fun bindDewManager(
+        dewManagerImpl: DewManagerImpl
+    ): DewManager
 
     @Binds
     @Singleton

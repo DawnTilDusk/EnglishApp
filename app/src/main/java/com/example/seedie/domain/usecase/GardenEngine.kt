@@ -10,6 +10,7 @@ import com.example.seedie.domain.model.GardenSpecies
 import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.RewardEvent
 import com.example.seedie.domain.model.StudyResult
+import com.example.seedie.domain.repository.DewManager
 import com.example.seedie.domain.repository.EconomyManager
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -23,10 +24,16 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
+enum class Currency {
+    DEW,
+    TOKEN
+}
+
 sealed class GardenUnlockResult {
     data object Success : GardenUnlockResult()
     data object AlreadyUnlocked : GardenUnlockResult()
     data object InsufficientTokens : GardenUnlockResult()
+    data object InsufficientDews : GardenUnlockResult()
     data object NotLoggedIn : GardenUnlockResult()
     data object UnknownSpecies : GardenUnlockResult()
 }
@@ -41,6 +48,7 @@ class GardenEngine @Inject constructor(
     private val gardenPlantDao: GardenPlantDao,
     private val gardenUnlockDao: GardenUnlockDao,
     private val economyManager: EconomyManager,
+    private val dewManager: DewManager,
     private val rewardEventBus: RewardEventBus,
     private val authService: AuthService,
     private val devicePreferencesRepository: DevicePreferencesRepository
@@ -102,29 +110,47 @@ class GardenEngine @Inject constructor(
         return gardenUnlockDao.findUnlock(userId, speciesId) != null
     }
 
-    suspend fun unlockSpecies(speciesId: String): GardenUnlockResult {
+    suspend fun unlockSpecies(
+        speciesId: String,
+        currency: Currency = Currency.DEW
+    ): GardenUnlockResult {
         val species = GardenSpeciesCatalog.byId(speciesId) ?: return GardenUnlockResult.UnknownSpecies
         val userId = authService.currentSession.value?.userId
             ?: return GardenUnlockResult.NotLoggedIn
         if (species.unlockedByDefault || gardenUnlockDao.findUnlock(userId, speciesId) != null) {
             return GardenUnlockResult.AlreadyUnlocked
         }
-        if (species.unlockCost <= 0) {
+        val useDew = currency == Currency.DEW
+        val cost = if (useDew) species.unlockCostDew else species.unlockCost
+        if (cost <= 0) {
             gardenUnlockDao.insertUnlock(
                 GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
             )
             return GardenUnlockResult.Success
         }
-        val spent = economyManager.spendTokens(
-            amount = species.unlockCost,
-            item = "Garden species ${species.id}",
-            refId = "garden_unlock:$userId:${species.id}"
-        )
-        if (!spent) return GardenUnlockResult.InsufficientTokens
-        gardenUnlockDao.insertUnlock(
-            GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
-        )
-        return GardenUnlockResult.Success
+        return if (useDew) {
+            val spent = dewManager.spendDews(
+                amount = cost,
+                item = "Garden species ${species.id}",
+                refId = "garden_unlock_dew:$userId:${species.id}"
+            )
+            if (!spent) return GardenUnlockResult.InsufficientDews
+            gardenUnlockDao.insertUnlock(
+                GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
+            )
+            GardenUnlockResult.Success
+        } else {
+            val spent = economyManager.spendTokens(
+                amount = cost,
+                item = "Garden species ${species.id}",
+                refId = "garden_unlock_token:$userId:${species.id}"
+            )
+            if (!spent) return GardenUnlockResult.InsufficientTokens
+            gardenUnlockDao.insertUnlock(
+                GardenUnlockEntity(userId, speciesId, System.currentTimeMillis())
+            )
+            GardenUnlockResult.Success
+        }
     }
 
     suspend fun getLastSelectedSpeciesId(): String {
