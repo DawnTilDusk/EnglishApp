@@ -1,5 +1,6 @@
 package com.example.seedie.data.repository
 
+import android.util.Log
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.Profile
 import com.example.seedie.data.remote.UserVocabularyEstimate
@@ -77,7 +78,7 @@ class ProfileRepositoryImpl @Inject constructor(
     }
 
     override suspend fun listMyVocabularyEstimates(limit: Int): List<VocabularyEstimateRecord> {
-        val userId = requireCurrentUserId()
+        val userId = requireCurrentSupabaseUserId()
         val capped = limit.coerceIn(1, 100)
         // Fetch newest first then reverse so chart is chronological with at most [capped] points.
         val rows = client.postgrest["user_vocabulary_estimates"]
@@ -105,9 +106,13 @@ class ProfileRepositoryImpl @Inject constructor(
         require(rangeStartInclusive.isBefore(rangeEndExclusive)) {
             "Vocabulary trend range must not be empty"
         }
-        val userId = requireCurrentUserId()
+        val userId = requireCurrentSupabaseUserId()
         val rangeStart = rangeStartInclusive.toString()
         val rangeEnd = rangeEndExclusive.toString()
+        Log.i(
+            "VocabularyTrend",
+            "Repository starting Supabase query: range=$rangeStart..$rangeEnd"
+        )
 
         val previousRows = client.postgrest["user_vocabulary_estimates"]
             .select {
@@ -124,8 +129,10 @@ class ProfileRepositoryImpl @Inject constructor(
             .select {
                 filter {
                     eq("user_id", userId)
-                    gte("created_at", rangeStart)
-                    lt("created_at", rangeEnd)
+                    and {
+                        gte("created_at", rangeStart)
+                        lt("created_at", rangeEnd)
+                    }
                 }
                 order("created_at", Order.ASCENDING)
             }
@@ -156,6 +163,15 @@ class ProfileRepositoryImpl @Inject constructor(
     private suspend fun requireCurrentUserId(): String {
         return authService.currentSession.value?.userId
             ?: client.auth.currentUserOrNull()?.id
+            ?: throw IllegalStateException("当前未登录")
+    }
+
+    /**
+     * Data API queries must use the user represented by the current JWT. The business-session
+     * cache can be temporarily stale during session restoration or after switching accounts.
+     */
+    private suspend fun requireCurrentSupabaseUserId(): String {
+        return client.auth.currentUserOrNull()?.id
             ?: throw IllegalStateException("当前未登录")
     }
 

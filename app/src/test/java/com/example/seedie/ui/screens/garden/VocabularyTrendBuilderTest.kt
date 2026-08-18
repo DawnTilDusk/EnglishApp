@@ -146,6 +146,76 @@ class VocabularyTrendBuilderTest {
         assertEquals(VocabularyTrendPointSource.CarriedForward, points.last().source)
     }
 
+    @Test
+    fun buildVocabularyTrendPoints_acceptsPostgresTimestampWithSpaceAndCompactOffset() {
+        val points = buildVocabularyTrendPoints(
+            records = listOf(
+                estimate("postgres-format", 240, "2026-08-17 10:42:50.301407+0000")
+            ),
+            range = VocabularyTrendRange.Last7Days,
+            dateRange = VocabularyTrendDateRange(
+                startDate = LocalDate.of(2026, 8, 11),
+                endDateInclusive = LocalDate.of(2026, 8, 17)
+            ),
+            zoneId = zoneId
+        )
+
+        assertEquals(1, points.size)
+        assertEquals(LocalDate.of(2026, 8, 17), points.single().date)
+        assertEquals(VocabularyTrendPointSource.ActualMeasurement, points.single().source)
+    }
+
+    @Test
+    fun buildVocabularyTrendPoints_acceptsSupabaseUtcOffsetTimestamp() {
+        val points = buildVocabularyTrendPoints(
+            records = listOf(
+                estimate("supabase-format", 240, "2026-08-17T10:42:50.301407+00:00")
+            ),
+            range = VocabularyTrendRange.Last7Days,
+            dateRange = VocabularyTrendDateRange(
+                startDate = LocalDate.of(2026, 8, 11),
+                endDateInclusive = LocalDate.of(2026, 8, 17)
+            ),
+            zoneId = zoneId
+        )
+
+        assertEquals(1, points.size)
+        assertEquals(LocalDate.of(2026, 8, 17), points.single().date)
+        assertEquals(VocabularyTrendPointSource.ActualMeasurement, points.single().source)
+    }
+
+    @Test
+    fun trendXAxisLabelIndices_evenlySamplesThirtyDaysIncludingBothEnds() {
+        assertEquals(
+            listOf(0, 6, 12, 17, 23, 29),
+            trendXAxisLabelIndices(30)
+        )
+    }
+
+    @Test
+    fun buildTrendAxisScale_usesReadableVocabularyTicksWithBreathingRoom() {
+        val scale = buildTrendAxisScale(
+            values = listOf(720, 874, 1080),
+            metric = VocabularyTrendMetric.Estimate
+        )
+
+        assertEquals(600, scale.minimum)
+        assertEquals(1200, scale.maximum)
+        assertEquals(listOf(600, 800, 1000, 1200), scale.ticks)
+    }
+
+    @Test
+    fun buildTrendAxisScale_centersMixedMeasurementChangesOnZero() {
+        val scale = buildTrendAxisScale(
+            values = listOf(20, -10, 0),
+            metric = VocabularyTrendMetric.MeasurementChange
+        )
+
+        assertEquals(-20, scale.minimum)
+        assertEquals(20, scale.maximum)
+        assertEquals(listOf(-20, -10, 0, 10, 20), scale.ticks)
+    }
+
     private fun estimate(id: String, size: Int, createdAt: String): VocabularyEstimateRecord {
         return VocabularyEstimateRecord(id = id, vocabularySize = size, createdAt = createdAt)
     }

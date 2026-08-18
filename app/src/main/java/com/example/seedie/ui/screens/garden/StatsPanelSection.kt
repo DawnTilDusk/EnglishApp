@@ -1,5 +1,6 @@
 package com.example.seedie.ui.screens.garden
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -62,6 +63,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInRoot
@@ -442,6 +444,7 @@ private fun TrendFocusCard(
                                 },
                                 onClick = {
                                     rangeMenuExpanded = false
+                                    Log.i("VocabularyTrend", "UI selected range=$range")
                                     onRangeChange(range)
                                 }
                             )
@@ -765,9 +768,13 @@ private fun LineChartSection(
     val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
     val tooltipHorizontalOffset = with(density) { 44.dp.toPx() }
     val tooltipVerticalOffset = with(density) { 46.dp.toPx() }
-    val horizontalPaddingPx = with(density) { 18.dp.toPx() }
+    val horizontalPaddingPx = with(density) { 12.dp.toPx() }
     val topPaddingPx = with(density) { 8.dp.toPx() }
     val bottomPaddingPx = with(density) { 12.dp.toPx() }
+    val axisScale = remember(points, metric) {
+        buildTrendAxisScale(points.map { it.value }, metric)
+    }
+    val yAxisWidth = 48.dp
     val selectedPoint = points[safeSelectedIndex]
     val sourceDescription = if (metric == VocabularyTrendMetric.MeasurementChange) {
         "相对上一次真实测评"
@@ -794,7 +801,8 @@ private fun LineChartSection(
         selectedIndex = safeSelectedIndex,
         horizontalPadding = horizontalPaddingPx,
         topPadding = topPaddingPx,
-        bottomPadding = bottomPaddingPx
+        bottomPadding = bottomPaddingPx,
+        axisScale = axisScale
     )
     val tooltipVisible by produceState(initialValue = false, key1 = refreshKey) {
         delay(720)
@@ -805,95 +813,182 @@ private fun LineChartSection(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            LineChart(
+            TrendYAxisLabels(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .onSizeChanged { chartSizeState.value = it },
-                points = points,
-                selectedIndex = safeSelectedIndex,
-                refreshKey = refreshKey,
-                onSelectionChange = onSelectionChange,
-                horizontalPadding = horizontalPaddingPx,
+                    .width(yAxisWidth)
+                    .fillMaxHeight(),
+                axisScale = axisScale,
+                metric = metric,
                 topPadding = topPaddingPx,
                 bottomPadding = bottomPaddingPx
             )
 
-            if (tooltipVisible) {
-                selectedPointOffset?.let { offset ->
-                    Surface(
-                        modifier = Modifier.offset {
-                            IntOffset(
-                                x = (offset.x - tooltipHorizontalOffset).roundToInt().coerceAtLeast(0),
-                                y = (offset.y - tooltipVerticalOffset).roundToInt().coerceAtLeast(0)
-                            )
-                        },
-                        shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.surface,
-                        shadowElevation = 2.dp
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                LineChart(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .onSizeChanged { chartSizeState.value = it },
+                    points = points,
+                    selectedIndex = safeSelectedIndex,
+                    metric = metric,
+                    axisScale = axisScale,
+                    refreshKey = refreshKey,
+                    onSelectionChange = onSelectionChange,
+                    horizontalPadding = horizontalPaddingPx,
+                    topPadding = topPaddingPx,
+                    bottomPadding = bottomPaddingPx
+                )
+
+                if (tooltipVisible) {
+                    selectedPointOffset?.let { offset ->
+                        Surface(
+                            modifier = Modifier.offset {
+                                IntOffset(
+                                    x = (offset.x - tooltipHorizontalOffset).roundToInt().coerceAtLeast(0),
+                                    y = (offset.y - tooltipVerticalOffset).roundToInt().coerceAtLeast(0)
+                                )
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            shadowElevation = 2.dp
                         ) {
-                            Text(
-                                text = valueLabel,
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = PrimaryGreen
-                            )
-                            Text(
-                                text = sourceDescription,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Column(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                            ) {
+                                Text(
+                                    text = valueLabel,
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = PrimaryGreen
+                                )
+                                Text(
+                                    text = sourceDescription,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            val labelStep = when {
-                points.size <= 8 -> 1
-                points.size <= 16 -> 2
-                points.size <= 31 -> 5
-                else -> 1
+        TrendXAxisLabels(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(30.dp)
+                .padding(start = yAxisWidth),
+            points = points,
+            selectedIndex = safeSelectedIndex,
+            horizontalPadding = horizontalPaddingPx,
+            onSelectionChange = onSelectionChange
+        )
+    }
+}
+
+@Composable
+private fun TrendYAxisLabels(
+    modifier: Modifier = Modifier,
+    axisScale: TrendAxisScale,
+    metric: VocabularyTrendMetric,
+    topPadding: Float,
+    bottomPadding: Float
+) {
+    val ticks = axisScale.ticks.asReversed()
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    Layout(
+        modifier = modifier,
+        content = {
+            ticks.forEach { tick ->
+                Text(
+                    text = formatTrendAxisTick(tick, metric),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = labelColor,
+                    maxLines = 1
+                )
             }
-            points.forEachIndexed { index, point ->
-                val selected = index == safeSelectedIndex
-                val interactionSource = remember { MutableInteractionSource() }
-                Box(
+        }
+    ) { measurables, constraints ->
+        val placeables = measurables.map { measurable ->
+            measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        }
+        val layoutWidth = constraints.maxWidth
+        val layoutHeight = constraints.maxHeight
+        val usableHeight = (layoutHeight - topPadding - bottomPadding).coerceAtLeast(1f)
+
+        layout(layoutWidth, layoutHeight) {
+            placeables.forEachIndexed { index, placeable ->
+                val tick = ticks[index]
+                val ratio = axisScale.ratioFor(tick)
+                val tickCenterY = layoutHeight - bottomPadding - ratio * usableHeight
+                val y = (tickCenterY - placeable.height / 2f)
+                    .roundToInt()
+                    .coerceIn(0, (layoutHeight - placeable.height).coerceAtLeast(0))
+                placeable.placeRelative(
+                    x = (layoutWidth - placeable.width).coerceAtLeast(0),
+                    y = y
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TrendXAxisLabels(
+    modifier: Modifier = Modifier,
+    points: List<TrendPointData>,
+    selectedIndex: Int,
+    horizontalPadding: Float,
+    onSelectionChange: (Int) -> Unit
+) {
+    val labelIndices = remember(points.size) { trendXAxisLabelIndices(points.size) }
+    val labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+    Layout(
+        modifier = modifier,
+        content = {
+            labelIndices.forEach { index ->
+                val selected = index == selectedIndex
+                Text(
+                    text = points[index].shortLabel,
                     modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(
-                            if (selected) PrimaryGreen.copy(alpha = 0.12f) else Color.Transparent
-                        )
-                        .clickable(
-                            interactionSource = interactionSource,
-                            indication = null,
-                            onClick = { onSelectionChange(index) }
-                        )
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = if (index % labelStep == 0 || index == points.lastIndex) {
-                            point.shortLabel
-                        } else {
-                            ""
-                        },
-                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
-                        color = if (selected) PrimaryGreen else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (selected) PrimaryGreen.copy(alpha = 0.12f) else Color.Transparent)
+                        .clickable { onSelectionChange(index) }
+                        .padding(horizontal = 3.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
+                    color = if (selected) PrimaryGreen else labelColor,
+                    maxLines = 1,
+                    softWrap = false
+                )
+            }
+        }
+    ) { measurables, constraints ->
+        val placeables = measurables.map { measurable ->
+            measurable.measure(constraints.copy(minWidth = 0, minHeight = 0))
+        }
+        val layoutWidth = constraints.maxWidth
+        val layoutHeight = constraints.maxHeight
+        val usableWidth = (layoutWidth - horizontalPadding * 2f).coerceAtLeast(0f)
+        val lastPointIndex = points.lastIndex.coerceAtLeast(1)
+
+        layout(layoutWidth, layoutHeight) {
+            placeables.forEachIndexed { labelIndex, placeable ->
+                val pointIndex = labelIndices[labelIndex]
+                val pointX = horizontalPadding + usableWidth * pointIndex / lastPointIndex
+                val x = (pointX - placeable.width / 2f)
+                    .roundToInt()
+                    .coerceIn(0, (layoutWidth - placeable.width).coerceAtLeast(0))
+                val y = ((layoutHeight - placeable.height) / 2).coerceAtLeast(0)
+                placeable.placeRelative(x = x, y = y)
             }
         }
     }
@@ -904,6 +999,8 @@ private fun LineChart(
     modifier: Modifier = Modifier,
     points: List<TrendPointData>,
     selectedIndex: Int,
+    metric: VocabularyTrendMetric,
+    axisScale: TrendAxisScale,
     refreshKey: Int,
     onSelectionChange: (Int) -> Unit,
     horizontalPadding: Float,
@@ -936,7 +1033,8 @@ private fun LineChart(
                         points = points,
                         horizontalPadding = horizontalPadding,
                         topPadding = topPadding,
-                        bottomPadding = bottomPadding
+                        bottomPadding = bottomPadding,
+                        axisScale = axisScale
                     )?.let(onSelectionChange)
                 }
             }
@@ -949,7 +1047,8 @@ private fun LineChart(
                             points = points,
                             horizontalPadding = horizontalPadding,
                             topPadding = topPadding,
-                            bottomPadding = bottomPadding
+                            bottomPadding = bottomPadding,
+                            axisScale = axisScale
                         )?.let(onSelectionChange)
                     },
                     onDrag = { change, _ ->
@@ -960,7 +1059,8 @@ private fun LineChart(
                             points = points,
                             horizontalPadding = horizontalPadding,
                             topPadding = topPadding,
-                            bottomPadding = bottomPadding
+                            bottomPadding = bottomPadding,
+                            axisScale = axisScale
                         )?.let(onSelectionChange)
                     }
                 )
@@ -971,25 +1071,43 @@ private fun LineChart(
             points = points,
             horizontalPadding = horizontalPadding,
             topPadding = topPadding,
-            bottomPadding = bottomPadding
+            bottomPadding = bottomPadding,
+            axisScale = axisScale
         )
         if (chartPoints.isEmpty()) return@Canvas
 
-        val baselineY = size.height - bottomPadding
-        repeat(4) { index ->
-            val ratio = index / 3f
-            val y = topPadding + (baselineY - topPadding) * ratio
+        val plotBottomY = size.height - bottomPadding
+        axisScale.ticks.forEach { tick ->
+            val y = trendValueToY(
+                value = tick,
+                chartHeight = size.height,
+                topPadding = topPadding,
+                bottomPadding = bottomPadding,
+                axisScale = axisScale
+            )
+            val isZeroBaseline = metric == VocabularyTrendMetric.MeasurementChange && tick == 0
             drawLine(
-                color = gridLineColor,
+                color = if (isZeroBaseline) AccentOrange.copy(alpha = 0.38f) else gridLineColor,
                 start = Offset(horizontalPadding, y),
                 end = Offset(size.width - horizontalPadding, y),
-                strokeWidth = 1.dp.toPx()
+                strokeWidth = if (isZeroBaseline) 1.5.dp.toPx() else 1.dp.toPx()
             )
         }
 
         val revealValue = revealProgress.value
         val visiblePoints = buildVisibleTrendPoints(chartPoints, revealValue)
-        val areaPath = buildTrendAreaPath(visiblePoints, baselineY)
+        val areaBaselineY = if (metric == VocabularyTrendMetric.MeasurementChange && axisScale.ticks.contains(0)) {
+            trendValueToY(
+                value = 0,
+                chartHeight = size.height,
+                topPadding = topPadding,
+                bottomPadding = bottomPadding,
+                axisScale = axisScale
+            )
+        } else {
+            plotBottomY
+        }
+        val areaPath = buildTrendAreaPath(visiblePoints, areaBaselineY)
 
         if (visiblePoints.size > 1) {
             drawPath(
@@ -1001,7 +1119,7 @@ private fun LineChart(
                         Color.Transparent
                     ),
                     startY = topPadding,
-                    endY = baselineY
+                    endY = areaBaselineY
                 )
             )
         }
@@ -1038,7 +1156,7 @@ private fun LineChart(
             drawLine(
                 color = AccentOrange.copy(alpha = 0.28f),
                 start = Offset(selectedPoint.x, topPadding),
-                end = Offset(selectedPoint.x, baselineY),
+                end = Offset(selectedPoint.x, plotBottomY),
                 strokeWidth = 1.5.dp.toPx()
             )
         }
@@ -1121,27 +1239,136 @@ private fun detectDonutSliceIndex(
     return null
 }
 
+internal data class TrendAxisScale(
+    val minimum: Int,
+    val maximum: Int,
+    val ticks: List<Int>
+) {
+    fun ratioFor(value: Int): Float {
+        val range = (maximum - minimum).coerceAtLeast(1)
+        return ((value - minimum).toFloat() / range).coerceIn(0f, 1f)
+    }
+}
+
+internal fun trendXAxisLabelIndices(pointCount: Int): List<Int> {
+    if (pointCount <= 0) return emptyList()
+    if (pointCount <= 8) return List(pointCount) { it }
+
+    val labelCount = when {
+        pointCount <= 16 -> 7
+        else -> 6
+    }.coerceAtMost(pointCount)
+    val lastIndex = pointCount - 1
+    return List(labelCount) { labelIndex ->
+        (lastIndex * labelIndex.toFloat() / (labelCount - 1)).roundToInt()
+    }.distinct()
+}
+
+internal fun buildTrendAxisScale(
+    values: List<Int>,
+    metric: VocabularyTrendMetric
+): TrendAxisScale {
+    if (values.isEmpty()) return TrendAxisScale(0, 3, listOf(0, 1, 2, 3))
+
+    val minimum = values.minOrNull() ?: 0
+    val maximum = values.maxOrNull() ?: 0
+    if (metric != VocabularyTrendMetric.MeasurementChange) {
+        return buildLinearTrendAxis(minimum, maximum)
+    }
+
+    return when {
+        minimum < 0 && maximum > 0 -> {
+            val maxMagnitude = max(-minimum, maximum)
+            val step = niceTrendStep(maxMagnitude / 2.0)
+            TrendAxisScale(
+                minimum = -step * 2,
+                maximum = step * 2,
+                ticks = listOf(-step * 2, -step, 0, step, step * 2)
+            )
+        }
+
+        minimum >= 0 -> buildLinearTrendAxis(0, maximum)
+
+        else -> {
+            val mirrored = buildLinearTrendAxis(0, -minimum)
+            TrendAxisScale(
+                minimum = -mirrored.maximum,
+                maximum = -mirrored.minimum,
+                ticks = mirrored.ticks.map { -it }.sorted()
+            )
+        }
+    }
+}
+
+private fun buildLinearTrendAxis(minimum: Int, maximum: Int): TrendAxisScale {
+    val valueRange = (maximum - minimum).coerceAtLeast(1)
+    val padding = max(5, (valueRange * 0.1).roundToInt())
+    val minimumToCover = if (minimum >= 0) (minimum - padding).coerceAtLeast(0) else minimum - padding
+    val maximumToCover = maximum + padding
+    val step = niceTrendStep((maximumToCover - minimumToCover) / 3.0)
+    val maximumTick = (kotlin.math.ceil(maximumToCover / step.toDouble()) * step).toInt()
+    val minimumTick = (maximumTick - step * 3).let { candidate ->
+        if (minimum >= 0) candidate.coerceAtLeast(0) else candidate
+    }
+    val adjustedMaximumTick = if (minimumTick == 0) step * 3 else maximumTick
+    return TrendAxisScale(
+        minimum = minimumTick,
+        maximum = adjustedMaximumTick,
+        ticks = List(4) { index -> minimumTick + index * step }
+    )
+}
+
+private fun niceTrendStep(rawStep: Double): Int {
+    val safeStep = rawStep.coerceAtLeast(1.0)
+    val magnitude = Math.pow(10.0, kotlin.math.floor(Math.log10(safeStep)))
+    val normalized = safeStep / magnitude
+    val rounded = when {
+        normalized <= 1.0 -> 1.0
+        normalized <= 2.0 -> 2.0
+        normalized <= 5.0 -> 5.0
+        else -> 10.0
+    }
+    return (rounded * magnitude).roundToInt().coerceAtLeast(1)
+}
+
+private fun formatTrendAxisTick(value: Int, metric: VocabularyTrendMetric): String {
+    return if (metric == VocabularyTrendMetric.MeasurementChange && value > 0) "+$value" else "$value"
+}
+
+private fun trendValueToY(
+    value: Int,
+    chartHeight: Float,
+    topPadding: Float,
+    bottomPadding: Float,
+    axisScale: TrendAxisScale
+): Float {
+    val usableHeight = max(chartHeight - topPadding - bottomPadding, 1f)
+    return chartHeight - bottomPadding - axisScale.ratioFor(value) * usableHeight
+}
+
 private fun computeTrendOffsets(
     chartSize: Size,
     points: List<TrendPointData>,
     horizontalPadding: Float,
     topPadding: Float,
-    bottomPadding: Float
+    bottomPadding: Float,
+    axisScale: TrendAxisScale
 ): List<Offset> {
     if (points.isEmpty()) return emptyList()
 
-    val minValue = min(points.minOf { it.value }, 0)
-    val maxValue = max(points.maxOf { it.value }, 1)
-    val valueRange = (maxValue - minValue).coerceAtLeast(1)
-    val usableHeight = max(chartSize.height - topPadding - bottomPadding, 1f)
     val usableWidth = max(chartSize.width - horizontalPadding * 2f, 1f)
     val stepX = if (points.size == 1) 0f else usableWidth / (points.size - 1)
 
     return points.mapIndexed { index, point ->
-        val ratio = (point.value - minValue) / valueRange.toFloat()
         Offset(
             x = horizontalPadding + stepX * index,
-            y = chartSize.height - bottomPadding - ratio * usableHeight
+            y = trendValueToY(
+                value = point.value,
+                chartHeight = chartSize.height,
+                topPadding = topPadding,
+                bottomPadding = bottomPadding,
+                axisScale = axisScale
+            )
         )
     }
 }
@@ -1152,7 +1379,8 @@ private fun findNearestTrendPointIndex(
     points: List<TrendPointData>,
     horizontalPadding: Float,
     topPadding: Float,
-    bottomPadding: Float
+    bottomPadding: Float,
+    axisScale: TrendAxisScale
 ): Int? {
     if (canvasSize == IntSize.Zero || points.isEmpty()) return null
 
@@ -1161,7 +1389,8 @@ private fun findNearestTrendPointIndex(
         points = points,
         horizontalPadding = horizontalPadding,
         topPadding = topPadding,
-        bottomPadding = bottomPadding
+        bottomPadding = bottomPadding,
+        axisScale = axisScale
     )
     return offsets
         .mapIndexed { index, offset ->
@@ -1178,7 +1407,8 @@ private fun rememberSelectedTrendOffset(
     selectedIndex: Int,
     horizontalPadding: Float,
     topPadding: Float,
-    bottomPadding: Float
+    bottomPadding: Float,
+    axisScale: TrendAxisScale
 ): Offset? {
     if (chartSize == IntSize.Zero || selectedIndex !in points.indices) return null
 
@@ -1187,7 +1417,8 @@ private fun rememberSelectedTrendOffset(
         points = points,
         horizontalPadding = horizontalPadding,
         topPadding = topPadding,
-        bottomPadding = bottomPadding
+        bottomPadding = bottomPadding,
+        axisScale = axisScale
     )
     return offsets.getOrNull(selectedIndex)
 }

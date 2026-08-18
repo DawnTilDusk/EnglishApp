@@ -1,5 +1,6 @@
 package com.example.seedie.ui.screens.garden
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.domain.model.ActivityModuleIds
@@ -57,6 +58,10 @@ class GardenViewModel @Inject constructor(
     private val activityTrackingRepository: ActivityTrackingRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
+
+    private companion object {
+        const val VOCABULARY_TREND_LOG_TAG = "VocabularyTrend"
+    }
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     private val rangeMode = MutableStateFlow(ForestRangeMode.Day)
@@ -160,7 +165,13 @@ class GardenViewModel @Inject constructor(
         val selectedMetric = vocabularyTrendMetric.value
         val zoneId = ZoneId.systemDefault()
         val dateRange = selectedRange.resolveDateRange(LocalDate.now(zoneId))
+        vocabularyTrendPoints.value = emptyList()
         vocabularyTrendLoadState.value = VocabularyTrendLoadState(isLoading = true)
+        Log.i(
+            VOCABULARY_TREND_LOG_TAG,
+            "Refresh requested: range=$selectedRange, metric=$selectedMetric, " +
+                "window=${dateRange.startDate}..${dateRange.endDateInclusive}, zone=$zoneId"
+        )
         viewModelScope.launch {
             val result = runCatching {
                 profileRepository.listMyVocabularyTrendEstimates(
@@ -176,16 +187,27 @@ class GardenViewModel @Inject constructor(
                 vocabularyTrendMetric.value == selectedMetric
             ) {
                 result.onSuccess { records ->
-                    vocabularyTrendPoints.value = buildVocabularyTrendPoints(
+                    val points = buildVocabularyTrendPoints(
                         records = records,
                         range = selectedRange,
                         metric = selectedMetric,
                         dateRange = dateRange,
                         zoneId = zoneId
                     )
+                    Log.i(
+                        VOCABULARY_TREND_LOG_TAG,
+                        "Refresh succeeded: remoteRecords=${records.size}, displayPoints=${points.size}, " +
+                            "window=${dateRange.startDate}..${dateRange.endDateInclusive}"
+                    )
+                    vocabularyTrendPoints.value = points
                     vocabularyTrendLoadState.value = VocabularyTrendLoadState()
                     vocabularyTrendRefreshTick.update { it + 1 }
-                }.onFailure {
+                }.onFailure { error ->
+                    Log.e(
+                        VOCABULARY_TREND_LOG_TAG,
+                        "Refresh failed: window=${dateRange.startDate}..${dateRange.endDateInclusive}",
+                        error
+                    )
                     vocabularyTrendLoadState.value = VocabularyTrendLoadState(
                         errorMessage = "词汇量趋势加载失败，请点击重试"
                     )
@@ -195,14 +217,17 @@ class GardenViewModel @Inject constructor(
     }
 
     fun setVocabularyTrendRange(range: VocabularyTrendRange) {
-        if (vocabularyTrendRange.value == range) return
-        vocabularyTrendRange.value = range
+        Log.i(VOCABULARY_TREND_LOG_TAG, "ViewModel received range selection=$range")
+        if (vocabularyTrendRange.value != range) {
+            vocabularyTrendRange.value = range
+        }
         refreshVocabularyTrend()
     }
 
     fun setVocabularyTrendMetric(metric: VocabularyTrendMetric) {
-        if (vocabularyTrendMetric.value == metric) return
-        vocabularyTrendMetric.value = metric
+        if (vocabularyTrendMetric.value != metric) {
+            vocabularyTrendMetric.value = metric
+        }
         refreshVocabularyTrend()
     }
 
@@ -438,11 +463,12 @@ internal fun buildVocabularyTrendPoints(
     dateRange: VocabularyTrendDateRange,
     zoneId: ZoneId
 ): List<VocabularyTrendPointUiState> {
-    val anchors = records
-        .mapNotNull { record ->
-            parseEstimateDate(record.createdAt, zoneId)?.let { date -> date to record }
-        }
+    val datedRecords = records.mapNotNull { record ->
+        parseEstimateDate(record.createdAt, zoneId)?.let { date -> date to record }
+    }
+    val eligibleRecords = datedRecords
         .filter { (date, _) -> !date.isAfter(dateRange.endDateInclusive) }
+    val anchors = eligibleRecords
         .groupBy({ it.first }, { it.second })
         .mapNotNull { (date, dailyRecords) ->
             val highest = dailyRecords.maxWithOrNull(
@@ -457,6 +483,12 @@ internal fun buildVocabularyTrendPoints(
             )
         }
         .sortedBy { it.date }
+
+    Log.i(
+        "VocabularyTrend",
+        "Trend transform: source=${records.size}, parsed=${datedRecords.size}, " +
+            "eligible=${eligibleRecords.size}, anchors=${anchors.size}"
+    )
 
     if (anchors.isEmpty()) return emptyList()
 
@@ -587,19 +619,32 @@ private fun stableNoise(seed: String): Double {
 }
 
 private fun parseEstimateDate(createdAt: String, zoneId: ZoneId): LocalDate? {
+    val normalized = normalizeInstantString(createdAt)
     return runCatching {
-        Instant.parse(normalizeInstantString(createdAt)).atZone(zoneId).toLocalDate()
+        Instant.parse(normalized).atZone(zoneId).toLocalDate()
+    }.onFailure { error ->
+        Log.w(
+            "VocabularyTrend",
+            "Unable to parse vocabulary estimate timestamp: raw=$createdAt, normalized=$normalized",
+            error
+        )
     }.getOrNull()
 }
 
 private fun normalizeInstantString(raw: String): String {
-    val trimmed = raw.trim()
-    if (trimmed.endsWith("Z") || trimmed.contains('+') ||
-        Regex("""T\d{2}:\d{2}:\d{2}.*-\d{2}:\d{2}$""").containsMatchIn(trimmed)
+    val normalizedSeparator = raw.trim().replace(' ', 'T')
+    val normalizedOffset = normalizedSeparator
+        .replace(Regex("""([+-]\d{2})(\d{2})$"""), "${'$'}1:${'$'}2")
+        .replace(Regex("""([+-]\d{2})$"""), "${'$'}1:00")
+        // Android's Instant parser accepts UTC as "Z", but rejects PostgreSQL's
+        // equivalent "+00:00" representation returned by the REST response.
+        .replace(Regex("""[+-]00:00$"""), "Z")
+    if (normalizedOffset.endsWith("Z") || normalizedOffset.contains('+') ||
+        Regex("""T\d{2}:\d{2}:\d{2}.*-\d{2}:\d{2}$""").containsMatchIn(normalizedOffset)
     ) {
-        return trimmed
+        return normalizedOffset
     }
-    return "${trimmed}Z"
+    return "${normalizedOffset}Z"
 }
 
 private fun todayString(): String =
