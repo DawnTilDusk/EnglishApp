@@ -234,6 +234,7 @@ data class LearningDistributionItemUiState(
 
 private val excludedDistributionModuleIds = setOf(
     ActivityModuleIds.DASHBOARD,
+    ActivityModuleIds.COMMUNITY,
     ActivityModuleIds.DATA_GARDEN,
     ActivityModuleIds.PROFILE,
     ActivityModuleIds.SHOP

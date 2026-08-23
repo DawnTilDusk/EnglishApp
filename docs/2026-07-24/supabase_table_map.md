@@ -1,11 +1,12 @@
 # Supabase 表地图（用途与交互）
 
-更新日期：2026-08-04
+更新日期：2026-08-21
 
 配套：
 
 - 权限边界：[permission_model.md](./permission_model.md)
 - 代币账本细节：[economy_token_system.md](./economy_token_system.md)
+- 社区帖：[community_posts.md](../2026-08-21/community_posts.md)
 - 废表清理：[legacy_schema_cleanup.md](./legacy_schema_cleanup.md)
 - 历史体检快照：[supabase_schema_health_report.md](../2026-06-30/supabase_schema_health_report.md)
 
@@ -15,6 +16,7 @@
 |------|-----|------|
 | 身份 / 机构 | `agencies`、`profiles`、`students`、`teachers` | 在用 |
 | 商城 | `shop_products`、`shop_orders` | 在用 |
+| 社区 | `community_posts` | 在用；机构内班级/年级可见 |
 | 经济（云） | `user_economy_transactions` | 在用（权威账本） |
 | 学习同步 | `user_check_ins`、词汇进度三表 | 在用 |
 | 词书内容 | `word_books`、`word_book_modules`、`vocabulary_words` | 远端有；App 按需下载 |
@@ -84,6 +86,16 @@ flowchart TB
 | `shop_orders` | 学生订单；即时购买后多为 `completed` | 学生看自己的；机构/教师看本机构 | `submit_shop_order`：校验余额与库存 → 插订单 → 写负向 `user_economy_transactions` |
 
 状态类型仍用 enum `redemption_status`（历史命名）；**不要**与已删的 `redemptions` 表混淆。
+
+---
+
+## 3.1 社区
+
+| 表 | 用途 | 谁读写 | 交互 |
+|----|------|--------|------|
+| `community_posts` | 机构内帖（班级 / 年级可见、精华） | SELECT 走 RLS；写仅 RPC | `create_community_post`、`set_community_post_featured`、`delete_community_post` |
+
+迁移：[`040_community_posts.sql`](../../supabase/migrations/040_community_posts.sql)、[`041_community_post_author_display_name.sql`](../../supabase/migrations/041_community_post_author_display_name.sql)、[`042_community_posts_rls_grants.sql`](../../supabase/migrations/042_community_posts_rls_grants.sql)。说明见 [community_posts.md](../2026-08-21/community_posts.md)。
 
 ---
 
@@ -247,5 +259,8 @@ flowchart TB
 | `set_my_profile` / `set_my_phone` / `set_my_device_id` | 资料 / 设备 |
 | `set_my_vocabulary_estimate` | 写入词汇量估测（更新 `profiles` 并 append `user_vocabulary_estimates`） |
 | `mark_my_practice_items_completed` | 自由刷题标记阅读/听力 item 已做过 |
+| `create_community_post` | 学生本班帖 / 教师年级帖 |
+| `set_community_post_featured` | 教师将名下学生帖设/取消精华 |
+| `delete_community_post` | 作者自删，或绑定教师删名下学生帖 |
 
 EXECUTE / `search_path` 硬化见 [`016_security_definer_hardening.sql`](../../supabase/migrations/016_security_definer_hardening.sql) 与 [permission_model.md](./permission_model.md)。

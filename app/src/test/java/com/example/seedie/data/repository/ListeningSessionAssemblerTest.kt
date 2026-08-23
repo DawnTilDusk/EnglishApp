@@ -20,13 +20,16 @@ class ListeningSessionAssemblerTest {
             ),
             questions = listOf(
                 question(id = "q2", materialId = "m1", sort = 1, correct = "B"),
-                question(id = "q1", materialId = "m1", sort = 0, correct = "A")
+                question(id = "q1", materialId = "m1", sort = 0, correct = "A"),
+                question(id = "q3", materialId = "m2", sort = 0, correct = "A")
             ),
             options = listOf(
                 option("q1", "B", "Wrong", 1),
                 option("q1", "A", "Right", 0),
                 option("q2", "B", "Right", 0),
-                option("q2", "A", "Wrong", 1)
+                option("q2", "A", "Wrong", 1),
+                option("q3", "A", "Right", 0),
+                option("q3", "B", "Wrong", 1)
             )
         )
 

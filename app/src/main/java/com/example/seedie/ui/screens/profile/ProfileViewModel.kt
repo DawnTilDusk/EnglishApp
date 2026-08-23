@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.remote.AuthSession
+import com.example.seedie.domain.community.CommunityFeedRefreshBus
 import com.example.seedie.domain.profile.ProfileGradeOptions
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ManagedWordBook
@@ -61,7 +62,8 @@ class ProfileViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
     private val authService: AuthService,
     private val profileRepository: ProfileRepository,
-    private val wordBookRepository: WordBookRepository
+    private val wordBookRepository: WordBookRepository,
+    private val communityFeedRefreshBus: CommunityFeedRefreshBus
 ) : ViewModel() {
     private val phonePattern = Regex("^\\+?[0-9]{11,13}$")
 
@@ -185,6 +187,7 @@ class ProfileViewModel @Inject constructor(
                         isEditOverlayVisible = false,
                         isSaving = false
                     )
+                    communityFeedRefreshBus.requestRefresh()
                     _message.value = "资料已更新"
                 }
                 .onFailure { error ->

@@ -1,11 +1,11 @@
 package com.example.seedie.data.repository
 
+import com.example.seedie.domain.quiz.VocabularyQuizConstants
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VocabularyQuizSessionFactoryTest {
-
     private val wordBank = VocabularyQuizTestFixtures.wordBank24()
     private val optionBuilder = VocabularyOptionBuilder()
 
@@ -36,7 +36,11 @@ class VocabularyQuizSessionFactoryTest {
             assertEquals(4, question.options.size)
             assertEquals(1, question.options.count { it.isCorrect })
             assertTrue(question.options.all { option -> option.label.isNotBlank() })
-            assertTrue(question.options.any { it.label == question.translation && it.isCorrect })
+            val correct = question.options.first { it.isCorrect }
+            assertTrue(
+                correct.label == question.translation ||
+                    correct.label == VocabularyQuizConstants.NONE_OF_ABOVE_LABEL
+            )
         }
     }
 

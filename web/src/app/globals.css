@@ -89,6 +89,12 @@ select {
   background: white;
 }
 
+input[type="checkbox"],
+input[type="radio"] {
+  width: auto;
+  accent-color: var(--accent);
+}
+
 label {
   display: grid;
   gap: 6px;

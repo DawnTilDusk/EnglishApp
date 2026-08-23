@@ -3,6 +3,7 @@ package com.example.seedie.ui.components
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
@@ -28,6 +29,7 @@ fun BottomNavigationBar(
     val tabs = listOf(
         Pair("首页", Icons.Default.Home),
         Pair("学习", Icons.AutoMirrored.Filled.List),
+        Pair("社区", Icons.Default.Forum),
         Pair("数据", Icons.Default.Star),
         Pair("我的", Icons.Default.Person)
     )

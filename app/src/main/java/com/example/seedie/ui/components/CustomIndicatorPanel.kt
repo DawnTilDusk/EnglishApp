@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 fun CustomIndicatorPanel(
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    indicatorCount: Int = 4
+    indicatorCount: Int = pagerState.pageCount
 ) {
     Row(
         modifier = modifier

@@ -9,6 +9,7 @@ import com.example.seedie.data.repository.PracticeAssignmentRepositoryImpl
 import com.example.seedie.data.repository.PracticeCatalogRepositoryImpl
 import com.example.seedie.data.repository.ProfileRepositoryImpl
 import com.example.seedie.data.repository.ReadingPracticeRepositoryImpl
+import com.example.seedie.data.repository.CommunityRepositoryImpl
 import com.example.seedie.data.repository.ShopRepositoryImpl
 import com.example.seedie.data.repository.TeacherRepositoryImpl
 import com.example.seedie.data.repository.UserSessionRepositoryImpl
@@ -16,6 +17,7 @@ import com.example.seedie.data.repository.VocabularyPracticeRepositoryImpl
 import com.example.seedie.data.repository.VocabularyQuizRepositoryImpl
 import com.example.seedie.data.repository.WordBookRepositoryImpl
 import com.example.seedie.domain.repository.ActivityTrackingRepository
+import com.example.seedie.domain.repository.CommunityRepository
 import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ListeningPracticeRepository
 import com.example.seedie.domain.repository.PracticeAssignmentRepository
@@ -109,6 +111,12 @@ abstract class RepositoryModule {
     abstract fun bindShopRepository(
         shopRepositoryImpl: ShopRepositoryImpl
     ): ShopRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCommunityRepository(
+        communityRepositoryImpl: CommunityRepositoryImpl
+    ): CommunityRepository
 
     @Binds
     @Singleton

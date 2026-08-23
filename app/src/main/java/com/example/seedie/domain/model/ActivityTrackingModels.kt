@@ -18,6 +18,7 @@ data class ActivityModuleMeta(
 object ActivityModuleIds {
     val DASHBOARD = ActivityModule.Dashboard.id
     val LEARNING_HUB = ActivityModule.LearningHub.id
+    val COMMUNITY = ActivityModule.Community.id
     val DATA_GARDEN = ActivityModule.DataGarden.id
     val PROFILE = ActivityModule.Profile.id
     val VOCABULARY_STUDY = ActivityModule.VocabularyStudy.id

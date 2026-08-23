@@ -97,12 +97,13 @@ com.example.seedie/
     └── screens/
         ├── splash/               # 签到
         ├── login/                # 登录
-        ├── main/                 # 四 Tab 主壳
+        ├── main/                 # 五 Tab 主壳
         ├── dashboard/            # Tab 1 首页
         ├── learning/             # Tab 2 学习中心
         │   └── practice/         # 词汇练习（核心）
-        ├── garden/               # Tab 3 数据花园
-        └── profile/              # Tab 4 个人中心
+        ├── community/            # Tab 3 社区
+        ├── garden/               # Tab 4 数据花园
+        └── profile/              # Tab 5 个人中心
 ```
 
 ---
@@ -178,7 +179,7 @@ flowchart TB
         MA[MainActivity]
         NavAuth[SeedieNavGraph]
         NavMain[SeedieNavHost]
-        Tabs[MainScreen 4 Tabs]
+        Tabs[MainScreen 5 Tabs]
         Practice[VocabularyPracticeScreen]
     end
 
@@ -273,7 +274,7 @@ flowchart TD
     SessionChange --> MainGraph
 
     MainGraph --> Splash[SplashScreen 签到]
-    Splash -->|checkIn 完成| Main[MainScreen 四 Tab]
+    Splash -->|checkIn 完成| Main[MainScreen 五 Tab]
     Main -->|点击背单词/复习| Vocab[VocabularyPracticeRoute]
     Vocab -->|finishSession| Main
 ```
@@ -301,19 +302,20 @@ flowchart TD
 | 路由常量（`Screen.kt`） | 屏幕 | 说明 |
 |-------------------------|------|------|
 | `splash`（startDestination） | `SplashScreen` | 每日签到 |
-| `main` | `MainScreen` | 四 Tab 主界面 |
+| `main` | `MainScreen` | 五 Tab 主界面 |
 | `vocabulary_practice` | `VocabularyPracticeRoute` | 词汇练习全屏页 |
 
 ### 4.3 主 Tab 内导航
 
-[`MainScreen`](../app/src/main/java/com/example/seedie/ui/screens/main/MainScreen.kt) 使用 **`HorizontalPager`（4 页）** + [`BottomNavigationBar`](../app/src/main/java/com/example/seedie/ui/components/BottomNavigationBar.kt)，**不走 Navigation Compose 路由**：
+[`MainScreen`](../app/src/main/java/com/example/seedie/ui/screens/main/MainScreen.kt) 使用 **`HorizontalPager`（5 页）** + [`BottomNavigationBar`](../app/src/main/java/com/example/seedie/ui/components/BottomNavigationBar.kt)，**不走 Navigation Compose 路由**：
 
 | Page | 屏幕 | 底部标签 |
 |------|------|----------|
 | 0 | `DashboardScreen` | 首页 |
 | 1 | `LearningHubScreen` | 学习 |
-| 2 | `DataGardenScreen` | 数据 |
-| 3 | `ProfileScreen` | 我的 |
+| 2 | `CommunityFeedScreen` | 社区 |
+| 3 | `DataGardenScreen` | 数据 |
+| 4 | `ProfileScreen` | 我的 |
 
 Pager 上方有 [`CustomIndicatorPanel`](../app/src/main/java/com/example/seedie/ui/components/CustomIndicatorPanel.kt) 圆点指示器。
 
@@ -977,7 +979,7 @@ UI 层订阅此 Flow 触发视觉反馈（代币掉落动画等）。`Achievemen
 |------|----------|
 | `ui/screens/splash/SplashScreen.kt` | 签到 |
 | `ui/screens/login/LoginScreen.kt` | 登录 |
-| `ui/screens/main/MainScreen.kt` | 四 Tab 主壳 |
+| `ui/screens/main/MainScreen.kt` | 五 Tab 主壳 |
 | `ui/screens/dashboard/DashboardScreen.kt` | Tab 1 首页 |
 | `ui/screens/learning/LearningHubScreen.kt` | Tab 2 学习中心 |
 | `ui/screens/learning/practice/VocabularyPracticeScreen.kt` | 词汇练习 |
@@ -1074,7 +1076,7 @@ gradlew.bat assembleDebug
 1. **`MainActivity.kt`** — 理解 Auth 三态分发
 2. **`MainViewModel.kt`（根）** — Auth session 监听
 3. **`ui/navigation/SeedieNavHost.kt`** — 已登录路由结构
-4. **`ui/screens/main/MainScreen.kt`** — 四 Tab 主壳与模块入口
+4. **`ui/screens/main/MainScreen.kt`** — 五 Tab 主壳与模块入口
 5. **`ui/screens/main/MainViewModel.kt`** — StudyResult 处理闭环
 6. **`ui/screens/learning/practice/VocabularyPracticeViewModel.kt`** — 词汇练习 UI 状态机
 7. **`data/repository/VocabularyPracticeRepositoryImpl.kt`** — 词汇练习数据引擎（最核心、最复杂）

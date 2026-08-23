@@ -23,7 +23,8 @@ data class AuthSession(
     val agencyId: String?,
     val displayName: String?,
     val studentName: String? = null,
-    val teacherId: String? = null
+    val teacherId: String? = null,
+    val classId: String? = null
 )
 
 class AuthService @Inject constructor(
@@ -164,6 +165,7 @@ class AuthService @Inject constructor(
         val role = UserRole.from(profile.role) ?: UserRole.STUDENT
         var studentName: String? = null
         var teacherId: String? = null
+        var classId: String? = null
         var agencyId = profile.agency_id
 
         if (role == UserRole.STUDENT) {
@@ -174,6 +176,7 @@ class AuthService @Inject constructor(
                 .decodeSingle<Student>()
             studentName = student.name
             teacherId = student.teacher_id
+            classId = student.class_id?.trim()?.takeIf { it.isNotEmpty() }
             agencyId = student.agency_id
         }
 
@@ -183,7 +186,8 @@ class AuthService @Inject constructor(
             agencyId = agencyId,
             displayName = profile.display_name,
             studentName = studentName,
-            teacherId = teacherId
+            teacherId = teacherId,
+            classId = classId
         )
     }
 

@@ -6,6 +6,7 @@ enum class ActivityModule(
 ) {
     Dashboard("dashboard", "首页"),
     LearningHub("learning_hub", "学习中心"),
+    Community("community", "社区"),
     DataGarden("data_garden", "数据花园"),
     Profile("profile", "个人页"),
     VocabularyStudy("vocabulary", "背单词"),

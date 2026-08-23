@@ -25,6 +25,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.seedie.domain.model.ActivityModule
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.filled.School
 import com.example.seedie.ui.screens.dashboard.DashboardScreen
 import com.example.seedie.ui.screens.profile.ProfileScreen
 import com.example.seedie.ui.screens.garden.DataGardenScreen
+import com.example.seedie.ui.screens.community.CommunityFeedScreen
 import com.example.seedie.ui.components.CustomIndicatorPanel
 import com.example.seedie.domain.model.StudyResult
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,12 +64,13 @@ fun MainScreen(
     onStudyResultConsumed: () -> Unit,
     viewModel: MainViewModel = hiltViewModel()
 ) {
-    val pagerState = rememberPagerState(pageCount = { 4 })
+    val pagerState = rememberPagerState(pageCount = { 5 })
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val vocabularyEntryState by viewModel.vocabularyEntryState.collectAsState()
     var showReviewChoiceDialog by remember { mutableStateOf(false) }
     var dataGardenEnterKey by remember { mutableStateOf(0) }
+    var communityEnterKey by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(pendingStudyResult) {
         pendingStudyResult?.let { result ->
@@ -107,12 +110,16 @@ fun MainScreen(
                 when (page) {
                     0 -> ActivityModule.Dashboard
                     1 -> ActivityModule.LearningHub
-                    2 -> ActivityModule.DataGarden
-                    3 -> ActivityModule.Profile
+                    2 -> ActivityModule.Community
+                    3 -> ActivityModule.DataGarden
+                    4 -> ActivityModule.Profile
                     else -> ActivityModule.Dashboard
                 }
             )
             if (page == 2) {
+                communityEnterKey += 1
+            }
+            if (page == 3) {
                 dataGardenEnterKey += 1
             }
         }
@@ -275,10 +282,10 @@ fun MainScreen(
                     },
                     snackbarHostState = snackbarHostState
                 ) // Tab 2: Learning Hub
-                2 -> DataGardenScreen(trendReplayKey = dataGardenEnterKey) // Tab 3: Data & Garden
-                3 -> ProfileScreen(onOpenShop = onOpenShop)
+                2 -> CommunityFeedScreen(enterKey = communityEnterKey) // Tab 3: Community
+                3 -> DataGardenScreen(trendReplayKey = dataGardenEnterKey) // Tab 4: Data & Garden
+                4 -> ProfileScreen(onOpenShop = onOpenShop) // Tab 5: Profile
                 else -> {
-                    // Placeholder for other Tabs
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center

@@ -261,3 +261,19 @@ data class SupabaseWritingPrompt(
     @SerialName("reward_token") val reward_token: Int = 5,
     @SerialName("sort_order") val sort_order: Int = 0
 )
+
+@Serializable
+data class SupabaseCommunityPost(
+    val id: String,
+    @SerialName("agency_id") val agency_id: String,
+    @SerialName("author_id") val author_id: String,
+    @SerialName("author_role") val author_role: String,
+    @SerialName("author_display_name") val author_display_name: String = "用户",
+    val title: String? = null,
+    val body: String,
+    @SerialName("class_id") val class_id: String? = null,
+    @SerialName("author_grade") val author_grade: String? = null,
+    @SerialName("target_grades") val target_grades: List<String>? = null,
+    @SerialName("is_featured") val is_featured: Boolean = false,
+    @SerialName("created_at") val created_at: String
+)

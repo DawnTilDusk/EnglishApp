@@ -1,6 +1,7 @@
 package com.example.seedie.data.repository
 
 import com.example.seedie.data.local.entity.VocabularyWordEntity
+import com.example.seedie.data.local.entity.senseDisplayLabel
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -48,7 +49,7 @@ class VocabularyOptionBuilderTest {
 
         assertEquals(4, options.size)
         assertEquals(1, options.count { it.isCorrect })
-        assertTrue(options.any { it.label == "苹果" && it.isCorrect })
+        assertTrue(options.any { it.label == wordBank.first().senseDisplayLabel() && it.isCorrect })
     }
 
     @Test

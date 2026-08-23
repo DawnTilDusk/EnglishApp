@@ -1,7 +1,10 @@
-export function teacherTabs(active: "students" | "assignments" | "shop" | "orders") {
+export function teacherTabs(
+  active: "students" | "assignments" | "community" | "shop" | "orders"
+) {
   return [
     { href: "/teacher", label: "学生", active: active === "students" },
     { href: "/teacher/assignments", label: "作业", active: active === "assignments" },
+    { href: "/teacher/community", label: "社区", active: active === "community" },
     { href: "/teacher/shop", label: "商城（只读）", active: active === "shop" },
     { href: "/teacher/orders", label: "订单（只读）", active: active === "orders" },
   ];
