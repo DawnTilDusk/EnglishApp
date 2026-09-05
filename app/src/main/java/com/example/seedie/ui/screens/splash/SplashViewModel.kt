@@ -48,41 +48,50 @@ class SplashViewModel @Inject constructor(
 
     private fun loadCheckInStatus() {
         viewModelScope.launch {
-            val userId = awaitUserId()
-            val existing = checkInDao.getCheckInByDate(userId, today())
-            _uiState.value = SplashUiState(
-                isLoading = false,
-                shouldSkipCheckIn = existing?.isCheckedIn == true
-            )
+            try {
+                val userId = awaitUserId()
+                val existing = checkInDao.getCheckInByDate(userId, today())
+                _uiState.value = SplashUiState(
+                    isLoading = false,
+                    shouldSkipCheckIn = existing?.isCheckedIn == true
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("SplashViewModel", "loadCheckInStatus failed", e)
+                _uiState.value = SplashUiState(isLoading = false, shouldSkipCheckIn = false)
+            }
         }
     }
 
     fun checkIn() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            val userId = awaitUserId()
-            val today = today()
-            val existing = checkInDao.getCheckInByDate(userId, today)
-            if (existing == null || !existing.isCheckedIn) {
-                checkInDao.insertOrUpdateCheckIn(
-                    CheckInEntity(
-                        userId = userId,
-                        date = today,
-                        isCheckedIn = true,
-                        studyTimeMinutes = 0
+            try {
+                val userId = awaitUserId()
+                val today = today()
+                val existing = checkInDao.getCheckInByDate(userId, today)
+                if (existing == null || !existing.isCheckedIn) {
+                    checkInDao.insertOrUpdateCheckIn(
+                        CheckInEntity(
+                            userId = userId,
+                            date = today,
+                            isCheckedIn = true,
+                            studyTimeMinutes = 0
+                        )
                     )
-                )
-                val streakDay = computeStreakDay(userId, today)
-                val dewAmount = DewConstants.dewForStreakDay(streakDay)
-                val grantedDews = dewManager.addDews(
-                    amount = dewAmount,
-                    reason = "Daily Check-In",
-                    refId = "dew:checkin:$userId:$today"
-                )
-                if (grantedDews > 0) {
-                    rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
+                    val streakDay = computeStreakDay(userId, today)
+                    val dewAmount = DewConstants.dewForStreakDay(streakDay)
+                    val grantedDews = dewManager.addDews(
+                        amount = dewAmount,
+                        reason = "Daily Check-In",
+                        refId = "dew:checkin:$userId:$today"
+                    )
+                    if (grantedDews > 0) {
+                        rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
+                    }
+                    syncManager.syncNow(SyncScope.CHECK_IN)
                 }
-                syncManager.syncNow(SyncScope.CHECK_IN)
+            } catch (e: Exception) {
+                android.util.Log.e("SplashViewModel", "check-in failed", e)
             }
             _uiState.value = SplashUiState(
                 isLoading = false,

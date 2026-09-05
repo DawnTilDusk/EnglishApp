@@ -13,6 +13,7 @@ import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.UserSessionRepository
 import com.example.seedie.domain.usecase.GardenEngine
 import com.example.seedie.domain.usecase.RewardEventBus
+import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -168,7 +169,11 @@ class MainViewModel @Inject constructor(
 
     fun refreshVocabularyEntryState() {
         viewModelScope.launch {
-            val pendingEntry = vocabularyPracticeRepository.getPendingReviewEntry()
+            val pendingEntry = runCatching {
+                vocabularyPracticeRepository.getPendingReviewEntry()
+            }.onFailure { error ->
+                Log.e("MainViewModel", "Failed to load pending vocabulary review", error)
+            }.getOrNull()
             _vocabularyEntryState.value = VocabularyEntryUiState(
                 pendingReviewCount = pendingEntry?.pendingWordCount ?: 0,
                 pendingRoundId = pendingEntry?.roundId,

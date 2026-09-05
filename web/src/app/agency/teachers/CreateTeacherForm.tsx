@@ -18,15 +18,26 @@ export function CreateTeacherForm() {
   }, [state]);
 
   return (
-    <form ref={formRef} className="stack" action={formAction}>
+    <form ref={formRef} className="stack" action={formAction} autoComplete="off">
       {state.error && <p className="error">{state.error}</p>}
       <label>
         邮箱
-        <input name="email" type="email" required />
+        <input
+          name="teacher_email"
+          type="email"
+          required
+          autoComplete="off"
+        />
       </label>
       <label>
         密码
-        <input name="password" type="password" required minLength={6} />
+        <input
+          name="password"
+          type="password"
+          required
+          minLength={6}
+          autoComplete="new-password"
+        />
       </label>
       <label>
         显示名

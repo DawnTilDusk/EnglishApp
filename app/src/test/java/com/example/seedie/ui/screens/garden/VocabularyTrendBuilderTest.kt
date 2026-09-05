@@ -216,6 +216,14 @@ class VocabularyTrendBuilderTest {
         assertEquals(listOf(-20, -10, 0, 10, 20), scale.ticks)
     }
 
+    @Test
+    fun coerceListIndex_returnsNullForEmptyAndClampsOtherwise() {
+        assertEquals(null, coerceListIndex(0, 0))
+        assertEquals(0, coerceListIndex(3, -1))
+        assertEquals(2, coerceListIndex(3, 99))
+        assertEquals(1, coerceListIndex(3, 1))
+    }
+
     private fun estimate(id: String, size: Int, createdAt: String): VocabularyEstimateRecord {
         return VocabularyEstimateRecord(id = id, vocabularySize = size, createdAt = createdAt)
     }

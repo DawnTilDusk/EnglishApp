@@ -2,13 +2,15 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { ActionState } from "@/lib/action-state";
+import { mapCreateAccountError, type ActionState } from "@/lib/action-state";
 
 export async function createTeacherAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const email = String(formData.get("email") || "").trim();
+  const email = String(
+    formData.get("teacher_email") || formData.get("email") || ""
+  ).trim();
   const password = String(formData.get("password") || "");
   const displayName = String(formData.get("display_name") || "").trim() || null;
   const supabase = await createClient();
@@ -19,7 +21,7 @@ export async function createTeacherAction(
     p_agency_id: null,
   });
   if (error) {
-    return { error: error.message, ok: false };
+    return { error: mapCreateAccountError(error.message), ok: false };
   }
   revalidatePath("/agency");
   revalidatePath("/agency/teachers");

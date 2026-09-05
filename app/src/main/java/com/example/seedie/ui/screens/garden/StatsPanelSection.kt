@@ -536,7 +536,7 @@ private fun TrendFocusCard(
                     }
                 }
             } else {
-                val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+                val safeSelectedIndex = coerceListIndex(points.size, selectedIndex) ?: 0
                 LineChartSection(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -765,7 +765,7 @@ private fun LineChartSection(
 ) {
     val chartSizeState = remember { mutableStateOf(IntSize.Zero) }
     val density = LocalDensity.current
-    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+    val safeSelectedIndex = coerceListIndex(points.size, selectedIndex) ?: return
     val tooltipHorizontalOffset = with(density) { 44.dp.toPx() }
     val tooltipVerticalOffset = with(density) { 46.dp.toPx() }
     val horizontalPaddingPx = with(density) { 12.dp.toPx() }
@@ -1012,7 +1012,7 @@ private fun LineChart(
     val gridLineColor = colorScheme.outline.copy(alpha = 0.12f)
     val pointSurfaceColor = colorScheme.surface
     val revealProgress = remember { Animatable(0f) }
-    val safeSelectedIndex = selectedIndex.coerceIn(points.indices)
+    val safeSelectedIndex = coerceListIndex(points.size, selectedIndex) ?: return
 
     LaunchedEffect(refreshKey, points) {
         revealProgress.snapTo(0f)
@@ -1096,6 +1096,7 @@ private fun LineChart(
 
         val revealValue = revealProgress.value
         val visiblePoints = buildVisibleTrendPoints(chartPoints, revealValue)
+        if (visiblePoints.isEmpty()) return@Canvas
         val areaBaselineY = if (metric == VocabularyTrendMetric.MeasurementChange && axisScale.ticks.contains(0)) {
             trendValueToY(
                 value = 0,
@@ -1455,10 +1456,16 @@ private fun buildTrendLinePath(points: List<Offset>): Path {
 }
 
 private fun buildTrendAreaPath(points: List<Offset>, baselineY: Float): Path {
+    if (points.isEmpty()) return Path()
     return Path().apply {
         addPath(buildTrendLinePath(points))
         lineTo(points.last().x, baselineY)
         lineTo(points.first().x, baselineY)
         close()
     }
+}
+
+internal fun coerceListIndex(size: Int, index: Int): Int? {
+    if (size <= 0) return null
+    return index.coerceIn(0, size - 1)
 }

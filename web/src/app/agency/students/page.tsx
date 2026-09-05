@@ -39,7 +39,7 @@ export default async function AgencyStudentsPage() {
         <div className="card">
           <h2 style={{ marginTop: 0 }}>创建学生</h2>
           <p className="muted" style={{ marginTop: 0 }}>
-            创建后学生可用该邮箱密码登录 App；须同时绑定本机构教师。
+            创建后学生可用该邮箱密码登录 App；须同时绑定本机构教师。邮箱全站唯一，不能与已有管理员、教师或学生重复。
           </p>
           <CreateStudentForm teachers={teachers ?? []} />
         </div>

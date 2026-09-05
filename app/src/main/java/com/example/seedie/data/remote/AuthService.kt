@@ -143,13 +143,14 @@ class AuthService @Inject constructor(
                     android.util.Log.e("AuthService", "Update device_id failed", e)
                 }
 
-                val session = fetchBusinessSession(userId = user.id, preFetchedProfile = profileBefore)
+                val session = fetchBusinessSession(userId = user.id)
                 _currentSession.value = session
-                _isLoginInProgress.value = false
                 Result.success(session)
             } catch (e: Exception) {
                 android.util.Log.e("AuthService", "login failed", e)
                 Result.failure(e)
+            } finally {
+                _isLoginInProgress.value = false
             }
         }
     }

@@ -65,7 +65,7 @@ SELECT public.create_teacher_account(
 
 机构管理员登录 Web →「学生」页：
 
-- **创建学生**：邮箱、密码、姓名、学号/班级、**必选教师**；一次调用 `create_student_account`（创建即绑定）。
+- **创建学生**：邮箱、密码、姓名、学号/班级、**必选教师**；一次调用 `create_student_account`（创建即绑定）。邮箱在 `auth.users` 全站唯一；重复会提示「该邮箱已被使用」，勿复用管理员/教师/已有学生邮箱。学生资料默认 `inactive`，App 首次登录填写手机号后 `set_my_phone` 会把 `status` 设为 `active`。
 - **换绑**：同一页可将已有学生改绑到其他本机构教师（`bind_student_to_teacher`）。
 
 或 SQL：

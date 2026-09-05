@@ -47,7 +47,8 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             authService.currentSession.collect { session ->
                 val userId = session?.userId ?: return@collect
-                ensureDefaultTasks(userId)
+                runCatching { ensureDefaultTasks(userId) }
+                    .onFailure { android.util.Log.e("DashboardViewModel", "ensureDefaultTasks failed", it) }
             }
         }
     }

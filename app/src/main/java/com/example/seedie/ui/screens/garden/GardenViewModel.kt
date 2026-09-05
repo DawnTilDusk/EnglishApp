@@ -77,7 +77,8 @@ class GardenViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            gardenEngine.ensureDefaultUnlocks()
+            runCatching { gardenEngine.ensureDefaultUnlocks() }
+                .onFailure { error -> Log.e("GardenViewModel", "ensureDefaultUnlocks failed", error) }
         }
     }
 
@@ -174,26 +175,26 @@ class GardenViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val result = runCatching {
-                profileRepository.listMyVocabularyTrendEstimates(
+                val records = profileRepository.listMyVocabularyTrendEstimates(
                     rangeStartInclusive = dateRange.startDate.atStartOfDay(zoneId).toInstant(),
                     rangeEndExclusive = dateRange.endDateInclusive
                         .plusDays(1)
                         .atStartOfDay(zoneId)
                         .toInstant()
                 )
+                records to buildVocabularyTrendPoints(
+                    records = records,
+                    range = selectedRange,
+                    metric = selectedMetric,
+                    dateRange = dateRange,
+                    zoneId = zoneId
+                )
             }
             if (
                 vocabularyTrendRange.value == selectedRange &&
                 vocabularyTrendMetric.value == selectedMetric
             ) {
-                result.onSuccess { records ->
-                    val points = buildVocabularyTrendPoints(
-                        records = records,
-                        range = selectedRange,
-                        metric = selectedMetric,
-                        dateRange = dateRange,
-                        zoneId = zoneId
-                    )
+                result.onSuccess { (records, points) ->
                     Log.i(
                         VOCABULARY_TREND_LOG_TAG,
                         "Refresh succeeded: remoteRecords=${records.size}, displayPoints=${points.size}, " +

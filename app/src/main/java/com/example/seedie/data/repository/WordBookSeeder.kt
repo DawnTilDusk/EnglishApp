@@ -30,9 +30,20 @@ class WordBookSeeder @Inject constructor(
     suspend fun loadActiveBook(): WordBookEntity {
         ensureSeeded()
         val downloadedStatus = WordBookDownloadStatus.DOWNLOADED.asStorageValue()
-        return wordBookDao.getActiveBook()?.takeIf { it.downloadStatus == downloadedStatus }
+        val ready = wordBookDao.getActiveBook()?.takeIf { it.downloadStatus == downloadedStatus }
             ?: wordBookDao.getLatestBookByDownloadStatus(downloadedStatus)
-            ?: error("未找到可用词书")
+        if (ready != null) return ready
+        return activateBundledBook()
+    }
+
+    private suspend fun activateBundledBook(): WordBookEntity {
+        val bundled = VocabularyStaticWordPack.defaultBookEntity().copy(isActive = true)
+        wordBookDao.deactivateAllBooks()
+        wordBookDao.insertBook(bundled)
+        if (vocabularyWordDao.getWordCountByBook(bundled.bookId) == 0) {
+            vocabularyWordDao.insertWords(VocabularyStaticWordPack.defaultWordEntities())
+        }
+        return wordBookDao.getBookById(bundled.bookId) ?: bundled
     }
 
     suspend fun loadWordsForBook(bookId: String): List<VocabularyWordEntity> {
