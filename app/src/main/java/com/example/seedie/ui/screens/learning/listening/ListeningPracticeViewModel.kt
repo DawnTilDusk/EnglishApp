@@ -114,20 +114,25 @@ class ListeningPracticeViewModel @Inject constructor(
 
     fun onOptionSelected(optionId: String) {
         if (isReviewMode) return
+        val question = _uiState.value.currentQuestion ?: return
+        if (isFreePractice) {
+            allAnswers[question.questionId] = optionId
+        }
         _uiState.update { state ->
             if (state.stage != ListeningPracticeStage.Ready) {
                 state
             } else {
                 state.copy(
                     selectedOptionId = optionId,
-                    canSubmitAnswer = true
+                    canSubmitAnswer = !isFreePractice,
+                    answeredQuestionCount = allAnswers.size
                 )
             }
         }
     }
 
     fun onSubmitAnswer() {
-        if (isReviewMode) return
+        if (isReviewMode || isFreePractice) return
         val state = _uiState.value
         val question = state.currentQuestion ?: return
         if (state.stage != ListeningPracticeStage.Ready) return
@@ -167,6 +172,10 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onNextQuestion() {
+        if (isFreePractice) {
+            moveToNextFreePracticeQuestion()
+            return
+        }
         if (_uiState.value.stage != ListeningPracticeStage.AnswerEvaluated) return
         val currentSession = session ?: return
         val nextIndex = _uiState.value.currentQuestionIndexInMaterial + 1
@@ -194,7 +203,8 @@ class ListeningPracticeViewModel @Inject constructor(
                 showQuestion(
                     session = currentSession,
                     materialIndex = nextMaterialIndex,
-                    questionIndex = 0
+                    questionIndex = 0,
+                    autoPlayMaterial = true
                 )
             }
             return
@@ -202,8 +212,69 @@ class ListeningPracticeViewModel @Inject constructor(
         showQuestion(
             session = currentSession,
             materialIndex = _uiState.value.currentMaterialIndex,
-            questionIndex = nextIndex
+            questionIndex = nextIndex,
+            autoPlayMaterial = false
         )
+    }
+
+    fun onPreviousQuestion() {
+        if (!isFreePractice || _uiState.value.stage != ListeningPracticeStage.Ready) return
+        val currentSession = session ?: return
+        val state = _uiState.value
+        val previousMaterialIndex: Int
+        val previousQuestionIndex: Int
+
+        if (state.currentQuestionIndexInMaterial > 0) {
+            previousMaterialIndex = state.currentMaterialIndex
+            previousQuestionIndex = state.currentQuestionIndexInMaterial - 1
+        } else {
+            if (state.currentMaterialIndex == 0) return
+            previousMaterialIndex = state.currentMaterialIndex - 1
+            previousQuestionIndex = currentSession.materials[previousMaterialIndex].questions.lastIndex
+        }
+
+        showQuestion(
+            session = currentSession,
+            materialIndex = previousMaterialIndex,
+            questionIndex = previousQuestionIndex,
+            autoPlayMaterial = previousMaterialIndex != state.currentMaterialIndex
+        )
+    }
+
+    fun onSubmitFreePractice() {
+        if (!isFreePractice || _uiState.value.stage != ListeningPracticeStage.Ready) return
+        val currentSession = session ?: return
+        val state = _uiState.value
+        if (state.answeredQuestionCount < state.totalQuestionCount) return
+
+        var correctCount = 0
+        var wrongCount = 0
+        var earnedTokens = 0
+        var earnedDews = 0
+        wrongQuestionIds.clear()
+        currentSession.materials.forEach { material ->
+            material.questions.forEach { question ->
+                val answer = allAnswers[question.questionId] ?: return@forEach
+                if (answer == question.correctOptionId) {
+                    correctCount += 1
+                    earnedTokens += question.rewardToken
+                    earnedDews += if (question.rewardToken >= 2) 2 else 1
+                } else {
+                    wrongCount += 1
+                    wrongQuestionIds += question.questionId
+                }
+            }
+        }
+        _uiState.update {
+            it.copy(
+                correctCount = correctCount,
+                wrongCount = wrongCount,
+                earnedTokens = earnedTokens,
+                earnedDews = earnedDews
+            )
+        }
+        stopTimer()
+        completeFreePractice()
     }
 
     fun onReplayAudio() {
@@ -255,10 +326,11 @@ class ListeningPracticeViewModel @Inject constructor(
                         totalMaterialCount = loadedSession.materials.size,
                         totalQuestionCount = totalQuestionCount,
                         sessionOpenedAtMillis = sessionOpenedAtMillis,
-                        isReviewMode = false
+                        isReviewMode = false,
+                        isFreePractice = true
                     )
                     startTimer()
-                    showQuestion(loadedSession, 0, 0)
+                    showQuestion(loadedSession, 0, 0, autoPlayMaterial = true)
                 }
             }.onFailure { throwable ->
                 _uiState.value = ListeningPracticeUiState(
@@ -354,7 +426,13 @@ class ListeningPracticeViewModel @Inject constructor(
                             sessionOpenedAtMillis = sessionOpenedAtMillis,
                             isReviewMode = true
                         )
-                        showQuestion(loadedSession, 0, 0, forceReview = true)
+                        showQuestion(
+                            loadedSession,
+                            0,
+                            0,
+                            forceReview = true,
+                            autoPlayMaterial = true
+                        )
                     } else {
                         _uiState.value = ListeningPracticeUiState(
                             stage = ListeningPracticeStage.Ready,
@@ -362,10 +440,11 @@ class ListeningPracticeViewModel @Inject constructor(
                             totalMaterialCount = loadedSession.materials.size,
                             totalQuestionCount = totalQuestionCount,
                             sessionOpenedAtMillis = sessionOpenedAtMillis,
-                            isReviewMode = false
+                            isReviewMode = false,
+                            isFreePractice = false
                         )
                         startTimer()
-                        showQuestion(loadedSession, 0, 0)
+                        showQuestion(loadedSession, 0, 0, autoPlayMaterial = true)
                     }
                 }
             }.onFailure { throwable ->
@@ -455,7 +534,8 @@ class ListeningPracticeViewModel @Inject constructor(
         session: ListeningPracticeSession,
         materialIndex: Int,
         questionIndex: Int,
-        forceReview: Boolean = false
+        forceReview: Boolean = false,
+        autoPlayMaterial: Boolean = false
     ) {
         val material = session.materials[materialIndex]
         val question = material.questions[questionIndex]
@@ -496,7 +576,9 @@ class ListeningPracticeViewModel @Inject constructor(
                     isReviewMode = true
                 )
             }
-            emitPlayEvent(material, question)
+            if (autoPlayMaterial) {
+                emitPlayEvent(material, question)
+            }
         } else {
             _uiState.update {
                 it.copy(
@@ -509,14 +591,42 @@ class ListeningPracticeViewModel @Inject constructor(
                     currentQuestionOrdinal = questionOrdinal,
                     totalQuestionCount = session.materials.sumOf { m -> m.questions.size },
                     currentQuestion = question,
-                    selectedOptionId = null,
+                    selectedOptionId = if (isFreePractice) allAnswers[question.questionId] else null,
                     canSubmitAnswer = false,
+                    answeredQuestionCount = allAnswers.size,
                     answerStatus = AnswerStatus.Unanswered,
                     feedbackMessage = ""
                 )
             }
-            emitPlayEvent(material, question)
+            if (autoPlayMaterial) {
+                emitPlayEvent(material, question)
+            }
         }
+    }
+
+    private fun moveToNextFreePracticeQuestion() {
+        if (_uiState.value.stage != ListeningPracticeStage.Ready) return
+        val currentSession = session ?: return
+        val state = _uiState.value
+        val currentMaterial = state.currentMaterial ?: return
+        val nextMaterialIndex: Int
+        val nextQuestionIndex: Int
+
+        if (state.currentQuestionIndexInMaterial < currentMaterial.questions.lastIndex) {
+            nextMaterialIndex = state.currentMaterialIndex
+            nextQuestionIndex = state.currentQuestionIndexInMaterial + 1
+        } else {
+            if (state.currentMaterialIndex >= currentSession.materials.lastIndex) return
+            nextMaterialIndex = state.currentMaterialIndex + 1
+            nextQuestionIndex = 0
+        }
+
+        showQuestion(
+            session = currentSession,
+            materialIndex = nextMaterialIndex,
+            questionIndex = nextQuestionIndex,
+            autoPlayMaterial = nextMaterialIndex != state.currentMaterialIndex
+        )
     }
 
     private fun emitPlayEvent(

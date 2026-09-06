@@ -26,5 +26,9 @@ sealed class Screen(val route: String) {
         fun buildRoute(bookId: String) = "listening_textbook_units/$bookId"
         const val ARG_BOOK_ID = "bookId"
     }
+    object ListeningTextbookAudio : Screen("listening_textbook_audio/{materialId}") {
+        fun buildRoute(materialId: String) = "listening_textbook_audio/$materialId"
+        const val ARG_MATERIAL_ID = "materialId"
+    }
     object ListeningImmersion : Screen("listening_immersion")
 }

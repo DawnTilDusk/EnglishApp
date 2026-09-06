@@ -44,7 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun ListeningTextbookUnitsRoute(
     onNavigateBack: () -> Unit,
-    onOpenSection: (String) -> Unit,
+    onOpenAudio: (String) -> Unit,
     viewModel: ListeningTextbookUnitsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -129,7 +129,7 @@ fun ListeningTextbookUnitsRoute(
                                 SectionRow(
                                     title = section.title,
                                     subtitle = section.subtitle,
-                                    onClick = { onOpenSection(section.materialId) }
+                                    onClick = { onOpenAudio(section.materialId) }
                                 )
                             }
                         }

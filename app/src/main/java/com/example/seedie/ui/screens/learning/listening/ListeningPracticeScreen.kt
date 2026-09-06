@@ -190,6 +190,8 @@ private fun ListeningPracticeRouteBody(
         onOptionSelected = viewModel::onOptionSelected,
         onSubmitAnswer = viewModel::onSubmitAnswer,
         onNextQuestion = viewModel::onNextQuestion,
+        onPreviousQuestion = viewModel::onPreviousQuestion,
+        onSubmitFreePractice = viewModel::onSubmitFreePractice,
         onReplayAudio = viewModel::onReplayAudio,
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
@@ -207,6 +209,8 @@ private fun ListeningPracticeScreen(
     onOptionSelected: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
+    onPreviousQuestion: () -> Unit,
+    onSubmitFreePractice: () -> Unit,
     onReplayAudio: () -> Unit,
     onRetryLoad: () -> Unit,
     onFinishSession: () -> Unit
@@ -470,12 +474,44 @@ private fun ListeningPracticeScreen(
                             }
                         }
 
+                        if (uiState.isFreePractice) {
+                            Text(
+                                text = "已作答 ${uiState.answeredQuestionCount} / ${uiState.totalQuestionCount}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            when (uiState.stage) {
-                                ListeningPracticeStage.Ready -> {
+                            when {
+                                uiState.isFreePractice -> {
+                                    val isFirstQuestion = uiState.currentQuestionOrdinal <= 1
+                                    val isLastQuestion =
+                                        uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
+                                    if (!isFirstQuestion) {
+                                        OutlinedButton(onClick = onPreviousQuestion) {
+                                            Text("上一问")
+                                        }
+                                    }
+                                    Button(
+                                        onClick = if (isLastQuestion) {
+                                            onSubmitFreePractice
+                                        } else {
+                                            onNextQuestion
+                                        },
+                                        enabled = !isLastQuestion ||
+                                            uiState.answeredQuestionCount == uiState.totalQuestionCount
+                                    ) {
+                                        Text(if (isLastQuestion) "提交" else "下一问")
+                                    }
+                                }
+
+                                uiState.stage == ListeningPracticeStage.Ready -> {
                                     Button(
                                         onClick = onSubmitAnswer,
                                         enabled = uiState.canSubmitAnswer
@@ -484,7 +520,7 @@ private fun ListeningPracticeScreen(
                                     }
                                 }
 
-                                ListeningPracticeStage.AnswerEvaluated -> {
+                                uiState.stage == ListeningPracticeStage.AnswerEvaluated -> {
                                     val isLast =
                                         uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
                                     Button(onClick = onNextQuestion) {

@@ -29,6 +29,7 @@ class WordAudioPlayer(context: Context) {
 
     private var audioFocusRequest: AudioFocusRequest? = null
     private var hasAudioFocus = false
+    private var resumeWhenFocusReturns = false
     private var onStreamPlaybackFailed: (() -> Unit)? = null
 
     init {
@@ -37,7 +38,10 @@ class WordAudioPlayer(context: Context) {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
                 .build(),
-            true
+            // Audio focus is managed below for both ExoPlayer and MediaPlayer.
+            // Enabling ExoPlayer's built-in focus handling here would issue a
+            // second focus request for every stream playback.
+            false
         )
         streamPlayer.addListener(
             object : Player.Listener {
@@ -81,6 +85,10 @@ class WordAudioPlayer(context: Context) {
 
         val focusGranted = requestAudioFocus()
         logDebug("playRaw resId=$resId audioFocusGranted=$focusGranted")
+        if (!focusGranted) {
+            onPlaybackFailed?.invoke()
+            return
+        }
 
         val player = MediaPlayer.create(appContext, resId)
         if (player == null) {
@@ -132,7 +140,11 @@ class WordAudioPlayer(context: Context) {
         }
 
         stop()
-        requestAudioFocus()
+        if (!requestAudioFocus()) {
+            logDebug("playUrl skipped: audio focus was not granted")
+            onPlaybackFailed?.invoke()
+            return
+        }
         onStreamPlaybackFailed = onPlaybackFailed
 
         runCatching {
@@ -180,6 +192,11 @@ class WordAudioPlayer(context: Context) {
     }
 
     private fun requestAudioFocus(): Boolean {
+        if (hasAudioFocus) {
+            logDebug("audio focus already held")
+            return true
+        }
+
         val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -189,11 +206,30 @@ class WordAudioPlayer(context: Context) {
             )
             .setOnAudioFocusChangeListener { focusChange ->
                 when (focusChange) {
-                    AudioManager.AUDIOFOCUS_LOSS,
                     AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                        resumeWhenFocusReturns =
+                            streamPlayer.isPlaying || rawPlayer?.isPlaying == true
+                        logDebug("audio focus lost temporarily; pause=$resumeWhenFocusReturns")
                         rawPlayer?.pause()
                         streamPlayer.pause()
                         _isPlaying.value = false
+                    }
+                    AudioManager.AUDIOFOCUS_LOSS -> {
+                        logDebug("audio focus lost permanently")
+                        rawPlayer?.pause()
+                        streamPlayer.pause()
+                        _isPlaying.value = false
+                        resumeWhenFocusReturns = false
+                        hasAudioFocus = false
+                        audioFocusRequest = null
+                    }
+                    AudioManager.AUDIOFOCUS_GAIN -> {
+                        if (resumeWhenFocusReturns) {
+                            logDebug("audio focus regained; resume playback")
+                            runCatching { rawPlayer?.start() }
+                            streamPlayer.play()
+                        }
+                        resumeWhenFocusReturns = false
                     }
                 }
             }
@@ -202,6 +238,10 @@ class WordAudioPlayer(context: Context) {
         audioFocusRequest = focusRequest
         val result = audioManager.requestAudioFocus(focusRequest)
         hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        if (!hasAudioFocus) {
+            audioFocusRequest = null
+        }
+        logDebug("request audio focus result=$result granted=$hasAudioFocus")
         return hasAudioFocus
     }
 
@@ -210,6 +250,7 @@ class WordAudioPlayer(context: Context) {
         audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
         hasAudioFocus = false
         audioFocusRequest = null
+        resumeWhenFocusReturns = false
     }
 
     private fun clearStreamPlaybackFailedCallback() {

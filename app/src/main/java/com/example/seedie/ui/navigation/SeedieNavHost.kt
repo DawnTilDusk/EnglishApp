@@ -24,6 +24,7 @@ import com.example.seedie.ui.screens.learning.practice.VocabularyPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.ListeningPracticeRoute
 import com.example.seedie.ui.screens.learning.listening.immersion.ListeningImmersionRoute
 import com.example.seedie.ui.screens.learning.listening.textbook.ListeningTextbookBooksRoute
+import com.example.seedie.ui.screens.learning.listening.textbook.ListeningTextbookAudioRoute
 import com.example.seedie.ui.screens.learning.listening.textbook.ListeningTextbookUnitsRoute
 import com.example.seedie.ui.screens.learning.quiz.VocabularyQuizRoute
 import com.example.seedie.ui.screens.learning.reading.ReadingPracticeRoute
@@ -62,6 +63,7 @@ fun SeedieNavHost(
             Screen.ListeningMode.route,
             Screen.ListeningTextbookBooks.route,
             Screen.ListeningTextbookUnits.route,
+            Screen.ListeningTextbookAudio.route,
             Screen.ListeningImmersion.route,
             Screen.ListeningCatalog.route -> ActivityModule.ListeningPractice
             Screen.ReadingPractice.route,
@@ -171,12 +173,14 @@ fun SeedieNavHost(
         composable(route = Screen.ListeningTextbookUnits.route) {
             ListeningTextbookUnitsRoute(
                 onNavigateBack = { navController.popBackStack() },
-                onOpenSection = { materialId ->
-                    currentListeningFreeArgs =
-                        FreePracticeArgs(moduleId = "listening", itemRef = materialId)
-                    currentListeningAssignmentArgs = null
-                    navController.navigate(Screen.ListeningPractice.route)
+                onOpenAudio = { materialId ->
+                    navController.navigate(Screen.ListeningTextbookAudio.buildRoute(materialId))
                 }
+            )
+        }
+        composable(route = Screen.ListeningTextbookAudio.route) {
+            ListeningTextbookAudioRoute(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable(route = Screen.ListeningImmersion.route) {
