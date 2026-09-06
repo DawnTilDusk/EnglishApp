@@ -192,6 +192,7 @@ private fun ListeningPracticeRouteBody(
         onNextQuestion = viewModel::onNextQuestion,
         onPreviousQuestion = viewModel::onPreviousQuestion,
         onSubmitFreePractice = viewModel::onSubmitFreePractice,
+        onReviewFreePracticeAnswers = viewModel::onReviewFreePracticeAnswers,
         onReplayAudio = viewModel::onReplayAudio,
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
@@ -211,6 +212,7 @@ private fun ListeningPracticeScreen(
     onNextQuestion: () -> Unit,
     onPreviousQuestion: () -> Unit,
     onSubmitFreePractice: () -> Unit,
+    onReviewFreePracticeAnswers: () -> Unit,
     onReplayAudio: () -> Unit,
     onRetryLoad: () -> Unit,
     onFinishSession: () -> Unit
@@ -293,11 +295,18 @@ private fun ListeningPracticeScreen(
                         modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                     )
                 }
-                Button(
-                    onClick = onFinishSession,
-                    modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp)
+                Row(
+                    modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("完成")
+                    if (uiState.isFreePractice) {
+                        OutlinedButton(onClick = onReviewFreePracticeAnswers) {
+                            Text("查看作答")
+                        }
+                    }
+                    Button(onClick = onFinishSession) {
+                        Text("完成")
+                    }
                 }
             }
         }
@@ -493,21 +502,34 @@ private fun ListeningPracticeScreen(
                                     val isFirstQuestion = uiState.currentQuestionOrdinal <= 1
                                     val isLastQuestion =
                                         uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
-                                    if (!isFirstQuestion) {
-                                        OutlinedButton(onClick = onPreviousQuestion) {
-                                            Text("上一问")
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        if (!isFirstQuestion) {
+                                            OutlinedButton(
+                                                onClick = onPreviousQuestion,
+                                                modifier = Modifier.align(Alignment.CenterStart)
+                                            ) {
+                                                Text("上一问")
+                                            }
                                         }
-                                    }
-                                    Button(
-                                        onClick = if (isLastQuestion) {
-                                            onSubmitFreePractice
-                                        } else {
-                                            onNextQuestion
-                                        },
-                                        enabled = !isLastQuestion ||
-                                            uiState.answeredQuestionCount == uiState.totalQuestionCount
-                                    ) {
-                                        Text(if (isLastQuestion) "提交" else "下一问")
+                                        Button(
+                                            onClick = when {
+                                                isLastQuestion && uiState.isReviewMode -> onFinishSession
+                                                isLastQuestion -> onSubmitFreePractice
+                                                else -> onNextQuestion
+                                            },
+                                            enabled = uiState.isReviewMode ||
+                                                !isLastQuestion ||
+                                                uiState.answeredQuestionCount == uiState.totalQuestionCount,
+                                            modifier = Modifier.align(Alignment.CenterEnd)
+                                        ) {
+                                            Text(
+                                                when {
+                                                    isLastQuestion && uiState.isReviewMode -> "完成回顾"
+                                                    isLastQuestion -> "提交"
+                                                    else -> "下一问"
+                                                }
+                                            )
+                                        }
                                     }
                                 }
 

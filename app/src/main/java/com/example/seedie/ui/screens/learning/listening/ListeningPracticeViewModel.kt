@@ -218,7 +218,7 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onPreviousQuestion() {
-        if (!isFreePractice || _uiState.value.stage != ListeningPracticeStage.Ready) return
+        if (!isFreePractice || !canNavigateFreePracticeQuestions()) return
         val currentSession = session ?: return
         val state = _uiState.value
         val previousMaterialIndex: Int
@@ -275,6 +275,18 @@ class ListeningPracticeViewModel @Inject constructor(
         }
         stopTimer()
         completeFreePractice()
+    }
+
+    fun onReviewFreePracticeAnswers() {
+        if (!isFreePractice || _uiState.value.stage != ListeningPracticeStage.Completed) return
+        val currentSession = session ?: return
+        isReviewMode = true
+        showQuestion(
+            session = currentSession,
+            materialIndex = 0,
+            questionIndex = 0,
+            forceReview = true
+        )
     }
 
     fun onReplayAudio() {
@@ -605,7 +617,7 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     private fun moveToNextFreePracticeQuestion() {
-        if (_uiState.value.stage != ListeningPracticeStage.Ready) return
+        if (!canNavigateFreePracticeQuestions()) return
         val currentSession = session ?: return
         val state = _uiState.value
         val currentMaterial = state.currentMaterial ?: return
@@ -627,6 +639,11 @@ class ListeningPracticeViewModel @Inject constructor(
             questionIndex = nextQuestionIndex,
             autoPlayMaterial = nextMaterialIndex != state.currentMaterialIndex
         )
+    }
+
+    private fun canNavigateFreePracticeQuestions(): Boolean {
+        return _uiState.value.stage == ListeningPracticeStage.Ready ||
+            _uiState.value.stage == ListeningPracticeStage.AnswerEvaluated
     }
 
     private fun emitPlayEvent(
