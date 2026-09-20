@@ -1,6 +1,7 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { agencyTabs } from "@/lib/agency-tabs";
 import Link from "next/link";
 
 export default async function AgencyHomePage() {
@@ -31,13 +32,7 @@ export default async function AgencyHomePage() {
     <ConsoleShell
       profile={profile}
       title="机构控制台"
-      tabs={[
-        { href: "/agency", label: "概览", active: true },
-        { href: "/agency/teachers", label: "教师" },
-        { href: "/agency/students", label: "学生" },
-        { href: "/agency/shop", label: "商城" },
-        { href: "/agency/orders", label: "订单" },
-      ]}
+      tabs={agencyTabs("home")}
     >
       <div className="stack">
         <div className="row">
@@ -63,6 +58,9 @@ export default async function AgencyHomePage() {
           <div className="row">
             <Link className="btn secondary" href="/agency/teachers">
               管理教师
+            </Link>
+            <Link className="btn secondary" href="/agency/videos">
+              上传视频课
             </Link>
             <Link className="btn secondary" href="/agency/shop">
               管理机构店

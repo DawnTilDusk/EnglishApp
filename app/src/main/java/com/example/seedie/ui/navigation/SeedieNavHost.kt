@@ -12,8 +12,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.seedie.domain.model.ActivityModule
-import com.example.seedie.domain.usecase.GlobalActivityTracker
 import com.example.seedie.domain.model.StudyResult
+import com.example.seedie.domain.model.VideoLesson
+import com.example.seedie.domain.usecase.GlobalActivityTracker
 import com.example.seedie.ui.screens.learning.assignments.AssignmentListRoute
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
@@ -33,6 +34,8 @@ import com.example.seedie.ui.screens.learning.writing.WritingHubScreen
 import com.example.seedie.ui.screens.learning.writing.WritingParaphraseRoute
 import com.example.seedie.ui.screens.learning.writing.WritingPracticeRoute
 import com.example.seedie.ui.screens.learning.writing.WritingSentenceTranslationRoute
+import com.example.seedie.ui.screens.learning.video.VideoLessonListRoute
+import com.example.seedie.ui.screens.learning.video.VideoLessonPlayerRoute
 import com.example.seedie.ui.screens.main.MainScreen
 import com.example.seedie.ui.screens.shop.MyOrdersScreen
 import com.example.seedie.ui.screens.shop.StudentShopScreen
@@ -51,6 +54,7 @@ fun SeedieNavHost(
     var currentReadingFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
     var currentListeningFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
     var currentWritingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentVideoLesson by remember { mutableStateOf<VideoLesson?>(null) }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -75,6 +79,8 @@ fun SeedieNavHost(
             Screen.WritingConnectorDrill.route,
             Screen.WritingParaphrase.route -> ActivityModule.WritingPractice
             Screen.VocabularyQuiz.route -> ActivityModule.VocabularyQuiz
+            Screen.VideoLessons.route,
+            Screen.VideoLessonPlayer.route -> ActivityModule.VideoLessons
             Screen.StudentShop.route,
             Screen.MyOrders.route -> ActivityModule.Shop
             Screen.Main.route -> null
@@ -116,6 +122,9 @@ fun SeedieNavHost(
                 },
                 onOpenWritingHub = {
                     navController.navigate(Screen.WritingHub.route)
+                },
+                onOpenVideoLessons = {
+                    navController.navigate(Screen.VideoLessons.route)
                 },
                 onOpenVocabularyQuiz = {
                     navController.navigate(Screen.VocabularyQuiz.route)
@@ -362,6 +371,26 @@ fun SeedieNavHost(
                     navController.popBackStack()
                 }
             )
+        }
+        composable(route = Screen.VideoLessons.route) {
+            VideoLessonListRoute(
+                onNavigateBack = { navController.popBackStack() },
+                onOpenLesson = { lesson ->
+                    currentVideoLesson = lesson
+                    navController.navigate(Screen.VideoLessonPlayer.route)
+                }
+            )
+        }
+        composable(route = Screen.VideoLessonPlayer.route) {
+            val lesson = currentVideoLesson
+            if (lesson == null) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                VideoLessonPlayerRoute(
+                    lesson = lesson,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
         }
         composable(route = Screen.StudentShop.route) {
             StudentShopScreen(

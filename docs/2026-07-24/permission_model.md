@@ -1,6 +1,6 @@
 # 权限模型与客户端边界
 
-更新日期：2026-07-31
+更新日期：2026-09-20
 
 ## 身份分层
 
@@ -19,9 +19,9 @@
 service_role → agency_admin → teacher → student
 ```
 
-- 机构管理员：本机构教师账号、学生绑定、**机构店**商品读写、本机构订单与学习数据只读汇总。
-- 教师：绑定学生的学习数据；对本机构店商品/订单**只读**；可布置阅读/听力/写作作业（`create_practice_assignment`）；可返还写作批改（`return_writing_assignment`）。
-- 学生：本人学习数据；浏览本机构上架商品并下单；接收并提交名下作业（`start` / `submit_practice_assignment`；写作另用 `submit_writing_assignment` + Storage 上传）。
+- 机构管理员：本机构教师账号、学生绑定、**机构店**商品读写、本机构**视频课**上传/上下架/删除、本机构订单与学习数据只读汇总。
+- 教师：绑定学生的学习数据；对本机构店商品/订单**只读**；可布置阅读/听力/写作作业（`create_practice_assignment`）；可返还写作批改（`return_writing_assignment`）；可 SELECT 本机构视频课（MVP 无 CMS）。
+- 学生：本人学习数据；浏览本机构上架商品并下单；接收并提交名下作业（`start` / `submit_practice_assignment`；写作另用 `submit_writing_assignment` + Storage 上传）；观看本机构**已上架**视频课。
 
 ## 商城模型（机构一店）
 
@@ -39,6 +39,7 @@ service_role → agency_admin → teacher → student
 | 机构店商品管理 | — | 机构 |
 | 订单查看（机构维度） | 学生看自己的 | 机构全部；教师本机构只读 |
 | 教师账号 / 绑定学生 | — | 机构 |
+| 视频课上传 / 上下架 | 学生观看已上架 | 机构 `/agency/videos` |
 | 学生进度（教师视角） | — | 教师 |
 | 阅读/听力作业布置 | — | 教师 `/teacher/assignments` |
 | 阅读/听力作业作答与回顾 | 学生 App | — |

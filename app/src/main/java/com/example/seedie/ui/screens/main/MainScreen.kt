@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Headphones
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.School
 import com.example.seedie.ui.screens.dashboard.DashboardScreen
@@ -55,6 +56,7 @@ fun MainScreen(
     onOpenListeningMode: () -> Unit,
     onOpenReadingMode: () -> Unit,
     onOpenWritingHub: () -> Unit,
+    onOpenVideoLessons: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
     onVisibleModuleChanged: (ActivityModule) -> Unit,
@@ -164,6 +166,13 @@ fun MainScreen(
                             "实战提交与专项表达练习",
                             Icons.Default.Create,
                             isAvailable = true
+                        ),
+                        ModuleConfig(
+                            "video",
+                            "视频课",
+                            "观看机构上传的课程视频",
+                            Icons.Default.PlayCircle,
+                            isAvailable = true
                         )
     )
 
@@ -269,6 +278,8 @@ fun MainScreen(
                             "reading" -> onOpenReadingMode()
 
                             "writing" -> onOpenWritingHub()
+
+                            "video" -> onOpenVideoLessons()
 
                             "quiz" -> onOpenVocabularyQuiz()
                         }

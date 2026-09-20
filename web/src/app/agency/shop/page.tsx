@@ -1,6 +1,7 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { agencyTabs } from "@/lib/agency-tabs";
 import Link from "next/link";
 import { ProductForm } from "./ProductForm";
 import { ToggleActiveButton } from "./ToggleActiveButton";
@@ -67,13 +68,7 @@ export default async function AgencyShopPage({
     <ConsoleShell
       profile={profile}
       title="机构商城"
-      tabs={[
-        { href: "/agency", label: "概览" },
-        { href: "/agency/teachers", label: "教师" },
-        { href: "/agency/students", label: "学生" },
-        { href: "/agency/shop", label: "商城", active: true },
-        { href: "/agency/orders", label: "订单" },
-      ]}
+      tabs={agencyTabs("shop")}
     >
       <div className="stack">
         <div className="card">

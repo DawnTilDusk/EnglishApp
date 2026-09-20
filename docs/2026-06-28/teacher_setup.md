@@ -108,6 +108,7 @@ VALUES ('<agency_uuid>', '文具套装', '测试商品', 50, 10, true);
 | `/agency` | 概览计数 |
 | `/agency/teachers` | 创建教师账号、列表 |
 | `/agency/students` | 创建学生（必绑教师）、换绑、列表 |
+| `/agency/videos` | 上传/预览/上下架/删除本机构 MP4 视频课 |
 | `/agency/shop` | 商品目录：新增 / 编辑 / 一键上下架 / 状态筛选 |
 | `/agency/orders` | 本机构订单只读 |
 
