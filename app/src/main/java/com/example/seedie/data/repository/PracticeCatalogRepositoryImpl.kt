@@ -24,10 +24,10 @@ class PracticeCatalogRepositoryImpl @Inject constructor(
         return when (moduleId) {
             "reading" -> listReadingCatalog(completed)
             "listening" -> PracticeCatalogLoad(
-                items = listeningRemote.fetchAllMaterials().map { material ->
-                    val primary = material.title_zh?.takeIf { it.isNotBlank() }
-                        ?: material.title?.takeIf { it.isNotBlank() }
-                        ?: material.material_id
+                items = listeningRemote.fetchAllMaterials()
+                    .filter { it.material_id == FREE_PRACTICE_MATERIAL_ID }
+                    .map { material ->
+                        val primary = FREE_PRACTICE_TITLE
                     val secondary = material.title?.takeIf {
                         it.isNotBlank() && it != primary
                     }
@@ -94,5 +94,10 @@ class PracticeCatalogRepositoryImpl @Inject constructor(
 
     override suspend fun markCompleted(moduleId: String, itemRefs: List<String>) {
         catalogRemote.markCompleted(moduleId, itemRefs)
+    }
+
+    private companion object {
+        const val FREE_PRACTICE_MATERIAL_ID = "l08-01"
+        const val FREE_PRACTICE_TITLE = "放学后的志愿服务安排"
     }
 }

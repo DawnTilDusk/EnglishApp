@@ -48,6 +48,7 @@ data class ListeningPracticeUiState(
     val currentQuestionCountInMaterial: Int = 0,
     val currentQuestionOrdinal: Int = 0,
     val totalQuestionCount: Int = 0,
+    val answeredQuestionCount: Int = 0,
     val currentQuestion: ListeningQuestionItem? = null,
     val selectedOptionId: String? = null,
     val canSubmitAnswer: Boolean = false,
@@ -61,5 +62,6 @@ data class ListeningPracticeUiState(
     val showExitConfirmDialog: Boolean = false,
     val sessionOpenedAtMillis: Long = 0L,
     val errorMessage: String? = null,
-    val isReviewMode: Boolean = false
+    val isReviewMode: Boolean = false,
+    val isFreePractice: Boolean = false
 )

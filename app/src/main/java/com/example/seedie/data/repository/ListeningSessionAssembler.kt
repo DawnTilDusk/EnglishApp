@@ -37,7 +37,11 @@ object ListeningSessionAssembler {
                 materialType = material.material_type,
                 promptText = material.prompt_text,
                 transcript = material.transcript,
-                audioUrl = material.audio_url,
+                // The legacy l08-01 row points at an unrelated sample sound.  Until a
+                // recorded narration is supplied, use its complete transcript through
+                // the existing TextToSpeech fallback instead of playing the sample.
+                audioUrl = material.audio_url
+                    ?.takeUnless { material.material_id == FREE_PRACTICE_MATERIAL_ID },
                 estimatedSeconds = material.estimated_seconds,
                 questions = materialQuestions.map { question ->
                     val questionOptions = optionsByQuestion[question.question_id]
@@ -79,4 +83,6 @@ object ListeningSessionAssembler {
             materials = assembledMaterials
         )
     }
+
+    private const val FREE_PRACTICE_MATERIAL_ID = "l08-01"
 }

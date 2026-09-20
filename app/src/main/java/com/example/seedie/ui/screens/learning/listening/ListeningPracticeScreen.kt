@@ -190,6 +190,9 @@ private fun ListeningPracticeRouteBody(
         onOptionSelected = viewModel::onOptionSelected,
         onSubmitAnswer = viewModel::onSubmitAnswer,
         onNextQuestion = viewModel::onNextQuestion,
+        onPreviousQuestion = viewModel::onPreviousQuestion,
+        onSubmitFreePractice = viewModel::onSubmitFreePractice,
+        onReviewFreePracticeAnswers = viewModel::onReviewFreePracticeAnswers,
         onReplayAudio = viewModel::onReplayAudio,
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
@@ -207,6 +210,9 @@ private fun ListeningPracticeScreen(
     onOptionSelected: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
+    onPreviousQuestion: () -> Unit,
+    onSubmitFreePractice: () -> Unit,
+    onReviewFreePracticeAnswers: () -> Unit,
     onReplayAudio: () -> Unit,
     onRetryLoad: () -> Unit,
     onFinishSession: () -> Unit
@@ -289,11 +295,18 @@ private fun ListeningPracticeScreen(
                         modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                     )
                 }
-                Button(
-                    onClick = onFinishSession,
-                    modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp)
+                Row(
+                    modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("完成")
+                    if (uiState.isFreePractice) {
+                        OutlinedButton(onClick = onReviewFreePracticeAnswers) {
+                            Text("查看作答")
+                        }
+                    }
+                    Button(onClick = onFinishSession) {
+                        Text("完成")
+                    }
                 }
             }
         }
@@ -470,12 +483,57 @@ private fun ListeningPracticeScreen(
                             }
                         }
 
+                        if (uiState.isFreePractice) {
+                            Text(
+                                text = "已作答 ${uiState.answeredQuestionCount} / ${uiState.totalQuestionCount}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.End,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            when (uiState.stage) {
-                                ListeningPracticeStage.Ready -> {
+                            when {
+                                uiState.isFreePractice -> {
+                                    val isFirstQuestion = uiState.currentQuestionOrdinal <= 1
+                                    val isLastQuestion =
+                                        uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
+                                    Box(modifier = Modifier.fillMaxWidth()) {
+                                        if (!isFirstQuestion) {
+                                            OutlinedButton(
+                                                onClick = onPreviousQuestion,
+                                                modifier = Modifier.align(Alignment.CenterStart)
+                                            ) {
+                                                Text("上一问")
+                                            }
+                                        }
+                                        Button(
+                                            onClick = when {
+                                                isLastQuestion && uiState.isReviewMode -> onFinishSession
+                                                isLastQuestion -> onSubmitFreePractice
+                                                else -> onNextQuestion
+                                            },
+                                            enabled = uiState.isReviewMode ||
+                                                !isLastQuestion ||
+                                                uiState.answeredQuestionCount == uiState.totalQuestionCount,
+                                            modifier = Modifier.align(Alignment.CenterEnd)
+                                        ) {
+                                            Text(
+                                                when {
+                                                    isLastQuestion && uiState.isReviewMode -> "完成回顾"
+                                                    isLastQuestion -> "提交"
+                                                    else -> "下一问"
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+
+                                uiState.stage == ListeningPracticeStage.Ready -> {
                                     Button(
                                         onClick = onSubmitAnswer,
                                         enabled = uiState.canSubmitAnswer
@@ -484,7 +542,7 @@ private fun ListeningPracticeScreen(
                                     }
                                 }
 
-                                ListeningPracticeStage.AnswerEvaluated -> {
+                                uiState.stage == ListeningPracticeStage.AnswerEvaluated -> {
                                     val isLast =
                                         uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
                                     Button(onClick = onNextQuestion) {

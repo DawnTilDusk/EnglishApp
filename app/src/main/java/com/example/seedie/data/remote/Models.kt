@@ -176,6 +176,7 @@ data class SupabaseListeningMaterial(
     @SerialName("material_type") val material_type: String? = null,
     @SerialName("prompt_text") val prompt_text: String? = null,
     val transcript: String? = null,
+    @SerialName("transcript_zh") val transcript_zh: String? = null,
     @SerialName("audio_url") val audio_url: String? = null,
     @SerialName("estimated_seconds") val estimated_seconds: Int = 0,
     @SerialName("sort_order") val sort_order: Int = 0,
