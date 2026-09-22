@@ -304,8 +304,8 @@ class ListeningPracticeViewModel @Inject constructor(
         completeFreePractice()
     }
 
-    fun onReviewFreePracticeAnswers() {
-        if (!isFreePractice || _uiState.value.stage != ListeningPracticeStage.Completed) return
+    fun onReviewAnswers() {
+        if (_uiState.value.stage != ListeningPracticeStage.Completed) return
         val currentSession = session ?: return
         isReviewMode = true
         showQuestion(

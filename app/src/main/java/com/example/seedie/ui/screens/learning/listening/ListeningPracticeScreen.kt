@@ -1,6 +1,5 @@
 package com.example.seedie.ui.screens.learning.listening
 
-import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.rememberUpdatedState
@@ -13,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +26,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -45,6 +44,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,8 +54,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.seedie.BuildConfig
-import com.example.seedie.data.audio.WordAudioPlayer
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
 import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
@@ -62,7 +61,6 @@ import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
-import java.util.Locale
 
 @Composable
 fun ListeningPracticeRoute(
@@ -95,51 +93,12 @@ private fun ListeningPracticeRouteBody(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val audioPlayer = remember { WordAudioPlayer(context.applicationContext) }
-    var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
-    var speakerReady by remember { mutableStateOf(false) }
-    var pendingSpeech by remember { mutableStateOf<String?>(null) }
-    var audioFeedbackMessage by remember { mutableStateOf<String?>(null) }
-
-    fun logAudioDebug(message: String) {
-        if (BuildConfig.DEBUG) {
-            Log.d(AUDIO_LOG_TAG, message)
-        }
-    }
-
-    fun speakFallback(text: String) {
-        if (speakerReady) {
-            audioPlayer.stop()
-            logAudioDebug("TTS speak: $text")
-            speaker?.speak(
-                text,
-                TextToSpeech.QUEUE_FLUSH,
-                null,
-                text
-            )
-            pendingSpeech = null
-        } else {
-            logAudioDebug("TTS not ready, queue pending: $text")
-            pendingSpeech = text
-        }
-    }
-
-    fun playWordAudio(audioUrl: String?, fallbackText: String) {
-        speaker?.stop()
-        val resolvedUrl = audioUrl?.takeIf { it.isNotBlank() }
-        if (resolvedUrl != null) {
-            logAudioDebug("playWordAudio ExoPlayer url=$resolvedUrl")
-            audioFeedbackMessage = null
-            audioPlayer.playUrl(resolvedUrl) {
-                logAudioDebug("playWordAudio remote audio failed, fallback to TTS")
-                audioFeedbackMessage = "远端音频播放失败，已改用文本播报，请稍后重试。"
-                speakFallback(fallbackText)
-            }
-        } else {
-            logAudioDebug("playWordAudio no remote audio, TTS: $fallbackText")
-            audioFeedbackMessage = "远端音频当前不可用，已改用文本播报。"
-            speakFallback(fallbackText)
-        }
+    val playbackScope = rememberCoroutineScope()
+    val playback = remember { ListeningPlaybackController(context.applicationContext, playbackScope) }
+    val audioState by playback.state.collectAsState()
+    DisposableEffect(playback) { onDispose { playback.release() } }
+    LaunchedEffect(uiState.stage) {
+        if (uiState.stage == ListeningPracticeStage.Completed || uiState.stage == ListeningPracticeStage.Error) playback.stop()
     }
 
     LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef, speciesId) {
@@ -147,35 +106,6 @@ private fun ListeningPracticeRouteBody(
         when {
             assignmentArgs != null -> viewModel.initializeAssignment(assignmentArgs)
             freeArgs != null -> viewModel.initializeFree(freeArgs)
-        }
-    }
-
-    DisposableEffect(Unit) {
-        var textToSpeech: TextToSpeech? = null
-        textToSpeech = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                speakerReady = true
-                textToSpeech?.language = Locale.US
-            } else {
-                logAudioDebug("TextToSpeech init failed status=$status")
-            }
-        }
-        speaker = textToSpeech
-        onDispose {
-            audioPlayer.release()
-            textToSpeech?.stop()
-            textToSpeech?.shutdown()
-            speaker = null
-            speakerReady = false
-            pendingSpeech = null
-        }
-    }
-
-    LaunchedEffect(speakerReady, pendingSpeech) {
-        val queued = pendingSpeech
-        if (speakerReady && queued != null) {
-            logAudioDebug("Playing pending TTS: $queued")
-            speakFallback(queued)
         }
     }
 
@@ -187,13 +117,27 @@ private fun ListeningPracticeRouteBody(
 
     LaunchedEffect(Unit) {
         viewModel.playAudioEvents.collect { event ->
-            playWordAudio(event.audioUrl, event.fallbackText)
+            playback.play(event.audioUrl, event.fallbackText)
         }
     }
 
     ListeningPracticeScreen(
         uiState = uiState,
-        audioFeedbackMessage = audioFeedbackMessage,
+        audioFeedbackMessage = audioState.message,
+        audioPlaying = audioState.playing,
+        audioPaused = audioState.paused,
+        onToggleReviewAudio = {
+            if (uiState.isReviewMode) {
+                when {
+                    audioState.playing -> playback.pause()
+                    audioState.paused -> playback.resume()
+                    else -> viewModel.onReplayAudio()
+                }
+            }
+        },
+        onPlayMaterial = { material ->
+            if (uiState.isReviewMode) playback.play(material.audioUrl, material.transcript.orEmpty())
+        },
         onNavigateBack = onNavigateBack,
         onBackClick = viewModel::onBackClick,
         onConfirmExit = viewModel::onConfirmExit,
@@ -203,7 +147,7 @@ private fun ListeningPracticeRouteBody(
         onNextQuestion = viewModel::onNextQuestion,
         onQuestionPageSelected = viewModel::onQuestionPageSelected,
         onSubmitFreePractice = viewModel::onSubmitFreePractice,
-        onReviewFreePracticeAnswers = viewModel::onReviewFreePracticeAnswers,
+        onReviewAnswers = viewModel::onReviewAnswers,
         onReplayAudio = viewModel::onReplayAudio,
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
@@ -214,6 +158,10 @@ private fun ListeningPracticeRouteBody(
 private fun ListeningPracticeScreen(
     uiState: ListeningPracticeUiState,
     audioFeedbackMessage: String?,
+    audioPlaying: Boolean,
+    audioPaused: Boolean,
+    onToggleReviewAudio: () -> Unit,
+    onPlayMaterial: (ListeningMaterialItem) -> Unit,
     onNavigateBack: () -> Unit,
     onBackClick: () -> Unit,
     onConfirmExit: () -> Unit,
@@ -223,7 +171,7 @@ private fun ListeningPracticeScreen(
     onNextQuestion: () -> Unit,
     onQuestionPageSelected: (Int) -> Unit,
     onSubmitFreePractice: () -> Unit,
-    onReviewFreePracticeAnswers: () -> Unit,
+    onReviewAnswers: () -> Unit,
     onReplayAudio: () -> Unit,
     onRetryLoad: () -> Unit,
     onFinishSession: () -> Unit
@@ -310,8 +258,8 @@ private fun ListeningPracticeScreen(
                     modifier = Modifier.padding(top = if (uiState.isReviewMode) 24.dp else 0.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    if (uiState.isFreePractice) {
-                        OutlinedButton(onClick = onReviewFreePracticeAnswers) {
+                    if (!uiState.isReviewMode) {
+                        OutlinedButton(onClick = onReviewAnswers) {
                             Text("查看作答")
                         }
                     }
@@ -327,6 +275,10 @@ private fun ListeningPracticeScreen(
             ListeningQuestionContent(
                 uiState = uiState,
                 audioFeedbackMessage = audioFeedbackMessage,
+                audioPlaying = audioPlaying,
+                audioPaused = audioPaused,
+                onToggleReviewAudio = onToggleReviewAudio,
+                onPlayMaterial = onPlayMaterial,
                 onBackClick = onBackClick,
                 onOptionSelected = onOptionSelected,
                 onSubmitAnswer = onSubmitAnswer,
@@ -344,6 +296,10 @@ private fun ListeningPracticeScreen(
 private fun ListeningQuestionContent(
     uiState: ListeningPracticeUiState,
     audioFeedbackMessage: String?,
+    audioPlaying: Boolean,
+    audioPaused: Boolean,
+    onToggleReviewAudio: () -> Unit,
+    onPlayMaterial: (ListeningMaterialItem) -> Unit,
     onBackClick: () -> Unit,
     onOptionSelected: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
@@ -361,7 +317,7 @@ private fun ListeningQuestionContent(
         mutableStateOf(true)
     }
     // Assignment questions unlock after submission; free practice and review allow all pages.
-    val pageCount = if (uiState.isFreePractice || uiState.isReviewMode) pages.size else {
+    val pageCount = if (uiState.isReviewMode) listeningReviewPageCount(pages.size, true) else if (uiState.isFreePractice) pages.size else {
         val firstUnanswered = pages.indexOfFirst { it.questionId !in uiState.evaluatedQuestionIds }
         if (firstUnanswered < 0) pages.size else firstUnanswered + 1
     }
@@ -371,11 +327,13 @@ private fun ListeningQuestionContent(
     )
     val selectPage by rememberUpdatedState(onQuestionPageSelected)
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.settledPage }.distinctUntilChanged().collect { selectPage(it) }
+        snapshotFlow { pagerState.settledPage }.distinctUntilChanged().collect { if (it < pages.size) selectPage(it) }
     }
+    val coroutineScope = rememberCoroutineScope()
+    val transcriptPage = uiState.isReviewMode && pagerState.currentPage == pages.size
     val isLast = uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
     val pageSettled = !pagerState.isScrollInProgress &&
-        pagerState.settledPage == uiState.currentQuestionOrdinal - 1
+        (pagerState.settledPage == uiState.currentQuestionOrdinal - 1 || transcriptPage)
 
     Column(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
@@ -387,9 +345,9 @@ private fun ListeningQuestionContent(
             }
             Text("听力训练", modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text("${uiState.currentQuestionOrdinal} / ${uiState.totalQuestionCount}",
+            Text(if (transcriptPage) "原文对照" else "${uiState.currentQuestionOrdinal} / ${uiState.totalQuestionCount}",
                 style = MaterialTheme.typography.titleMedium)
-            if (evaluated) {
+            if (evaluated && !transcriptPage) {
                 IconButton(onClick = { explanationExpanded = !explanationExpanded },
                     modifier = Modifier.semantics {
                         contentDescription = if (explanationExpanded) "收起解析" else "展开解析"
@@ -398,7 +356,7 @@ private fun ListeningQuestionContent(
                 }
             }
         }
-        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+        if (!transcriptPage) Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -413,10 +371,16 @@ private fun ListeningQuestionContent(
                     Text("用时 ${uiState.elapsedSeconds}s", style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                IconButton(onClick = onReplayAudio, enabled = pageSettled,
+                IconButton(onClick = if (uiState.isReviewMode) onToggleReviewAudio else onReplayAudio,
+                    enabled = pageSettled && (uiState.isReviewMode || !audioPlaying),
                     modifier = Modifier.size(56.dp)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = "播放听力材料",
+                    Icon(if (uiState.isReviewMode && audioPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = when {
+                            uiState.isReviewMode && audioPlaying -> "暂停听力"
+                            uiState.isReviewMode && audioPaused -> "继续播放"
+                            else -> "播放听力材料"
+                        },
                         modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
                 }
             }
@@ -429,9 +393,23 @@ private fun ListeningQuestionContent(
             state = pagerState,
             modifier = Modifier.weight(1f).fillMaxWidth(),
             pageSpacing = 16.dp,
-            key = { pages[it].questionId },
+            key = { if (it == pages.size) "transcript-review" else pages[it].questionId },
             verticalAlignment = Alignment.Top
         ) { page ->
+            if (uiState.isReviewMode && page == pages.size) {
+                ListeningTranscriptReview(
+                    materials = uiState.materials,
+                    onQuestionClick = { id ->
+                        val target = pages.indexOfFirst { it.questionId == id }
+                        if (target >= 0) coroutineScope.launch { pagerState.animateScrollToPage(target) }
+                    },
+                    onPlayMaterial = onPlayMaterial,
+                    audioPlaying = audioPlaying,
+                    audioPaused = audioPaused,
+                    onToggleAudio = onToggleReviewAudio
+                )
+                return@HorizontalPager
+            }
             val question = pages[page]
             val selected = uiState.selectedAnswers[question.questionId]
             val feedbackVisible = uiState.isReviewMode || question.questionId in uiState.evaluatedQuestionIds
@@ -498,7 +476,14 @@ private fun ListeningQuestionContent(
                 }
             }
         }
-        if (uiState.isFreePractice && !uiState.isReviewMode) {
+        if (uiState.isReviewMode) {
+            Button(onClick = {
+                if (transcriptPage) onFinishSession()
+                else coroutineScope.launch { pagerState.animateScrollToPage(pages.size) }
+            }, enabled = pageSettled, modifier = Modifier.align(Alignment.End)) {
+                Text(if (transcriptPage) "完成回顾" else "原文对照")
+            }
+        } else if (uiState.isFreePractice) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("已作答 ${uiState.answeredQuestionCount} / ${uiState.totalQuestionCount}",
                     modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
@@ -516,5 +501,3 @@ private fun ListeningQuestionContent(
         }
     }
 }
-
-private const val AUDIO_LOG_TAG = "SeedieAudio"

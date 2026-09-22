@@ -161,6 +161,24 @@ class WordAudioPlayer(context: Context) {
         }
     }
 
+    fun pause() {
+        resumeWhenFocusReturns = false
+        rawPlayer?.pause()
+        streamPlayer.pause()
+        _isPlaying.value = false
+        abandonAudioFocus()
+    }
+
+    fun resume() {
+        if (!requestAudioFocus()) return
+        if (rawPlayer != null) {
+            rawPlayer?.start()
+            _isPlaying.value = true
+        } else if (streamPlayer.mediaItemCount > 0) {
+            streamPlayer.play()
+        }
+    }
+
     fun stop() {
         clearStreamPlaybackFailedCallback()
         stopRawPlayer()
