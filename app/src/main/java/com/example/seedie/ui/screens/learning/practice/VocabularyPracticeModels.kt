@@ -130,7 +130,8 @@ data class VocabularyPracticeSession(
     val sessionMeta: VocabularySessionMeta,
     val studyWords: List<VocabularyPracticeWord>,
     val reviewWords: List<VocabularyPracticeWord>,
-    val resumeSnapshot: VocabularyPracticeResumeSnapshot? = null
+    val resumeSnapshot: VocabularyPracticeResumeSnapshot? = null,
+    val reviewRoundId: String? = null
 )
 
 data class PendingReviewEntry(
@@ -196,4 +197,10 @@ data class VocabularyPracticeUiState(
     val showFinishDialog: Boolean = false,
     val sessionOpenedAtMillis: Long = 0L,
     val errorMessage: String? = null
-)
+) {
+    val remainingWordCount: Int
+        get() = when (currentSection) {
+            VocabularyPracticeMode.Study -> (studyTargetCount - masteredStudyCount).coerceAtLeast(0)
+            VocabularyPracticeMode.Review -> reviewQueueSize.coerceAtLeast(0)
+        }
+}

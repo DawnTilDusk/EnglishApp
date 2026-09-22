@@ -1,6 +1,7 @@
 package com.example.seedie.ui.screens.learning.practice
 
 import android.speech.tts.TextToSpeech
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -31,7 +32,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Lightbulb
-import androidx.compose.material.icons.filled.LocalFlorist
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
@@ -67,11 +67,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.ui.components.PracticeOptionCard
-import com.example.seedie.ui.screens.garden.GardenExitConfirmDialog
-import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
@@ -82,33 +79,17 @@ fun VocabularyPracticeRoute(
     onNavigateBack: () -> Unit,
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
-    PlantSessionGate { speciesId ->
-        VocabularyPracticeRouteContent(
-            args = args,
-            speciesId = speciesId,
-            onFinishSession = onFinishSession,
-            onNavigateBack = onNavigateBack,
-            viewModel = viewModel
-        )
-    }
-}
-
-@Composable
-private fun VocabularyPracticeRouteContent(
-    args: VocabularyPracticeArgs,
-    speciesId: String,
-    onFinishSession: (StudyResult) -> Unit,
-    onNavigateBack: () -> Unit,
-    viewModel: VocabularyPracticeViewModel
-) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
     var speakerReady by remember { mutableStateOf(false) }
 
-    LaunchedEffect(args, speciesId) {
-        viewModel.setSelectedSpeciesId(speciesId)
+    LaunchedEffect(args) {
         viewModel.initialize(args)
+    }
+
+    BackHandler {
+        if (uiState.sessionMeta == null) onNavigateBack() else viewModel.onBackClick()
     }
 
     DisposableEffect(context) {
@@ -182,12 +163,31 @@ private fun VocabularyPracticeScreen(
     onDeferReview: () -> Unit
 ) {
     if (uiState.showExitConfirmDialog) {
-        GardenExitConfirmDialog(
-            answeredQuestionCount = uiState.correctCount + uiState.wrongCount + uiState.skippedCount,
-            withinAbandonGrace = com.example.seedie.domain.usecase.GardenForestRules
-                .isWithinAbandonGrace(uiState.sessionOpenedAtMillis),
-            onConfirmExit = onConfirmExit,
-            onContinue = onDismissExitDialog
+        AlertDialog(
+            onDismissRequest = onDismissExitDialog,
+            title = { Text("要先休息一下吗？") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        if (uiState.currentSection == VocabularyPracticeMode.Review) {
+                            "本轮还有 ${uiState.remainingWordCount} 个单词待复习，确定现在退出吗？"
+                        } else {
+                            "本轮还有 ${uiState.remainingWordCount} 个单词没有掌握，确定现在退出吗？"
+                        }
+                    )
+                    Text(
+                        "每一次坚持，都在让进步悄悄发生。也别忘了照顾自己，学习进度会为你保留。",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = onDismissExitDialog) { Text("取消，继续学") }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = onConfirmExit) { Text("退出，歇一会儿") }
+            }
         )
     }
 
@@ -234,7 +234,7 @@ private fun PracticeContent(
     onReplayPronunciation: () -> Unit
 ) {
     val currentPrompt = uiState.currentPrompt ?: return
-    val totalStudy = uiState.session?.studyWords?.size?.coerceAtLeast(1) ?: 1
+    val totalStudy = uiState.studyTargetCount.coerceAtLeast(1)
     val totalReview = uiState.session?.reviewWords?.size?.coerceAtLeast(1) ?: 1
     val progress = when (uiState.currentSection) {
         VocabularyPracticeMode.Study -> uiState.masteredStudyCount / totalStudy.toFloat()
@@ -286,7 +286,7 @@ private fun PracticeContent(
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Text(
-                            text = "背单词练习",
+                            text = if (uiState.currentSection == VocabularyPracticeMode.Review) "单词复习" else "背单词练习",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
@@ -867,7 +867,7 @@ private fun CompletedState(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.LocalFlorist,
+                    imageVector = Icons.Default.CheckCircle,
                     contentDescription = "Done",
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(64.dp)

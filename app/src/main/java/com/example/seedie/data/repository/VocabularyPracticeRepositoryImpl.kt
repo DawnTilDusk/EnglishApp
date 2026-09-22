@@ -11,6 +11,7 @@ import com.example.seedie.data.local.dao.WordBookDao
 import com.example.seedie.data.remote.AuthService
 import com.example.seedie.data.sync.SyncManager
 import com.example.seedie.data.sync.SyncScope
+import com.example.seedie.di.ApplicationScope
 import com.example.seedie.data.local.entity.VocabularyBookProgressEntity
 import com.example.seedie.data.local.entity.VocabularyStudyRoundEntity
 import com.example.seedie.data.local.entity.VocabularyStudyRoundWordEntity
@@ -31,6 +32,9 @@ import com.example.seedie.ui.screens.learning.practice.VocabularySessionMeta
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 @Singleton
@@ -45,7 +49,8 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     private val authService: AuthService,
     private val syncManager: SyncManager,
     private val wordBookSeeder: WordBookSeeder,
-    private val vocabularyOptionBuilder: VocabularyOptionBuilder
+    private val vocabularyOptionBuilder: VocabularyOptionBuilder,
+    @param:ApplicationScope private val appScope: CoroutineScope
 ) : VocabularyPracticeRepository {
 
     private fun currentUserId() = authService.currentSession.value?.userId ?: ""
@@ -61,10 +66,21 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         const val ROUND_STATUS_REVIEW_PENDING = "REVIEW_PENDING"
         const val ROUND_STATUS_REVIEW_COMPLETED = "REVIEW_COMPLETED"
         const val CURSOR_END_SENTINEL = Int.MAX_VALUE
+        const val FALLBACK_REVIEW_ROUND_PREFIX = "fallback_review"
     }
 
     private val questionRecords = linkedMapOf<String, MutableList<VocabularyQuestionRecord>>()
     private val completedResults = linkedMapOf<String, StudyResult>()
+    private val progressSyncRequests = Channel<Unit>(Channel.CONFLATED)
+
+    init {
+        // 本地保存完成即可返回；合并后台同步请求，不让退出操作等待网络。
+        appScope.launch {
+            for (request in progressSyncRequests) {
+                syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+            }
+        }
+    }
 
     override suspend fun getPracticeSession(args: VocabularyPracticeArgs): VocabularyPracticeSession {
         val sessionId = args.sessionId ?: UUID.randomUUID().toString()
@@ -153,6 +169,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         val now = System.currentTimeMillis()
         database.withTransaction {
             val round = vocabularyStudyRoundDao.getRoundById(snapshot.roundId) ?: return@withTransaction
+            if (round.status != ROUND_STATUS_ACTIVE) return@withTransaction
             val existingRoundWords = vocabularyStudyRoundWordDao.getRoundWords(snapshot.roundId)
             val activeWordIds = snapshot.activeWordIds.toSet()
             val previouslyMasteredRows = existingRoundWords.filter { it.isMasteredInRound }
@@ -211,7 +228,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                     userId = currentUserId(),
                     bookId = snapshot.bookId,
                     wordId = it,
-                    status = WORD_STATUS_LEARNED,
+                    status = WORD_STATUS_REVIEW_PENDING,
                     lastStudiedAt = now,
                     learnedAt = now
                 )
@@ -234,7 +251,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             )
         }
-        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        progressSyncRequests.trySend(Unit)
     }
 
     override suspend fun markStudyRoundReviewPending(roundId: String) {
@@ -260,9 +277,13 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 }
                 ?: CURSOR_END_SENTINEL
             val masteredWordIds = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).map { it.wordId }
+            val pendingWordIds = vocabularyWordLearningProgressDao.getProgressByWordIds(
+                currentUserId(), round.bookId, masteredWordIds
+            ).filter { it.status == WORD_STATUS_LEARNED || it.status == WORD_STATUS_REVIEW_PENDING }
+                .map { it.wordId }
             vocabularyStudyRoundDao.insertOrReplace(
                 round.copy(
-                    status = ROUND_STATUS_REVIEW_PENDING,
+                    status = if (pendingWordIds.isEmpty()) ROUND_STATUS_REVIEW_COMPLETED else ROUND_STATUS_REVIEW_PENDING,
                     nextWordSortOrderCursor = nextBatchCursor,
                     updatedAt = now
                 )
@@ -279,15 +300,15 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             vocabularyBookProgressDao.insertOrReplace(
                 currentBookProgress.copy(
-                    nextWordSortOrderCursor = nextBatchCursor,
+                    nextWordSortOrderCursor = maxOf(currentBookProgress.nextWordSortOrderCursor, nextBatchCursor),
                     activeRoundId = null,
                     learnedWordCount = currentBookProgress.learnedWordCount + round.masteredWordCount,
                     updatedAt = now
                 )
             )
-            if (masteredWordIds.isNotEmpty()) {
+            if (pendingWordIds.isNotEmpty()) {
                 vocabularyWordLearningProgressDao.insertOrReplace(
-                    masteredWordIds.map { wordId ->
+                    pendingWordIds.map { wordId ->
                         VocabularyWordLearningProgressEntity(
                             userId = currentUserId(),
                             bookId = round.bookId,
@@ -300,7 +321,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
         }
-        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        progressSyncRequests.trySend(Unit)
     }
 
     override suspend fun markReviewWordMastered(
@@ -324,7 +345,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
         }
-        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        progressSyncRequests.trySend(Unit)
         return result
     }
 
@@ -349,7 +370,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
         }
-        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        progressSyncRequests.trySend(Unit)
         return result
     }
 
@@ -381,23 +402,33 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
             }
             vocabularyStudyRoundWordDao.deleteByRoundId(roundId)
         }
-        syncManager.syncNow(SyncScope.VOCABULARY_PROGRESS)
+        progressSyncRequests.trySend(Unit)
     }
 
+    // 按单词统计，也兼容旧版本中已通过三关但整轮尚未结束的 LEARNED 单词。
     override suspend fun getPendingReviewEntry(): PendingReviewEntry? {
         val activeBook = loadActiveBook()
-        val pendingRound = vocabularyStudyRoundDao.getLatestRoundByStatus(
-            userId = currentUserId(),
+        val userId = currentUserId()
+        val globalCount = vocabularyWordLearningProgressDao.countWordsInStatuses(
+            userId = userId,
             bookId = activeBook.bookId,
-            status = ROUND_STATUS_REVIEW_PENDING
-        ) ?: return null
-        val pendingWordCount = vocabularyStudyRoundWordDao.getMasteredRoundWords(pendingRound.roundId).size
-        if (pendingWordCount == 0) return null
-        return PendingReviewEntry(
-            roundId = pendingRound.roundId,
-            bookId = pendingRound.bookId,
-            pendingWordCount = pendingWordCount
+            statuses = listOf(WORD_STATUS_LEARNED, WORD_STATUS_REVIEW_PENDING)
         )
+        if (globalCount <= 0) return null
+        return PendingReviewEntry(
+            roundId = "${FALLBACK_REVIEW_ROUND_PREFIX}_${activeBook.bookId}",
+            bookId = activeBook.bookId,
+            pendingWordCount = globalCount
+        )
+    }
+
+    override suspend fun getPendingReviewWordCount(roundId: String): Int {
+        val round = vocabularyStudyRoundDao.getRoundById(roundId) ?: return 0
+        if (round.userId != currentUserId()) return 0
+        val wordIds = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId).map { it.wordId }
+        return vocabularyWordLearningProgressDao.getProgressByWordIds(
+            currentUserId(), round.bookId, wordIds
+        ).count { it.status == WORD_STATUS_LEARNED || it.status == WORD_STATUS_REVIEW_PENDING }
     }
 
     private suspend fun buildPendingReviewSession(
@@ -408,14 +439,57 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         random: Random,
         roundId: String
     ): VocabularyPracticeSession {
-        val round = vocabularyStudyRoundDao.getRoundById(roundId)
-            ?.takeIf { it.status == ROUND_STATUS_REVIEW_PENDING }
-            ?: error("待复习轮次不存在或已完成")
-        val masteredRoundWords = vocabularyStudyRoundWordDao.getMasteredRoundWords(roundId)
-        val reviewWordIds = masteredRoundWords.map { it.wordId }
-        val reviewEntryMap = vocabularyWordDao.getWordsByIds(activeBook.bookId, reviewWordIds)
-            .associateBy { it.wordId }
-        val reviewEntries = reviewWordIds.mapNotNull { reviewEntryMap[it] }
+        val wordBankById = wordBank.associateBy { it.wordId }
+        val userId = currentUserId()
+        val allPendingWordIds = vocabularyWordLearningProgressDao.getWordIdsByStatuses(
+            userId, activeBook.bookId, listOf(WORD_STATUS_LEARNED, WORD_STATUS_REVIEW_PENDING)
+        )
+        val reviewWordIds = if (roundId == "${FALLBACK_REVIEW_ROUND_PREFIX}_${activeBook.bookId}") {
+            allPendingWordIds
+        } else {
+            val round = vocabularyStudyRoundDao.getRoundById(roundId)
+                ?.takeIf { it.userId == userId && it.bookId == activeBook.bookId }
+                ?: error("待复习轮次不存在或已完成")
+            vocabularyStudyRoundWordDao.getMasteredRoundWords(round.roundId)
+                .map { it.wordId }.filter { it in allPendingWordIds }
+        }
+        val reviewEntries = reviewWordIds.mapNotNull { wordBankById[it] }
+        // 汇总入口只是查询标识；答题绑定真实轮次，避免虚拟 ID 导致结果无法落库。
+        val reviewRoundId = UUID.nameUUIDFromBytes(
+            "vocabulary-review:$userId:${activeBook.bookId}".toByteArray(Charsets.UTF_8)
+        ).toString()
+        val now = System.currentTimeMillis()
+        if (reviewEntries.isNotEmpty()) database.withTransaction {
+            vocabularyStudyRoundWordDao.deleteByRoundId(reviewRoundId)
+            vocabularyStudyRoundDao.insertOrReplace(
+                VocabularyStudyRoundEntity(
+                    roundId = reviewRoundId,
+                    userId = userId,
+                    bookId = activeBook.bookId,
+                    status = ROUND_STATUS_REVIEW_PENDING,
+                    targetWordCount = reviewEntries.size,
+                    introducedWordCount = reviewEntries.size,
+                    masteredWordCount = reviewEntries.size,
+                    activeQueueSize = 0,
+                    nextWordSortOrderCursor = CURSOR_END_SENTINEL,
+                    createdAt = now,
+                    updatedAt = now
+                )
+            )
+            vocabularyStudyRoundWordDao.insertOrReplace(reviewEntries.mapIndexed { index, entry ->
+                VocabularyStudyRoundWordEntity(
+                    roundId = reviewRoundId,
+                    wordId = entry.wordId,
+                    queueOrder = index,
+                    passedStages = "",
+                    hasSeenStudyWord = true,
+                    totalWrongCount = 0,
+                    revealCount = 0,
+                    isMasteredInRound = true,
+                    updatedAt = now
+                )
+            })
+        }
         return VocabularyPracticeSession(
             sessionMeta = VocabularySessionMeta(
                 sessionId = sessionId,
@@ -426,6 +500,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 source = args.planId ?: "learning_hub",
                 resumeSupported = false
             ),
+            reviewRoundId = reviewRoundId,
             studyWords = emptyList(),
             reviewWords = reviewEntries.map { entry ->
                 vocabularyOptionBuilder.toPracticeWord(entity = entry, allEntries = wordBank, random = random)
@@ -520,7 +595,18 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
         random: Random,
         bookProgress: VocabularyBookProgressEntity
     ): VocabularyPracticeSession {
-        if (bookProgress.nextWordSortOrderCursor == CURSOR_END_SENTINEL) {
+        val wordBankById = wordBank.associateBy { it.wordId }
+        val backloggedEntries = vocabularyWordLearningProgressDao.getWordIdsByStatus(
+            currentUserId(), activeBook.bookId, WORD_STATUS_LEARNING
+        ).mapNotNull { wordBankById[it] }
+            .filter { it.sortOrder < bookProgress.nextWordSortOrderCursor }
+            .take(STAGE_ACTIVE_QUEUE_SIZE)
+        val freshEntries = filteredPool
+            .filter { it.sortOrder >= bookProgress.nextWordSortOrderCursor }
+            .take(STAGE_STUDY_TARGET_COUNT)
+        // 重学词独立成轮并一次全部入队，避免恢复时顺序游标跳过非连续的老词。
+        val studyEntries = backloggedEntries.ifEmpty { freshEntries }
+        if (studyEntries.isEmpty()) {
             return VocabularyPracticeSession(
                 sessionMeta = VocabularySessionMeta(
                     sessionId = sessionId,
@@ -535,28 +621,10 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 reviewWords = emptyList()
             )
         }
-        val startSortOrder = filteredPool.firstOrNull { it.sortOrder >= bookProgress.nextWordSortOrderCursor }
-            ?.sortOrder
-            ?: return VocabularyPracticeSession(
-                sessionMeta = VocabularySessionMeta(
-                    sessionId = sessionId,
-                    moduleId = args.sourceModuleId,
-                    startedAt = System.currentTimeMillis(),
-                    targetWordCount = 0,
-                    difficulty = args.difficulty,
-                    source = args.planId ?: "learning_hub",
-                    resumeSupported = true
-                ),
-                studyWords = emptyList(),
-                reviewWords = emptyList()
-            )
-        val studyEntries = filteredPool
-            .filter { it.sortOrder >= startSortOrder }
-            .take(STAGE_STUDY_TARGET_COUNT)
-            .ifEmpty { filteredPool.take(STAGE_STUDY_TARGET_COUNT) }
         val roundId = UUID.randomUUID().toString()
         val introducedEntries = studyEntries.take(STAGE_ACTIVE_QUEUE_SIZE.coerceAtMost(studyEntries.size))
-        val nextCursor = studyEntries.getOrNull(introducedEntries.size)?.sortOrder ?: CURSOR_END_SENTINEL
+        val nextCursor = studyEntries.getOrNull(introducedEntries.size)?.sortOrder
+            ?: CURSOR_END_SENTINEL
         val now = System.currentTimeMillis()
 
         database.withTransaction {

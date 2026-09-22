@@ -75,7 +75,7 @@ fun PracticeModeChooserRoute(
                 )
                 ModeCard(
                     title = "磨耳朵",
-                    subtitle = "沉浸式外刊听读",
+                    subtitle = "英语短文随心听，支持循环与续听",
                     onClick = onSelectImmersion!!
                 )
             }

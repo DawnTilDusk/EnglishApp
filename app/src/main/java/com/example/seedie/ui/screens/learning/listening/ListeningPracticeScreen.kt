@@ -1,6 +1,18 @@
 package com.example.seedie.ui.screens.learning.listening
 
 import android.speech.tts.TextToSpeech
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.foundation.BorderStroke
+import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,7 +62,6 @@ import com.example.seedie.ui.screens.garden.PlantSessionGate
 import com.example.seedie.ui.screens.learning.assignments.PracticeAssignmentArgs
 import com.example.seedie.ui.screens.learning.catalog.FreePracticeArgs
 import com.example.seedie.ui.screens.learning.practice.AnswerStatus
-import com.example.seedie.ui.theme.gardenShadow
 import java.util.Locale
 
 @Composable
@@ -190,7 +201,7 @@ private fun ListeningPracticeRouteBody(
         onOptionSelected = viewModel::onOptionSelected,
         onSubmitAnswer = viewModel::onSubmitAnswer,
         onNextQuestion = viewModel::onNextQuestion,
-        onPreviousQuestion = viewModel::onPreviousQuestion,
+        onQuestionPageSelected = viewModel::onQuestionPageSelected,
         onSubmitFreePractice = viewModel::onSubmitFreePractice,
         onReviewFreePracticeAnswers = viewModel::onReviewFreePracticeAnswers,
         onReplayAudio = viewModel::onReplayAudio,
@@ -210,7 +221,7 @@ private fun ListeningPracticeScreen(
     onOptionSelected: (String) -> Unit,
     onSubmitAnswer: () -> Unit,
     onNextQuestion: () -> Unit,
-    onPreviousQuestion: () -> Unit,
+    onQuestionPageSelected: (Int) -> Unit,
     onSubmitFreePractice: () -> Unit,
     onReviewFreePracticeAnswers: () -> Unit,
     onReplayAudio: () -> Unit,
@@ -313,256 +324,194 @@ private fun ListeningPracticeScreen(
 
         ListeningPracticeStage.Ready,
         ListeningPracticeStage.AnswerEvaluated -> {
-            val material = uiState.currentMaterial ?: return
-            val question = uiState.currentQuestion ?: return
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ListeningQuestionContent(
+                uiState = uiState,
+                audioFeedbackMessage = audioFeedbackMessage,
+                onBackClick = onBackClick,
+                onOptionSelected = onOptionSelected,
+                onSubmitAnswer = onSubmitAnswer,
+                onNextQuestion = onNextQuestion,
+                onQuestionPageSelected = onQuestionPageSelected,
+                onSubmitFreePractice = onSubmitFreePractice,
+                onReplayAudio = onReplayAudio,
+                onFinishSession = onFinishSession
+            )
+        }
+    }
+}
+
+@Composable
+private fun ListeningQuestionContent(
+    uiState: ListeningPracticeUiState,
+    audioFeedbackMessage: String?,
+    onBackClick: () -> Unit,
+    onOptionSelected: (String) -> Unit,
+    onSubmitAnswer: () -> Unit,
+    onNextQuestion: () -> Unit,
+    onQuestionPageSelected: (Int) -> Unit,
+    onSubmitFreePractice: () -> Unit,
+    onReplayAudio: () -> Unit,
+    onFinishSession: () -> Unit
+) {
+    val material = uiState.currentMaterial ?: return
+    val pages = remember(uiState.materials) { uiState.materials.flatMap { it.questions } }
+    if (pages.isEmpty()) return
+    val evaluated = uiState.stage == ListeningPracticeStage.AnswerEvaluated
+    var explanationExpanded by rememberSaveable(uiState.sessionId, uiState.isReviewMode) {
+        mutableStateOf(true)
+    }
+    // Assignment questions unlock after submission; free practice and review allow all pages.
+    val pageCount = if (uiState.isFreePractice || uiState.isReviewMode) pages.size else {
+        val firstUnanswered = pages.indexOfFirst { it.questionId !in uiState.evaluatedQuestionIds }
+        if (firstUnanswered < 0) pages.size else firstUnanswered + 1
+    }
+    val pagerState = rememberPagerState(
+        initialPage = (uiState.currentQuestionOrdinal - 1).coerceAtLeast(0),
+        pageCount = { pageCount }
+    )
+    val selectPage by rememberUpdatedState(onQuestionPageSelected)
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.distinctUntilChanged().collect { selectPage(it) }
+    }
+    val isLast = uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
+    val pageSettled = !pagerState.isScrollInProgress &&
+        pagerState.settledPage == uiState.currentQuestionOrdinal - 1
+
+    Column(
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = onBackClick) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
+            }
+            Text("听力训练", modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("${uiState.currentQuestionOrdinal} / ${uiState.totalQuestionCount}",
+                style = MaterialTheme.typography.titleMedium)
+            if (evaluated) {
+                IconButton(onClick = { explanationExpanded = !explanationExpanded },
+                    modifier = Modifier.semantics {
+                        contentDescription = if (explanationExpanded) "收起解析" else "展开解析"
+                    }) {
+                    Text(if (explanationExpanded) ">" else "<", color = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(material.titleZh ?: material.title, style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.secondary)
+                    material.promptText?.takeIf { it.isNotBlank() }?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("用时 ${uiState.elapsedSeconds}s", style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                IconButton(onClick = onReplayAudio, enabled = pageSettled,
+                    modifier = Modifier.size(56.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f), CircleShape)) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = "播放听力材料",
+                        modifier = Modifier.size(32.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
+        }
+        if (!audioFeedbackMessage.isNullOrBlank()) {
+            Text(audioFeedbackMessage, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error)
+        }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.weight(1f).fillMaxWidth(),
+            pageSpacing = 16.dp,
+            key = { pages[it].questionId },
+            verticalAlignment = Alignment.Top
+        ) { page ->
+            val question = pages[page]
+            val selected = uiState.selectedAnswers[question.questionId]
+            val feedbackVisible = uiState.isReviewMode || question.questionId in uiState.evaluatedQuestionIds
+            val answerStatus = when {
+                !feedbackVisible || selected == null -> AnswerStatus.Unanswered
+                selected == question.correctOptionId -> AnswerStatus.Correct
+                else -> AnswerStatus.Wrong
+            }
+            Row(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .gardenShadow(),
+                    modifier = Modifier.weight(if (feedbackVisible && explanationExpanded) 2f else 1f)
+                        .fillMaxHeight(),
                     shape = MaterialTheme.shapes.large,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.clickable(onClick = onBackClick)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "返回"
-                                )
-                                Text(
-                                    text = "听力训练",
-                                    modifier = Modifier.padding(start = 8.dp),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                if (uiState.totalMaterialCount > 1) {
-                                    Text("材料 ${uiState.currentMaterialIndex + 1} / ${uiState.totalMaterialCount}")
-                                }
-                                Text(
-                                    "材料内第 ${uiState.currentQuestionIndexInMaterial + 1} / ${uiState.currentQuestionCountInMaterial} 题"
-                                )
-                                Text("总进度 ${uiState.currentQuestionOrdinal} / ${uiState.totalQuestionCount}")
-                                Text("用时 ${uiState.elapsedSeconds}s")
-                            }
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f)
-                        ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.TopCenter),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Text(
-                                    text = material.titleZh ?: material.title,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                                if (!material.promptText.isNullOrBlank()) {
-                                    Text(
-                                        text = material.promptText,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                                IconButton(
-                                    onClick = onReplayAudio,
-                                    modifier = Modifier
-                                        .size(88.dp)
-                                        .background(
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                                            shape = CircleShape
-                                        )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.PlayArrow,
-                                        contentDescription = "播放听力材料",
-                                        modifier = Modifier.size(40.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                Text(
-                                    text = "播放听力材料",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                                if (!audioFeedbackMessage.isNullOrBlank()) {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f),
-                                        shape = MaterialTheme.shapes.medium
-                                    ) {
-                                        Text(
-                                            text = audioFeedbackMessage,
-                                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.error,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                }
-                                Text(
-                                    text = question.stem,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    textAlign = TextAlign.Center
-                                )
-                                if (uiState.stage == ListeningPracticeStage.AnswerEvaluated) {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
-                                        shape = MaterialTheme.shapes.medium
-                                    ) {
-                                        Column(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Text(
-                                                text = uiState.feedbackMessage,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                            if (!question.explanation.isNullOrBlank()) {
-                                                Text(
-                                                    text = question.explanation,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = if (uiState.answerStatus == AnswerStatus.Correct) {
-                                                        MaterialTheme.colorScheme.primary
-                                                    } else {
-                                                        MaterialTheme.colorScheme.error
-                                                    }
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.BottomCenter),
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                question.options.forEach { option ->
-                                    PracticeOptionCard(
-                                        option = option,
-                                        selectedOptionId = uiState.selectedOptionId,
-                                        answerStatus = uiState.answerStatus,
-                                        interactionEnabled = uiState.stage == ListeningPracticeStage.Ready,
-                                        feedbackVisible = uiState.stage == ListeningPracticeStage.AnswerEvaluated,
-                                        onOptionSelected = onOptionSelected
-                                    )
-                                }
-                            }
-                        }
-
-                        if (uiState.isFreePractice) {
-                            Text(
-                                text = "已作答 ${uiState.answeredQuestionCount} / ${uiState.totalQuestionCount}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.End,
-                                modifier = Modifier.fillMaxWidth()
+                        Text("第 ${page + 1} 题", style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary)
+                        Text(question.stem, style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold)
+                        question.options.forEach { option ->
+                            PracticeOptionCard(
+                                option = option,
+                                selectedOptionId = selected,
+                                answerStatus = answerStatus,
+                                interactionEnabled = pageSettled && page == pagerState.settledPage && !feedbackVisible,
+                                feedbackVisible = feedbackVisible,
+                                onOptionSelected = onOptionSelected,
+                                modifier = Modifier.heightIn(min = 64.dp)
                             )
-                        }
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            when {
-                                uiState.isFreePractice -> {
-                                    val isFirstQuestion = uiState.currentQuestionOrdinal <= 1
-                                    val isLastQuestion =
-                                        uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
-                                    Box(modifier = Modifier.fillMaxWidth()) {
-                                        if (!isFirstQuestion) {
-                                            OutlinedButton(
-                                                onClick = onPreviousQuestion,
-                                                modifier = Modifier.align(Alignment.CenterStart)
-                                            ) {
-                                                Text("上一问")
-                                            }
-                                        }
-                                        Button(
-                                            onClick = when {
-                                                isLastQuestion && uiState.isReviewMode -> onFinishSession
-                                                isLastQuestion -> onSubmitFreePractice
-                                                else -> onNextQuestion
-                                            },
-                                            enabled = uiState.isReviewMode ||
-                                                !isLastQuestion ||
-                                                uiState.answeredQuestionCount == uiState.totalQuestionCount,
-                                            modifier = Modifier.align(Alignment.CenterEnd)
-                                        ) {
-                                            Text(
-                                                when {
-                                                    isLastQuestion && uiState.isReviewMode -> "完成回顾"
-                                                    isLastQuestion -> "提交"
-                                                    else -> "下一问"
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-
-                                uiState.stage == ListeningPracticeStage.Ready -> {
-                                    Button(
-                                        onClick = onSubmitAnswer,
-                                        enabled = uiState.canSubmitAnswer
-                                    ) {
-                                        Text("提交")
-                                    }
-                                }
-
-                                uiState.stage == ListeningPracticeStage.AnswerEvaluated -> {
-                                    val isLast =
-                                        uiState.currentQuestionOrdinal >= uiState.totalQuestionCount
-                                    Button(onClick = onNextQuestion) {
-                                        Text(
-                                            when {
-                                                isLast && uiState.isReviewMode -> "完成回顾"
-                                                isLast -> "提交作业"
-                                                uiState.currentQuestionIndexInMaterial + 1 >=
-                                                    uiState.currentQuestionCountInMaterial -> "下一篇材料"
-                                                else -> "下一题"
-                                            }
-                                        )
-                                    }
-                                }
-
-                                else -> Unit
-                            }
                         }
                     }
                 }
+                if (feedbackVisible && explanationExpanded) {
+                    Surface(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        shape = MaterialTheme.shapes.large,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text("答案解析", style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                            Text("你的答案：${selected ?: "未作答"}", style = MaterialTheme.typography.bodyMedium)
+                            Text("正确答案：${question.correctOptionId}", style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary)
+                            Text(when (answerStatus) {
+                                AnswerStatus.Correct -> "回答正确"
+                                AnswerStatus.Wrong -> "回答错误"
+                                else -> "未作答"
+                            }, style = MaterialTheme.typography.bodyMedium,
+                                color = if (answerStatus == AnswerStatus.Wrong) MaterialTheme.colorScheme.error
+                                    else MaterialTheme.colorScheme.primary)
+                            Text(question.explanation?.takeIf { it.isNotBlank() } ?: "暂无解析",
+                                style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            }
+        }
+        if (uiState.isFreePractice && !uiState.isReviewMode) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("已作答 ${uiState.answeredQuestionCount} / ${uiState.totalQuestionCount}",
+                    modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
+                Button(onClick = onSubmitFreePractice,
+                    enabled = pageSettled && uiState.answeredQuestionCount == uiState.totalQuestionCount) { Text("提交") }
+            }
+        } else if (!uiState.isFreePractice && !evaluated) {
+            Button(onClick = onSubmitAnswer, enabled = pageSettled && uiState.canSubmitAnswer,
+                modifier = Modifier.align(Alignment.End)) { Text("提交本题") }
+        } else if (isLast) {
+            Button(onClick = if (uiState.isFreePractice) onFinishSession else onNextQuestion,
+                enabled = pageSettled, modifier = Modifier.align(Alignment.End)) {
+                Text(if (uiState.isReviewMode) "完成回顾" else "提交作业")
             }
         }
     }

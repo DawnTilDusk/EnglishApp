@@ -2,7 +2,6 @@ package com.example.seedie.ui.screens.learning.practice
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.seedie.domain.model.GardenSpeciesCatalog
 import com.example.seedie.domain.model.StudyResult
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,12 +38,10 @@ class VocabularyPracticeViewModel @Inject constructor(
     val pronunciationEvents = _pronunciationEvents.asSharedFlow()
 
     private var initializedArgs: VocabularyPracticeArgs? = null
-    private var selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID
     private var sessionOpenedAtMillis: Long = 0L
 
-    fun setSelectedSpeciesId(speciesId: String) {
-        selectedSpeciesId = speciesId.ifBlank { GardenSpeciesCatalog.DEFAULT_SPECIES_ID }
-    }
+    private var snapshotSaveJob: Job? = null
+    private var reviewSaveJob: Job? = null
     private var timerJob: Job? = null
     private var reviewHintJob: Job? = null
     private val wrongWordIds = linkedSetOf<String>()
@@ -88,6 +85,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             }
             return
         }
+        stopReviewHintTimer()
         _uiState.update { it.copy(showExitConfirmDialog = true) }
     }
 
@@ -98,6 +96,7 @@ class VocabularyPracticeViewModel @Inject constructor(
 
     fun onDismissExitDialog() {
         _uiState.update { it.copy(showExitConfirmDialog = false) }
+        restartReviewHintTimer()
     }
 
     fun onOptionSelected(optionId: String) {
@@ -135,6 +134,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         val state = _uiState.value
         val prompt = state.currentPrompt ?: return
         if (state.stage != VocabularyPracticeStage.Ready) return
+        if (!state.canSubmitAnswer || sessionFinished) return
 
         when (prompt.questionType) {
             VocabularyQuestionType.ReviewSpelling -> handleReviewSubmit(
@@ -264,7 +264,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                     currentBookId = session.resumeSnapshot?.bookId
                         ?: session.studyWords.firstOrNull()?.bookId
                         ?: session.reviewWords.firstOrNull()?.bookId
-                    currentRoundId = session.resumeSnapshot?.roundId ?: args.targetRoundId
+                    currentRoundId = session.resumeSnapshot?.roundId ?: session.reviewRoundId ?: args.targetRoundId
                     studyTargetCount = session.resumeSnapshot?.studyTargetCount ?: session.studyWords.size
                     introducedStudyCount = session.resumeSnapshot?.introducedStudyCount ?: 0
                     masteredStudyCount = session.resumeSnapshot?.masteredStudyCount ?: 0
@@ -340,18 +340,25 @@ class VocabularyPracticeViewModel @Inject constructor(
 
     private fun finishSession(isCompleted: Boolean) {
         if (sessionFinished) return
-        val state = _uiState.value
-        val sessionMeta = state.sessionMeta ?: return
+        if (_uiState.value.sessionMeta == null) return
         stopTimer()
         stopReviewHintTimer()
         sessionFinished = true
 
-        val result = carryoverResult
-            ?.let { baseResult -> mergeStudyResults(baseResult, buildStudyResult(state, isCompleted)) }
-            ?: buildStudyResult(state, isCompleted)
-        carryoverResult = null
-
         viewModelScope.launch {
+            snapshotSaveJob?.join()
+            reviewSaveJob?.join()
+            buildCurrentStudySnapshot()?.let { snapshot ->
+                repository.saveStudyRoundSnapshot(snapshot)
+                if (snapshot.masteredStudyCount >= snapshot.studyTargetCount) {
+                    repository.markStudyRoundReviewPending(snapshot.roundId)
+                }
+            }
+            val state = _uiState.value
+            val result = carryoverResult
+                ?.let { baseResult -> mergeStudyResults(baseResult, buildStudyResult(state, isCompleted)) }
+                ?: buildStudyResult(state, isCompleted)
+            carryoverResult = null
             repository.finishPracticeSession(result)
             _studyResults.emit(result)
         }
@@ -384,7 +391,9 @@ class VocabularyPracticeViewModel @Inject constructor(
 
     private fun persistStudySnapshot() {
         val snapshot = buildCurrentStudySnapshot() ?: return
-        viewModelScope.launch {
+        val previousSave = snapshotSaveJob
+        snapshotSaveJob = viewModelScope.launch {
+            previousSave?.join()
             repository.saveStudyRoundSnapshot(snapshot)
         }
     }
@@ -552,7 +561,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                         canGoNext = false
                     )
                 }
-                viewModelScope.launch {
+                reviewSaveJob = viewModelScope.launch {
                     val reviewUpdateResult = repository.markReviewWordMastered(
                         roundId = roundId,
                         wordId = wordId
@@ -607,7 +616,7 @@ class VocabularyPracticeViewModel @Inject constructor(
                         canGoNext = false
                     )
                 }
-                viewModelScope.launch {
+                reviewSaveJob = viewModelScope.launch {
                     val reviewUpdateResult = repository.markReviewWordSentBackToLearning(
                         roundId = roundId,
                         wordId = wordId
@@ -652,8 +661,12 @@ class VocabularyPracticeViewModel @Inject constructor(
                     )
                 }
                 viewModelScope.launch {
+                    snapshotSaveJob?.join()
                     repository.markStudyRoundReviewPending(completedRoundId)
-                    showCompletedState(completedRoundId)
+                    showCompletedState(
+                        completedRoundId,
+                        pendingReviewCount = repository.getPendingReviewWordCount(completedRoundId)
+                    )
                 }
                 return
             }
@@ -725,7 +738,7 @@ class VocabularyPracticeViewModel @Inject constructor(
         restartReviewHintTimer()
     }
 
-    private fun showCompletedState(completedRoundId: String?) {
+    private fun showCompletedState(completedRoundId: String?, pendingReviewCount: Int = 0) {
         stopTimer()
         _uiState.update {
             it.copy(
@@ -746,13 +759,9 @@ class VocabularyPracticeViewModel @Inject constructor(
                 completedReviewCount = completedReviewCount,
                 sentBackToStudyCount = sentBackToStudyCount,
                 completedRoundId = completedRoundId,
-                pendingReviewWordCount = if (currentEntryMode == VocabularyPracticeMode.Study) {
-                    masteredStudyCount
-                } else {
-                    0
-                },
+                pendingReviewWordCount = pendingReviewCount,
                 canStartImmediateReview = currentEntryMode == VocabularyPracticeMode.Study &&
-                    masteredStudyCount > 0
+                    pendingReviewCount > 0
             )
         }
     }
@@ -1091,7 +1100,6 @@ class VocabularyPracticeViewModel @Inject constructor(
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongWordIds.toList(),
-            selectedSpeciesId = selectedSpeciesId,
             sessionOpenedAtMillis = sessionOpenedAtMillis.takeIf { it > 0L }
                 ?: state.sessionOpenedAtMillis
         )

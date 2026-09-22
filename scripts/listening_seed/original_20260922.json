@@ -1,0 +1,1278 @@
+{
+  "batch_id": "original-20260922",
+  "source": "Original educational content generated for Seedie; not scraped or presented as past exam questions.",
+  "materials": [
+    {
+      "grade": 7,
+      "slug": "library-club",
+      "title": "The Library Club",
+      "title_zh": "图书馆阅读小组",
+      "transcript": "Hello, everyone. Our library club meets on Tuesday after school. We meet in Room Twelve, not in the library, because the library is being cleaned this week. Please arrive at four ten. You do not need to bring a book. Miss Green will give each group a short story. Bring a pencil to write down new words. The meeting ends at five, so you can take the school bus home.",
+      "transcript_zh": "大家好。我们的图书馆阅读小组在周二放学后活动。本周图书馆正在打扫，所以我们在十二号教室集合，而不是图书馆。请在四点十分到达。你不需要带书，格林老师会给每组一个短篇故事。请带一支铅笔记录生词。活动五点结束，因此你可以乘校车回家。",
+      "questions": [
+        {
+          "question_id": "original-g7-20260922-library-club-q1",
+          "question_type": "detail",
+          "stem": "Where will the club meet this week?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "In Room Twelve.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "In the library.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "At the school gate.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "In the playground.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "本周图书馆正在打扫，通知明确说明在 Room Twelve 集合。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-library-club-q2",
+          "question_type": "detail",
+          "stem": "What should students bring?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "A storybook.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "A pencil.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "A bus ticket.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "A dictionary.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "原文说 Bring a pencil to write down new words，即带铅笔记录生词。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-library-club-q3",
+          "question_type": "detail",
+          "stem": "When does the meeting end?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "At four.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "At four ten.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "At five.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "At five ten.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "通知最后说明 The meeting ends at five，即五点结束。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g7-20260922-library-club",
+      "material_type": "monologue",
+      "sort_order": 1000
+    },
+    {
+      "grade": 7,
+      "slug": "lost-bag",
+      "title": "A Bag at the Sports Center",
+      "title_zh": "体育中心的失物招领",
+      "transcript": "Good afternoon. We have found a blue schoolbag near the swimming pool. There is a yellow water bottle and a pair of black shoes inside. There are no books in the bag. If it is yours, please come to the front desk before six this evening. Ask for Mr Brown. You will need to tell him the name written inside the bag. Please do not go to the swimming teacher to collect it.",
+      "transcript_zh": "下午好。我们在游泳池附近发现了一个蓝色书包，里面有一个黄色水瓶和一双黑鞋，没有书。如果是你的，请在今晚六点前到前台找布朗先生。你需要告诉他书包里面写的名字。请不要找游泳老师领取。",
+      "questions": [
+        {
+          "question_id": "original-g7-20260922-lost-bag-q1",
+          "question_type": "detail",
+          "stem": "What color is the schoolbag?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Yellow.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Black.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Green.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Blue.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "蓝色是书包的颜色；黄色和黑色分别是水瓶和鞋子的颜色。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-lost-bag-q2",
+          "question_type": "detail",
+          "stem": "Where can the owner collect the bag?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "At the front desk.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "In a classroom.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "At the bus stop.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "From the swimming teacher.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "原文要求 come to the front desk，即到前台领取。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-lost-bag-q3",
+          "question_type": "detail",
+          "stem": "What must the owner tell Mr Brown?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The price of the bag.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "The name inside the bag.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "The swimming teacher's name.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "The number of books in the bag.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "领取者需要说出书包内部写的名字，而不是书包价格或老师姓名。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g7-20260922-lost-bag",
+      "material_type": "monologue",
+      "sort_order": 1001
+    },
+    {
+      "grade": 7,
+      "slug": "picnic-plan",
+      "title": "Our Sunday Picnic",
+      "title_zh": "周日野餐安排",
+      "transcript": "Hi, Lucy. This is Emma. Our picnic is on Sunday, not Saturday. My brother has a football game on Saturday, and we want him to come too. Let's meet at the park gate at ten in the morning. I will bring sandwiches, and my brother will bring some apples. Could you bring drinking water? We can sit under the big tree beside the lake. Call me this evening if you cannot come.",
+      "transcript_zh": "嗨，露西，我是艾玛。我们的野餐在周日，不是周六。我哥哥周六有一场足球比赛，我们也想让他参加。我们上午十点在公园门口见吧。我会带三明治，哥哥会带苹果。你能带饮用水吗？我们可以坐在湖边的大树下。如果你不能来，请今晚给我打电话。",
+      "questions": [
+        {
+          "question_id": "original-g7-20260922-picnic-plan-q1",
+          "question_type": "detail",
+          "stem": "When is the picnic?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "On Friday.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "On Saturday.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "On Sunday.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "On Monday.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "留言明确更正：野餐在 Sunday，Saturday 是哥哥比赛的日子。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-picnic-plan-q2",
+          "question_type": "detail",
+          "stem": "What is Lucy asked to bring?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Apples.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Sandwiches.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "A football.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Drinking water.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "艾玛问露西 Could you bring drinking water，其他食物由艾玛和哥哥负责。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-picnic-plan-q3",
+          "question_type": "inference",
+          "stem": "Why is the picnic planned for Sunday?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "So Emma's brother can join them.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Because the park is closed on Saturday.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Because Lucy works on Saturday.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "So they can watch a football game.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "哥哥周六比赛，大家希望他也来，因此把野餐安排在周日。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g7-20260922-picnic-plan",
+      "material_type": "monologue",
+      "sort_order": 1002
+    },
+    {
+      "grade": 7,
+      "slug": "fruit-shop",
+      "title": "Shopping for Fruit",
+      "title_zh": "帮家人买水果",
+      "transcript": "I went to the fruit shop with ten yuan this morning. Mum wanted four oranges, but there were only two left. I bought the two oranges for four yuan and a small bag of apples for five yuan. The shopkeeper gave me one yuan back. I carried the fruit home in my schoolbag because I did not want another plastic bag. Mum was happy with the apples. She used them to make a fruit salad for lunch.",
+      "transcript_zh": "今天早上我带着十元去了水果店。妈妈想要四个橙子，但店里只剩两个。我花四元买了两个橙子，又花五元买了一小袋苹果。店主找回一元。我不想再用一个塑料袋，就用书包把水果带回家。妈妈很喜欢这些苹果，用它们做了午餐的水果沙拉。",
+      "questions": [
+        {
+          "question_id": "original-g7-20260922-fruit-shop-q1",
+          "question_type": "detail",
+          "stem": "How many oranges did the speaker buy?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "One.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Two.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Four.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Five.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "妈妈想要四个，但店里只剩两个，实际购买的是 two oranges。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-fruit-shop-q2",
+          "question_type": "detail",
+          "stem": "How much did the speaker spend in total?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Four yuan.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Five yuan.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Nine yuan.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Ten yuan.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "橙子四元，苹果五元，共九元；十元是出门时带的钱。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g7-20260922-fruit-shop-q3",
+          "question_type": "detail",
+          "stem": "Why did the speaker use a schoolbag?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The fruit shop sold schoolbags.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Mum asked for a new schoolbag.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "The apples were too heavy.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "The speaker wanted to avoid another plastic bag.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "原文直接说明 because I did not want another plastic bag。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g7-20260922-fruit-shop",
+      "material_type": "monologue",
+      "sort_order": 1003
+    },
+    {
+      "grade": 8,
+      "slug": "museum-trip",
+      "title": "A Change to the Museum Trip",
+      "title_zh": "博物馆出行变更",
+      "transcript": "Here is an update about our museum trip tomorrow. The train service has been cancelled, so we will travel by coach instead. Meet outside school at eight fifteen, fifteen minutes earlier than planned. You do not need to pay extra for the coach. The museum ticket is already included in your trip fee. However, the cafe will be closed, so bring a packed lunch. We will return to school at four thirty, as originally planned.",
+      "transcript_zh": "下面通知明天博物馆之行的变更。火车班次已取消，因此我们改乘长途客车。请八点十五分在校外集合，比原计划提前十五分钟。乘客车不需要额外付费，博物馆门票也已包含在活动费中。不过咖啡馆将关闭，请自带午餐。我们仍按原计划在四点半返回学校。",
+      "questions": [
+        {
+          "question_id": "original-g8-20260922-museum-trip-q1",
+          "question_type": "detail",
+          "stem": "How will the students travel to the museum?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "By coach.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "By train.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "By boat.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "By underground.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "原计划坐火车，但班次取消后改为 travel by coach。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-museum-trip-q2",
+          "question_type": "detail",
+          "stem": "What was the original meeting time?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Eight o'clock.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Eight thirty.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Eight fifteen.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Eight forty-five.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "新时间八点十五分，比原来提前十五分钟，所以原定八点半集合。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-museum-trip-q3",
+          "question_type": "detail",
+          "stem": "Why should students bring lunch?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The trip fee has increased.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "They will return late.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "The museum cafe will be closed.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Food is not allowed on the coach.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "通知明确说 the cafe will be closed，所以要自带午餐。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g8-20260922-museum-trip",
+      "material_type": "monologue",
+      "sort_order": 1004
+    },
+    {
+      "grade": 8,
+      "slug": "healthy-routine",
+      "title": "A Small Change to My Morning",
+      "title_zh": "早晨习惯的小改变",
+      "transcript": "Last month, I often felt sleepy in my first lesson. I thought I needed a bigger breakfast, but my teacher suggested looking at my evening routine. I usually played games on my phone until midnight. Now I leave my phone in the living room at nine and read for twenty minutes before bed. I still eat the same breakfast. After two weeks, I can listen more carefully in class. Changing my bedtime has helped more than changing my food.",
+      "transcript_zh": "上个月，我常在第一节课犯困。我以为需要多吃早餐，但老师建议看看晚间习惯。我以前经常用手机玩游戏到午夜。现在我九点把手机放在客厅，睡前阅读二十分钟。早餐仍和以前一样。两周后，我上课能更认真地听讲了。改变就寝习惯比改变饮食更有帮助。",
+      "questions": [
+        {
+          "question_id": "original-g8-20260922-healthy-routine-q1",
+          "question_type": "detail",
+          "stem": "What problem did the speaker have?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Being late for lunch.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Losing a phone.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Having no time to read.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Feeling sleepy in the first lesson.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "开头说明 often felt sleepy in my first lesson，问题是第一节课犯困。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-healthy-routine-q2",
+          "question_type": "detail",
+          "stem": "Where does the speaker leave the phone at nine?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "In the living room.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Under the pillow.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "In the classroom.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "On the breakfast table.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "改变后的做法是九点把手机放在 the living room。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-healthy-routine-q3",
+          "question_type": "main_idea",
+          "stem": "What is the talk mainly about?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Learning to cook a larger breakfast.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Improving classroom attention by changing an evening habit.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Choosing better games for a phone.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Preparing for a reading competition.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "全文围绕减少晚间玩手机、调整就寝习惯，从而改善课堂注意力。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g8-20260922-healthy-routine",
+      "material_type": "monologue",
+      "sort_order": 1005
+    },
+    {
+      "grade": 8,
+      "slug": "garden-project",
+      "title": "Our School Garden",
+      "title_zh": "校园菜园的小实验",
+      "transcript": "Our class planted vegetables behind the science building in April. At first, we watered them every afternoon, but some leaves turned yellow. We asked a local gardener for advice. She explained that the soil was already wet and that too much water could harm the plants. Now we check the soil before watering. We also keep a notebook of changes each week. In June, we picked our first tomatoes and used the notebook to explain what we had learned.",
+      "transcript_zh": "四月，我们班在科学楼后种了蔬菜。起初每天午后浇水，但有些叶子发黄。我们向当地园艺师请教。她解释说土已经很湿，浇水过多会伤害植物。现在我们先检查土壤再浇水，还每周用笔记本记录变化。六月，我们摘下第一批西红柿，并用记录解释学到的知识。",
+      "questions": [
+        {
+          "question_id": "original-g8-20260922-garden-project-q1",
+          "question_type": "detail",
+          "stem": "What caused problems for some plants?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Too little sunshine.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Cold weather in June.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Too much water.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "A lack of space.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "园艺师指出土壤已经很湿，too much water 会伤害植物。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-garden-project-q2",
+          "question_type": "detail",
+          "stem": "What do the students do before watering now?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Pick tomatoes.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Move the plants.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Clean the notebook.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Check the soil.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "改进后的做法是 check the soil before watering。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-garden-project-q3",
+          "question_type": "inference",
+          "stem": "How did the notebook help the students?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "It provided a record they could use to explain their learning.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "It told them the price of the vegetables.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "It replaced advice from the gardener.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "It kept the plants safe from rain.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "每周记录变化，六月据此说明学到的内容，表明笔记本提供了学习证据。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g8-20260922-garden-project",
+      "material_type": "monologue",
+      "sort_order": 1006
+    },
+    {
+      "grade": 8,
+      "slug": "book-exchange",
+      "title": "Saturday's Book Exchange",
+      "title_zh": "周六图书交换活动",
+      "transcript": "The community center is holding a book exchange this Saturday. Bring up to three books that are clean and complete. For each book you bring, you receive one ticket, which you can exchange for another book. School workbooks are not accepted because many already have answers written in them. The exchange opens at ten, but volunteers should arrive at nine thirty to arrange the tables. Any books left at the end will be sent to a village library.",
+      "transcript_zh": "社区中心本周六举办图书交换活动。每人最多可带三本干净、完整的书，每带一本就能得到一张票，用来换另一本书。活动不接收学校练习册，因为许多已经写有答案。交换十点开始，志愿者需九点半到达布置桌子。活动结束后剩余的书将送往乡村图书馆。",
+      "questions": [
+        {
+          "question_id": "original-g8-20260922-book-exchange-q1",
+          "question_type": "detail",
+          "stem": "How many tickets does someone get for bringing two accepted books?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "One.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Two.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Three.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Four.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "每本符合要求的书换一张票，因此两本可以获得两张票。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-book-exchange-q2",
+          "question_type": "detail",
+          "stem": "Why are school workbooks not accepted?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "They are too expensive.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "They are difficult to carry.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Many have answers written in them.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "The village library only wants dictionaries.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "不接收练习册的原因是 many already have answers written in them。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g8-20260922-book-exchange-q3",
+          "question_type": "detail",
+          "stem": "When should volunteers arrive?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "At nine.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "At ten.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "At ten thirty.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "At nine thirty.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "普通读者十点开始交换，志愿者要提前到九点半布置桌子。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g8-20260922-book-exchange",
+      "material_type": "monologue",
+      "sort_order": 1007
+    },
+    {
+      "grade": 9,
+      "slug": "repair-cafe",
+      "title": "Learning at a Repair Cafe",
+      "title_zh": "维修工坊里的收获",
+      "transcript": "When my desk lamp stopped working, I planned to buy a new one. My neighbour suggested taking it to a repair cafe, where volunteers help people fix everyday objects. A volunteer found a loose wire and repaired it in ten minutes. There was no charge, although visitors could leave a donation. More importantly, she showed me how to check the lamp safely next time. I left with a working lamp and a useful skill. I now think twice before throwing things away.",
+      "transcript_zh": "台灯坏掉时，我原本打算买新的。邻居建议去维修工坊，那里的志愿者帮助人们修理日常物品。一位志愿者发现电线松了，十分钟就修好了。维修不收费，不过来访者可以捐款。更重要的是，她教我下次如何安全检查台灯。我带着修好的灯和实用技能离开，现在扔东西前会多想一想。",
+      "questions": [
+        {
+          "question_id": "original-g9-20260922-repair-cafe-q1",
+          "question_type": "detail",
+          "stem": "What was wrong with the lamp?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "A wire was loose.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Its colour had changed.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "The battery was missing.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Its glass was broken.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "志愿者发现的是 a loose wire，即电线松动。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-repair-cafe-q2",
+          "question_type": "detail",
+          "stem": "What does the speaker say about the cost?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Everyone had to pay ten yuan.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "The repair was free, but donations were welcome.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Only students could get free repairs.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Buying a new lamp was cheaper.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "原文说 no charge，但 visitors could leave a donation，捐款是自愿的。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-repair-cafe-q3",
+          "question_type": "inference",
+          "stem": "How has the experience changed the speaker?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The speaker avoids using lamps.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "The speaker repairs every object alone.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "The speaker considers repair before throwing things away.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "The speaker wants to buy more new objects.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "结尾 think twice before throwing things away 表明会先考虑维修和继续使用。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g9-20260922-repair-cafe",
+      "material_type": "monologue",
+      "sort_order": 1008
+    },
+    {
+      "grade": 9,
+      "slug": "travel-choice",
+      "title": "Choosing a Journey",
+      "title_zh": "怎样选择出行方式",
+      "transcript": "For our weekend visit to another city, my family compared flying with taking the train. The flight itself was only an hour, while the train journey took three hours. However, the airport was far from our home, and we would need to arrive two hours before departure. The railway station was a short bus ride away. When we counted the whole journey, the train was more convenient. It also cost less. We chose the train, even though the flight looked faster at first.",
+      "transcript_zh": "周末去另一座城市前，我们比较了飞机和火车。飞行本身只需一小时，而火车要三小时。但机场离家很远，还需要提前两小时到达。火车站坐一小段公交车就到。算上完整行程后，火车更方便，也更便宜。所以虽然飞机起初看起来更快，我们还是选了火车。",
+      "questions": [
+        {
+          "question_id": "original-g9-20260922-travel-choice-q1",
+          "question_type": "detail",
+          "stem": "How long was the flight itself?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Two hours.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Three hours.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Four hours.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "One hour.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "the flight itself was only an hour；两小时是提前到机场的时间。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-travel-choice-q2",
+          "question_type": "detail",
+          "stem": "How could the family reach the railway station?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "By taking a short bus ride.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "By walking for two hours.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "By taking another train.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "By driving to the airport first.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "原文说车站 a short bus ride away，即坐一小段公交就能到。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-travel-choice-q3",
+          "question_type": "main_idea",
+          "stem": "What does this experience suggest about planning a journey?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Always choose the shortest flight.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Compare the whole journey, not just the time on board.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Avoid public transport at weekends.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Choose a place with the largest airport.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "选择时计入前往车站或机场以及提前到达的时间，说明要比较完整行程。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g9-20260922-travel-choice",
+      "material_type": "monologue",
+      "sort_order": 1009
+    },
+    {
+      "grade": 9,
+      "slug": "online-survey",
+      "title": "Checking a Survey Result",
+      "title_zh": "问卷结果可靠吗",
+      "transcript": "Our school newspaper wanted to find out whether students preferred online or printed books. At first, we posted a survey only in the school reading club's online group. Most replies supported online books. Our teacher pointed out that this group did not represent every student. We then asked students from each year group during lunch, including those who rarely used the internet. The results became more balanced. We learned that who answers a survey can be as important as the questions themselves.",
+      "transcript_zh": "校报想调查学生更喜欢电子书还是纸质书。起初，我们只在阅读社团的线上群发布问卷，大多数回答支持电子书。老师指出，这个群体不能代表全体学生。之后我们在午餐时询问各年级学生，也包括很少上网的人。结果变得更均衡。我们认识到，谁来回答问卷与问题本身同样重要。",
+      "questions": [
+        {
+          "question_id": "original-g9-20260922-online-survey-q1",
+          "question_type": "detail",
+          "stem": "Where was the first survey shared?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "In every classroom.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "At the public library.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "In the reading club's online group.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "On a city television programme.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "第一次只在 school reading club's online group 发布。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-online-survey-q2",
+          "question_type": "inference",
+          "stem": "Why did the teacher question the first result?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The students had lost all their replies.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "The survey contained no questions.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Printed books had become free.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "The people who replied did not represent all students.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "老师指出 this group did not represent every student，问题在样本代表性。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-online-survey-q3",
+          "question_type": "main_idea",
+          "stem": "What did the students learn?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "The choice of respondents can affect a survey's results.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "Online books are always better than printed books.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Only reading club members should answer surveys.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "A survey must be completed entirely online.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "A",
+          "explanation": "扩大到不同年级及较少上网的人后结果变化，说明回答者的选择会影响调查。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g9-20260922-online-survey",
+      "material_type": "monologue",
+      "sort_order": 1010
+    },
+    {
+      "grade": 9,
+      "slug": "food-waste",
+      "title": "Less Waste at Lunch",
+      "title_zh": "减少午餐浪费",
+      "transcript": "Our school tried to reduce food waste by putting up posters, but the amount of waste hardly changed. Then the student council spoke to diners. Many said the standard portions were too large, especially on days when they were not very hungry. The kitchen began offering a smaller portion at a lower price, with extra food available if needed. After a month, waste had fallen. The council concluded that making a practical change was more effective than simply reminding people to waste less.",
+      "transcript_zh": "学校先张贴海报来减少食物浪费，但浪费量几乎没变。随后学生会和用餐者交流，很多人认为标准份量太大，尤其在不太饿的时候。厨房开始提供价格更低的小份餐，不够还可以加。一个月后，浪费减少了。学生会认为，实际改变比单纯提醒少浪费更有效。",
+      "questions": [
+        {
+          "question_id": "original-g9-20260922-food-waste-q1",
+          "question_type": "detail",
+          "stem": "What happened after the posters were put up?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "Waste disappeared completely.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "The amount of waste hardly changed.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "Meals became more expensive.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "Students stopped eating lunch.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "B",
+          "explanation": "原文说 the amount of waste hardly changed，海报效果不明显。",
+          "sort_order": 0,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-food-waste-q2",
+          "question_type": "detail",
+          "stem": "What change did the kitchen make?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "It removed all hot food.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "It made every portion larger.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "It offered smaller portions with extra food available.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "It stopped students from asking for more food.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "C",
+          "explanation": "厨房提供小份餐，并允许按需加餐，没有禁止加餐。",
+          "sort_order": 1,
+          "reward_token": 2
+        },
+        {
+          "question_id": "original-g9-20260922-food-waste-q3",
+          "question_type": "inference",
+          "stem": "Why was the second approach more effective?",
+          "options": [
+            {
+              "option_id": "A",
+              "option_text": "It required students to skip lunch.",
+              "sort_order": 0
+            },
+            {
+              "option_id": "B",
+              "option_text": "It used more colourful posters.",
+              "sort_order": 1
+            },
+            {
+              "option_id": "C",
+              "option_text": "It increased the price of every meal.",
+              "sort_order": 2
+            },
+            {
+              "option_id": "D",
+              "option_text": "It addressed a reason why students left food.",
+              "sort_order": 3
+            }
+          ],
+          "correct_option_id": "D",
+          "explanation": "访谈发现份量过大是剩饭原因，小份加按需补充直接解决了这一问题。",
+          "sort_order": 2,
+          "reward_token": 2
+        }
+      ],
+      "material_id": "original-g9-20260922-food-waste",
+      "material_type": "monologue",
+      "sort_order": 1011
+    }
+  ]
+}

@@ -41,6 +41,9 @@ data class ListeningPracticeSession(
 data class ListeningPracticeUiState(
     val stage: ListeningPracticeStage = ListeningPracticeStage.Loading,
     val sessionId: String? = null,
+    val materials: List<ListeningMaterialItem> = emptyList(),
+    val selectedAnswers: Map<String, String> = emptyMap(),
+    val evaluatedQuestionIds: Set<String> = emptySet(),
     val currentMaterialIndex: Int = 0,
     val totalMaterialCount: Int = 0,
     val currentMaterial: ListeningMaterialItem? = null,

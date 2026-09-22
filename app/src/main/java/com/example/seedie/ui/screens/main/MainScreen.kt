@@ -72,30 +72,37 @@ fun MainScreen(
     LaunchedEffect(pendingStudyResult) {
         pendingStudyResult?.let { result ->
             viewModel.handleStudyResult(result)
-            snackbarHostState.showSnackbar(
-                when (result.moduleId) {
-                    "vocabulary_review" -> {
-                        if (result.earnedTokens > 0) {
-                            "单词复习完成：+${result.earnedTokens} 代币，已种入花园"
-                        } else {
-                            "单词复习完成，已种入花园"
-                        }
-                    }
-                    "listening" -> if (result.isCompleted) "听力训练完成，已种入花园" else "听力已结束，树苗可能已枯萎"
-                    "reading" -> if (result.isCompleted) "阅读训练完成，已种入花园" else "阅读已结束，树苗可能已枯萎"
-                    "writing" -> "写作已更新，已种入花园"
-                    "quiz" -> {
-                        val estimateText = result.estimatedVocabulary?.let { "估算词汇量约 $it。" } ?: ""
-                        "${estimateText}词汇测验完成，已种入花园"
-                    }
-                    else -> {
-                        if (result.earnedTokens > 0) {
-                            "背单词完成：+${result.earnedTokens} 代币，掌握 ${result.vocabularyDelta} 个单词，已种入花园"
-                        } else {
-                            "背单词完成，已种入花园"
-                        }
-                    }
+            val rewardHint = buildString {
+                if (result.earnedTokens > 0) {
+                    append(" +${result.earnedTokens} 代币")
                 }
+                if (result.earnedDews > 0) {
+                    if (isNotEmpty()) append("，")
+                    append("+${result.earnedDews} 露水")
+                }
+            }
+            val treeHint = when (result.moduleId) {
+                "vocabulary", "vocabulary_review", "quiz" -> ""
+                else -> if (result.isCompleted) "，已种入花园" else "，树苗可能已枯萎"
+            }
+            val estimateHint = result.estimatedVocabulary
+                ?.takeIf { result.moduleId == "quiz" }
+                ?.let { "估算词汇量约 $it。" }
+                .orEmpty()
+            val moduleText = when (result.moduleId) {
+                "vocabulary_review" -> if (result.isCompleted) "单词复习完成" else "复习进度已保存"
+                "listening" -> "听力训练" + if (result.isCompleted) "完成" else "已结束"
+                "reading" -> "阅读训练" + if (result.isCompleted) "完成" else "已结束"
+                "writing" -> "写作已更新"
+                "quiz" -> "词汇测验完成"
+                else -> if (result.isCompleted) "背单词完成" else "学习进度已保存"
+            }
+            val deltaHint = result.vocabularyDelta
+                .takeIf { result.moduleId == "vocabulary" && it > 0 }
+                ?.let { "，掌握 $it 个单词" }
+                .orEmpty()
+            snackbarHostState.showSnackbar(
+                "$estimateHint$moduleText$deltaHint$rewardHint$treeHint"
             )
             onStudyResultConsumed()
         }

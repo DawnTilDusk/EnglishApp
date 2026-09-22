@@ -55,6 +55,7 @@ class MainViewModel @Inject constructor(
 
     fun handleStudyResult(result: StudyResult) {
         if (!handledSessions.add(result.sessionId)) return
+        refreshVocabularyEntryState()
 
         viewModelScope.launch {
             if (result.studyTimeMinutes > 0) {
@@ -105,11 +106,17 @@ class MainViewModel @Inject constructor(
                     rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
                 }
             }
-            gardenEngine.recordFromStudyResult(result)
+            // 背单词模块（学习 + 复习 + 词汇测验）对标"不背单词"的纯奖励模式，
+            // 不再触发种树；只在听力/阅读/写作等综合学习会话中种一棵树。
+            if (result.moduleId != "vocabulary" &&
+                result.moduleId != "vocabulary_review" &&
+                result.moduleId != "quiz"
+            ) {
+                gardenEngine.recordFromStudyResult(result)
+            }
             if (result.isCompleted) {
                 handleCompletedTasks(result)
             }
-            refreshVocabularyEntryState()
         }
     }
 

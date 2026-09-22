@@ -56,6 +56,7 @@ class ListeningPracticeViewModel @Inject constructor(
     private var timerJob: Job? = null
     private val wrongQuestionIds = linkedSetOf<String>()
     private val allAnswers = linkedMapOf<String, String>()
+    private val draftAnswers = linkedMapOf<String, String>()
     private var assignmentArgs: PracticeAssignmentArgs? = null
     private var freeArgs: FreePracticeArgs? = null
     private var isFreePractice = false
@@ -114,7 +115,9 @@ class ListeningPracticeViewModel @Inject constructor(
 
     fun onOptionSelected(optionId: String) {
         if (isReviewMode) return
+        if (_uiState.value.stage != ListeningPracticeStage.Ready) return
         val question = _uiState.value.currentQuestion ?: return
+        draftAnswers[question.questionId] = optionId
         if (isFreePractice) {
             allAnswers[question.questionId] = optionId
         }
@@ -124,6 +127,7 @@ class ListeningPracticeViewModel @Inject constructor(
             } else {
                 state.copy(
                     selectedOptionId = optionId,
+                    selectedAnswers = draftAnswers.toMap(),
                     canSubmitAnswer = !isFreePractice,
                     answeredQuestionCount = allAnswers.size
                 )
@@ -145,6 +149,7 @@ class ListeningPracticeViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     stage = ListeningPracticeStage.AnswerEvaluated,
+                    evaluatedQuestionIds = allAnswers.keys.toSet(),
                     answerStatus = AnswerStatus.Correct,
                     feedbackMessage = "回答正确",
                     correctCount = it.correctCount + 1,
@@ -162,6 +167,7 @@ class ListeningPracticeViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     stage = ListeningPracticeStage.AnswerEvaluated,
+                    evaluatedQuestionIds = allAnswers.keys.toSet(),
                     answerStatus = AnswerStatus.Wrong,
                     feedbackMessage = "正确答案：$correctAnswer",
                     wrongCount = it.wrongCount + 1,
@@ -217,8 +223,29 @@ class ListeningPracticeViewModel @Inject constructor(
         )
     }
 
+    fun onQuestionPageSelected(page: Int) {
+        if (!canNavigateFreePracticeQuestions()) return
+        val currentSession = session ?: return
+        val questions = currentSession.materials.flatMap { it.questions }
+        if (page !in questions.indices) return
+        if (!isFreePractice && !isReviewMode) {
+            val firstUnanswered = questions.indexOfFirst { it.questionId !in allAnswers }
+            if (firstUnanswered >= 0 && page > firstUnanswered) return
+        }
+        if (page == _uiState.value.currentQuestionOrdinal - 1) return
+        var remaining = page
+        currentSession.materials.forEachIndexed { materialIndex, material ->
+            if (remaining < material.questions.size) {
+                showQuestion(currentSession, materialIndex, remaining,
+                    autoPlayMaterial = materialIndex != _uiState.value.currentMaterialIndex)
+                return
+            }
+            remaining -= material.questions.size
+        }
+    }
+
     fun onPreviousQuestion() {
-        if (!isFreePractice || !canNavigateFreePracticeQuestions()) return
+        if (!canNavigateFreePracticeQuestions()) return
         val currentSession = session ?: return
         val state = _uiState.value
         val previousMaterialIndex: Int
@@ -554,8 +581,15 @@ class ListeningPracticeViewModel @Inject constructor(
         val questionOrdinal = session.materials
             .take(materialIndex)
             .sumOf { it.questions.size } + questionIndex + 1
+        _uiState.update {
+            it.copy(
+                materials = session.materials,
+                selectedAnswers = draftAnswers + allAnswers,
+                evaluatedQuestionIds = if (isFreePractice && !isReviewMode) emptySet() else allAnswers.keys.toSet()
+            )
+        }
 
-        if (isReviewMode || forceReview) {
+        if (isReviewMode || forceReview || (!isFreePractice && question.questionId in allAnswers)) {
             val selected = allAnswers[question.questionId]
             val isCorrect = selected == question.correctOptionId
             val correctAnswer = question.options
@@ -585,7 +619,7 @@ class ListeningPracticeViewModel @Inject constructor(
                         isCorrect -> "回答正确"
                         else -> "正确答案：$correctAnswer"
                     },
-                    isReviewMode = true
+                    isReviewMode = isReviewMode || forceReview
                 )
             }
             if (autoPlayMaterial) {
@@ -603,8 +637,8 @@ class ListeningPracticeViewModel @Inject constructor(
                     currentQuestionOrdinal = questionOrdinal,
                     totalQuestionCount = session.materials.sumOf { m -> m.questions.size },
                     currentQuestion = question,
-                    selectedOptionId = if (isFreePractice) allAnswers[question.questionId] else null,
-                    canSubmitAnswer = false,
+                    selectedOptionId = if (isFreePractice) allAnswers[question.questionId] else draftAnswers[question.questionId],
+                    canSubmitAnswer = !isFreePractice && question.questionId in draftAnswers,
                     answeredQuestionCount = allAnswers.size,
                     answerStatus = AnswerStatus.Unanswered,
                     feedbackMessage = ""
@@ -716,6 +750,7 @@ class ListeningPracticeViewModel @Inject constructor(
         sessionOpenedAtMillis = 0L
         wrongQuestionIds.clear()
         allAnswers.clear()
+        draftAnswers.clear()
     }
 
     override fun onCleared() {

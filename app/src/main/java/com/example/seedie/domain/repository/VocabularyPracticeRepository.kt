@@ -33,6 +33,8 @@ interface VocabularyPracticeRepository {
 
     suspend fun getPendingReviewEntry(): PendingReviewEntry?
 
+    suspend fun getPendingReviewWordCount(roundId: String): Int
+
     suspend fun submitQuestionRecord(record: VocabularyQuestionRecord)
 
     suspend fun finishPracticeSession(result: StudyResult)

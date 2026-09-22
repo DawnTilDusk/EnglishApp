@@ -24,28 +24,11 @@ class PracticeCatalogRepositoryImpl @Inject constructor(
         return when (moduleId) {
             "reading" -> listReadingCatalog(completed)
             "listening" -> PracticeCatalogLoad(
-                items = listeningRemote.fetchAllMaterials()
-                    .filter { it.material_id == FREE_PRACTICE_MATERIAL_ID }
-                    .map { material ->
-                        val primary = FREE_PRACTICE_TITLE
-                    val secondary = material.title?.takeIf {
-                        it.isNotBlank() && it != primary
-                    }
-                    PracticeCatalogItem(
-                        itemRef = material.material_id,
-                        title = primary,
-                        subtitle = buildString {
-                            if (secondary != null) append(secondary)
-                            if (material.estimated_seconds > 0) {
-                                if (isNotEmpty()) append(" · ")
-                                append("约 ")
-                                append(material.estimated_seconds)
-                                append(" 秒")
-                            }
-                        }.ifBlank { null },
-                        completed = material.material_id in completed
-                    )
-                }
+                items = ListeningCatalogAssembler.assemble(
+                    materials = listeningRemote.fetchAllMaterials(),
+                    questions = listeningRemote.fetchAllQuestions(),
+                    completed = completed
+                )
             )
             else -> PracticeCatalogLoad(items = emptyList())
         }
@@ -96,8 +79,4 @@ class PracticeCatalogRepositoryImpl @Inject constructor(
         catalogRemote.markCompleted(moduleId, itemRefs)
     }
 
-    private companion object {
-        const val FREE_PRACTICE_MATERIAL_ID = "l08-01"
-        const val FREE_PRACTICE_TITLE = "放学后的志愿服务安排"
-    }
 }
