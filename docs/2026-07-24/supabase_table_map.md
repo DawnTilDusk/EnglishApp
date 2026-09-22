@@ -1,6 +1,6 @@
 # Supabase 表地图（用途与交互）
 
-更新日期：2026-08-04
+更新日期：2026-09-20
 
 配套：
 
@@ -21,9 +21,10 @@
 | 阅读内容 | `reading_sets`、`reading_questions`、`reading_options` | 远端 SSOT；自由刷（按学年）+ 作业选题 |
 | 听力内容 | `listening_materials`、`listening_questions`、`listening_options` | 远端 SSOT；自由刷 + 作业选题 |
 | 写作内容 | `writing_prompts` | 远端 SSOT；作文题目 |
+| 视频课 | `video_lessons` | 机构撰写；本机构学生观看已上架 MP4 |
 | 练习作业 | `practice_assignments`、`practice_assignment_items`、`practice_assignment_recipients`、`practice_assignment_submissions` | 在用；阅读/听力/写作下发 |
 | 读写完成标记 | `user_practice_item_completions` | 自由刷 + 已提交作业 items；跨设备 |
-| Storage | `writing-submissions`（私有 bucket） | 作文原件/批改件 |
+| Storage | `writing-submissions`、`agency-videos`（均为私有 bucket） | 作文原件/批改件；机构视频课 MP4 |
 | Legacy | `content_*`、`study_events`、`points_ledger`、`rewards`、`redemptions` | **已由 015 从远端删除** |
 
 原则：
@@ -213,6 +214,21 @@ flowchart TB
 
 - 迁移：[`025_writing_prompts_catalog.sql`](../../supabase/migrations/025_writing_prompts_catalog.sql)（种子 8 题 `w09-01`…`w09-08`）
 - App：写作仍为作业-only（本轮无自由刷题）
+
+---
+
+## 6.4 机构视频课
+
+| 表 | 用途 | 状态 |
+|----|------|------|
+| `video_lessons` | 机构自制视频课：标题、描述、`storage_path`、时长、`is_published` | 在用；按 `agency_id` RLS |
+
+- 迁移：[`042_agency_video_lessons.sql`](../../supabase/migrations/042_agency_video_lessons.sql)、[`043_fix_video_storage_student_rls.sql`](../../supabase/migrations/043_fix_video_storage_student_rls.sql)
+- Storage：私有 bucket `agency-videos`，路径 `{agency_id}/{lesson_id}/source.mp4`，仅 `video/mp4`，200MB；播放走 `createSignedUrl`
+- 谁写：`agency_admin`（Web `/agency/videos`）
+- 谁读：同机构教师 SELECT；同机构学生仅已上架且有文件的行
+- App：学习中心「视频课」列表 + Media3 播放；观看不发代币、不种花园、不进作业
+- 主题文档：[video_lessons.md](../2026-09-20/video_lessons.md)
 
 ---
 

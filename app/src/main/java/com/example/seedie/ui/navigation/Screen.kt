@@ -31,4 +31,6 @@ sealed class Screen(val route: String) {
         const val ARG_MATERIAL_ID = "materialId"
     }
     object ListeningImmersion : Screen("listening_immersion")
+    object VideoLessons : Screen("video_lessons")
+    object VideoLessonPlayer : Screen("video_lesson_player")
 }

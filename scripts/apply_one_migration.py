@@ -1,70 +1,62 @@
-"""Apply a single SQL migration file via Management API."""
+"""Apply a single SQL migration via Management API. Usage: python scripts/apply_one_migration.py 042_agency_video_lessons.sql"""
 from __future__ import annotations
 
+import importlib.util
 import json
-import os
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-ENV_FILE = ROOT / ".env.local"
-PROJECT_REF = "xojbnrxnkgkqacrkcmqc"
+HELPER = ROOT / "scripts" / "apply_migrations.py"
 
 
-def load_env() -> dict[str, str]:
-    values: dict[str, str] = {}
-    if ENV_FILE.exists():
-        for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            key, _, value = line.partition("=")
-            values[key.strip()] = value.strip().strip('"').strip("'")
-    for key in ("SUPABASE_ACCESS_TOKEN", "SUPABASE_URL"):
-        values.setdefault(key, os.environ.get(key, ""))
-    return values
+def load_helper():
+    spec = importlib.util.spec_from_file_location("apply_migrations", HELPER)
+    if spec is None or spec.loader is None:
+        raise SystemExit("Cannot load apply_migrations.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
-def run_sql(token: str, ref: str, sql: str) -> object:
-    body = json.dumps({"query": sql}).encode("utf-8")
-    req = urllib.request.Request(
-        f"https://api.supabase.com/v1/projects/{ref}/database/query",
-        data=body,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "Mozilla/5.0 SeedieApplyOne/1.0",
-        },
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            raw = resp.read().decode("utf-8")
-            return json.loads(raw) if raw else None
-    except urllib.error.HTTPError as e:
-        err = e.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"HTTP {e.code}: {err}") from e
+def resolve_ref(mod, env: dict[str, str]) -> str:
+    ref = mod.PROJECT_REF
+    url = env.get("SUPABASE_URL", "")
+    if "://" in url:
+        host = url.split("://", 1)[1].split("/", 1)[0]
+        if host.endswith(".supabase.co"):
+            ref = host.split(".")[0]
+    return ref
 
 
 def main() -> None:
     if len(sys.argv) < 2:
-        print("Usage: apply_one_migration.py <relative-or-absolute.sql>")
+        print("Usage: python scripts/apply_one_migration.py <filename.sql>")
         sys.exit(2)
-    path = Path(sys.argv[1])
-    if not path.is_absolute():
-        path = ROOT / path
-    env = load_env()
+    name = sys.argv[1]
+    path = ROOT / "supabase" / "migrations" / name
+    if not path.exists():
+        print(f"Missing {path}")
+        sys.exit(2)
+
+    mod = load_helper()
+    env = mod.load_env()
     token = env.get("SUPABASE_ACCESS_TOKEN", "")
     if not token:
-        print("Missing SUPABASE_ACCESS_TOKEN")
+        print("Missing SUPABASE_ACCESS_TOKEN in .env.local")
         sys.exit(2)
-    ref = PROJECT_REF
+
+    ref = resolve_ref(mod, env)
+    print(f"Project ref: {ref}")
+    print("Smoke test: SELECT 1")
+    print(mod.run_sql(token, ref, "select 1 as ok;"))
+
     sql = path.read_text(encoding="utf-8")
-    print(f"Applying {path.name}...")
-    print(run_sql(token, ref, sql))
+    print(f"Applying {name} ({len(sql)} chars)...")
+    result = mod.run_sql(token, ref, sql)
+    print(f"OK {name}")
+    if result is not None:
+        print("result preview:", json.dumps(result, ensure_ascii=False)[:400])
 
 
 if __name__ == "__main__":

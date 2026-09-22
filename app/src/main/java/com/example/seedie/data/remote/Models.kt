@@ -262,3 +262,15 @@ data class SupabaseWritingPrompt(
     @SerialName("reward_token") val reward_token: Int = 5,
     @SerialName("sort_order") val sort_order: Int = 0
 )
+
+@Serializable
+data class SupabaseVideoLesson(
+    val id: String,
+    @SerialName("agency_id") val agency_id: String,
+    val title: String,
+    val description: String? = null,
+    @SerialName("storage_path") val storage_path: String? = null,
+    @SerialName("duration_seconds") val duration_seconds: Int? = null,
+    @SerialName("sort_order") val sort_order: Int = 0,
+    @SerialName("is_published") val is_published: Boolean = false
+)

@@ -1,6 +1,7 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { agencyTabs } from "@/lib/agency-tabs";
 
 export default async function AgencyOrdersPage() {
   const profile = await requireAgencyAdmin();
@@ -31,13 +32,7 @@ export default async function AgencyOrdersPage() {
     <ConsoleShell
       profile={profile}
       title="订单"
-      tabs={[
-        { href: "/agency", label: "概览" },
-        { href: "/agency/teachers", label: "教师" },
-        { href: "/agency/students", label: "学生" },
-        { href: "/agency/shop", label: "商城" },
-        { href: "/agency/orders", label: "订单", active: true },
-      ]}
+      tabs={agencyTabs("orders")}
     >
       <div className="card">
         <p className="muted">下单即扣款完成，无审单流程。</p>

@@ -1,6 +1,7 @@
 import { requireAgencyAdmin } from "@/lib/auth";
 import { ConsoleShell } from "@/components/ConsoleShell";
 import { createClient } from "@/lib/supabase/server";
+import { agencyTabs } from "@/lib/agency-tabs";
 import { BindStudentForm } from "./BindStudentForm";
 import { CreateStudentForm } from "./CreateStudentForm";
 
@@ -27,13 +28,7 @@ export default async function AgencyStudentsPage() {
     <ConsoleShell
       profile={profile}
       title="学生与绑定"
-      tabs={[
-        { href: "/agency", label: "概览" },
-        { href: "/agency/teachers", label: "教师" },
-        { href: "/agency/students", label: "学生", active: true },
-        { href: "/agency/shop", label: "商城" },
-        { href: "/agency/orders", label: "订单" },
-      ]}
+      tabs={agencyTabs("students")}
     >
       <div className="stack">
         <div className="card">

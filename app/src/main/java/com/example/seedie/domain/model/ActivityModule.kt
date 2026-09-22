@@ -14,6 +14,7 @@ enum class ActivityModule(
     ReadingPractice("reading", "阅读训练"),
     WritingPractice("writing", "写作训练"),
     VocabularyQuiz("vocabulary_quiz", "词汇测验"),
+    VideoLessons("video", "视频课"),
     Shop("shop", "商店");
 
     companion object {
