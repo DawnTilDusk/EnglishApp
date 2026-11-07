@@ -72,7 +72,6 @@ class DewManagerImpl @Inject constructor(
             val todaySoFar = dewTransactionDao.getTodayDewIncomeSum(userId, dayStart, dayEnd)
                 .coerceAtLeast(0)
             val room = (DewConstants.DAILY_DEW_CAP - todaySoFar).coerceAtLeast(0)
-            if (room <= 0) return 0
             amount.coerceAtMost(room)
         } else {
             amount
@@ -167,7 +166,7 @@ class DewManagerImpl @Inject constructor(
     }
 
     private fun todayMillisBounds(): Pair<Long, Long> {
-        val cal = Calendar.getInstance(TimeZone.getDefault())
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"))
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
         cal.set(Calendar.SECOND, 0)
@@ -180,6 +179,7 @@ class DewManagerImpl @Inject constructor(
 
     private fun todayDateString(): String {
         val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("Asia/Shanghai")
         return sdf.format(java.util.Date())
     }
 }

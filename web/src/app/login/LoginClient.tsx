@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SeedieMark } from "@/components/SeedieMark";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -56,22 +57,30 @@ export default function LoginClient() {
   }
 
   return (
-    <main>
-      <div className="card" style={{ maxWidth: 420, margin: "64px auto" }}>
+    <main className="login-page">
+      <section className="login-story">
+        <div className="console-brand"><SeedieMark /><span className="brand-name">Seedie</span></div>
+        <span className="eyebrow">TEACHING &amp; GROWING</span>
+        <h1>用心教学，<br />看见每一份成长。</h1>
+        <p>从一次练习到一段进步。<br />在这里，连接你的学生、课堂与日常。</p>
+      </section>
+      <div className="card login-card">
         <div className="stack">
           <div>
-            <h1 style={{ margin: "0 0 8px" }}>Seedie Console</h1>
+            <h2>欢迎回来</h2>
             <p className="muted" style={{ margin: 0 }}>
-              机构与教师网页端
+              登录你的机构与教师工作台
             </p>
           </div>
-          {banner && <p className="error">{banner}</p>}
-          {error && <p className="error">{error}</p>}
+          {banner && <p className="error" role="alert">{banner}</p>}
+          {error && <p className="error" role="alert">{error}</p>}
           <form className="stack" onSubmit={onSubmit}>
             <label>
               邮箱
               <input
                 type="email"
+                autoComplete="username"
+                placeholder="输入工作邮箱"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -81,15 +90,18 @@ export default function LoginClient() {
               密码
               <input
                 type="password"
+                autoComplete="current-password"
+                placeholder="输入登录密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
             </label>
-            <button className="btn" type="submit" disabled={loading}>
-              {loading ? "登录中…" : "登录"}
+            <button className="btn login-submit" type="submit" disabled={loading}>
+              {loading ? "正在进入…" : "进入工作台"}
             </button>
           </form>
+          <p className="login-note">学生请使用 Seedie Android App 登录。</p>
         </div>
       </div>
     </main>

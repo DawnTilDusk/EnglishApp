@@ -34,6 +34,8 @@ internal class ListeningPlaybackController(context: Context, scope: CoroutineSco
     private var speechCursor = 0
     private var generation = 0
     private var lastUtterance = ""
+    private var currentUrl: String? = null
+    private var currentText: String = ""
     private val audioJob = scope.launch {
         audio.isPlaying.collect { playing ->
             if (!usingSpeech) _state.update { it.copy(playing = playing) }
@@ -78,6 +80,8 @@ internal class ListeningPlaybackController(context: Context, scope: CoroutineSco
     }
 
     fun play(url: String?, text: String) {
+        currentUrl = url
+        currentText = text
         generation++
         tts?.stop()
         audio.stop()
@@ -130,6 +134,26 @@ internal class ListeningPlaybackController(context: Context, scope: CoroutineSco
         tts?.stop()
         audio.stop()
         _state.value = ListeningPlaybackState()
+        currentUrl = null
+        currentText = ""
+    }
+
+    fun snapshot(): com.example.seedie.domain.model.ListeningPlaybackSnapshot? {
+        if (currentUrl == null && currentText.isBlank()) return null
+        return com.example.seedie.domain.model.ListeningPlaybackSnapshot(
+            currentUrl, currentText, audio.currentPositionMs(), speechCursor, usingSpeech
+        )
+    }
+
+    fun restore(saved: com.example.seedie.domain.model.ListeningPlaybackSnapshot) {
+        stop()
+        currentUrl = saved.url
+        currentText = saved.text
+        usingSpeech = saved.usingSpeech || saved.url.isNullOrBlank()
+        speechText = saved.text
+        speechCursor = saved.speechCursor.coerceIn(0, speechText.length)
+        if (!usingSpeech) saved.url?.let { audio.prepareUrlPaused(it, saved.positionMs) }
+        _state.value = ListeningPlaybackState(paused = true, message = "已恢复播放位置，点击播放继续")
     }
 
     fun release() {

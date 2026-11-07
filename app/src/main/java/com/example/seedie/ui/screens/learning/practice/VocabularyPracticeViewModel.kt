@@ -1,5 +1,9 @@
 package com.example.seedie.ui.screens.learning.practice
 
+import com.example.seedie.data.repository.PracticeDraftStore
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.domain.model.StudyResult
@@ -21,13 +25,16 @@ private const val NONE_OF_ABOVE_LABEL = "全都不对"
 
 @HiltViewModel
 class VocabularyPracticeViewModel @Inject constructor(
-    private val repository: VocabularyPracticeRepository
+    private val repository: VocabularyPracticeRepository,
+    private val settlements: com.example.seedie.data.repository.StudySettlementManager,
+    private val drafts: PracticeDraftStore
 ) : ViewModel() {
     private companion object {
         const val STAGE_ONE_ACTIVE_QUEUE_SIZE = 4
         const val CURSOR_END_SENTINEL = Int.MAX_VALUE
     }
 
+    private val ownerUserId = settlements.currentUserId()
     private val _uiState = MutableStateFlow(VocabularyPracticeUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -69,6 +76,60 @@ class VocabularyPracticeViewModel @Inject constructor(
         VocabularyQuestionType.StudyChineseToEnglish,
         VocabularyQuestionType.StudyContextChoice
     )
+
+    private val checkpointJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val draftKey: String get() = "vocab:${initializedArgs?.entryMode}:${initializedArgs?.targetRoundId.orEmpty()}"
+
+    init {
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                if (!sessionFinished && drafts.userId() == ownerUserId && state.session != null && state.stage !in setOf(VocabularyPracticeStage.Loading, VocabularyPracticeStage.Error)) {
+                    drafts.save(draftKey, checkpointJson.encodeToString(VocabularyCheckpoint(
+                        state.copy(showExitConfirmDialog = false), currentBookId, currentRoundId,
+                        currentEntryMode, studyQueue.toList(), reviewQueue.toList(), progressMap.toMap(),
+                        studyWordOrder.toList(), nextStudyWordIndex, nextStudyWordSortOrderCursor,
+                        carryoverResult, wrongWordIds.toList()
+                    )))
+                    if (currentEntryMode == VocabularyPracticeMode.Review && carryoverResult != null) {
+                        // The review checkpoint now owns the completed study result.
+                        drafts.clear("vocab:Study:")
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun restoreCheckpoint(): Boolean {
+        if (drafts.userId() != ownerUserId) return false
+        val text = drafts.load(draftKey) ?: return false
+        val saved = runCatching { checkpointJson.decodeFromString<VocabularyCheckpoint>(text) }.getOrNull() ?: return false
+        val session = saved.state.session ?: return false
+        currentSession = session
+        currentBookId = saved.bookId
+        currentRoundId = saved.roundId
+        currentEntryMode = saved.entryMode
+        studyQueue.clear(); studyQueue.addAll(saved.studyQueue)
+        reviewQueue.clear(); reviewQueue.addAll(saved.reviewQueue)
+        progressMap.clear(); progressMap.putAll(saved.progress)
+        studyWordOrder.clear(); studyWordOrder.addAll(saved.wordOrder)
+        wordMap.clear(); (session.studyWords + session.reviewWords).forEach { wordMap[it.wordId] = it }
+        nextStudyWordIndex = saved.nextWordIndex
+        nextStudyWordSortOrderCursor = saved.nextCursor
+        carryoverResult = saved.carryover
+        wrongWordIds.clear(); wrongWordIds.addAll(saved.wrongIds)
+        introducedStudyCount = saved.state.introducedStudyCount
+        studyTargetCount = saved.state.studyTargetCount
+        masteredStudyCount = saved.state.masteredStudyCount
+        completedReviewCount = saved.state.completedReviewCount
+        sentBackToStudyCount = saved.state.sentBackToStudyCount
+        sessionOpenedAtMillis = saved.state.sessionOpenedAtMillis
+        _uiState.value = saved.state.copy(showExitConfirmDialog = false)
+        if (saved.state.stage != VocabularyPracticeStage.Completed) {
+            startTimer()
+            restartReviewHintTimer()
+        }
+        return true
+    }
 
     fun initialize(args: VocabularyPracticeArgs) {
         if (initializedArgs == args && currentSession != null) return
@@ -251,6 +312,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             sessionOpenedAtMillis = sessionOpenedAtMillis
         )
         viewModelScope.launch {
+            if (restoreCheckpoint()) return@launch
             runCatching {
                 repository.getPracticeSession(args)
             }.onSuccess { session ->
@@ -360,6 +422,9 @@ class VocabularyPracticeViewModel @Inject constructor(
                 ?: buildStudyResult(state, isCompleted)
             carryoverResult = null
             repository.finishPracticeSession(result)
+            settlements.enqueue(result, ownerUserId)
+            drafts.clear(draftKey)
+            drafts.flush()
             _studyResults.emit(result)
         }
     }
@@ -398,7 +463,15 @@ class VocabularyPracticeViewModel @Inject constructor(
         }
     }
 
+    private var screenActive = true
+    fun onScreenActive(active: Boolean) {
+        screenActive = active
+        if (active && _uiState.value.stage !in setOf(VocabularyPracticeStage.Completed, VocabularyPracticeStage.Loading, VocabularyPracticeStage.Error)) startTimer()
+        else stopTimer()
+    }
+
     private fun startTimer() {
+        if (!screenActive) return
         stopTimer()
         timerJob = viewModelScope.launch {
             while (isActive) {
@@ -453,7 +526,7 @@ class VocabularyPracticeViewModel @Inject constructor(
             removeWordFromStudyQueue(wordId)
             masteredStudyCount += 1
             fillStudyQueueIfNeeded()
-            "当前单词 3 个关卡均通过，已标记掌握。"
+            "当前单词 3 个关卡均通过，已完成学习阶段，建议稍后复习。"
         } else {
             moveCurrentStudyWordToTail(wordId)
             "本关已通过，单词移至队尾；后续将随机进入该单词未通过关卡。"
@@ -1172,3 +1245,19 @@ internal fun maybeInjectNoneOfAboveOption(
         }
     }
 }
+
+@Serializable
+private data class VocabularyCheckpoint(
+    val state: VocabularyPracticeUiState,
+    val bookId: String?,
+    val roundId: String?,
+    val entryMode: VocabularyPracticeMode,
+    val studyQueue: List<String>,
+    val reviewQueue: List<String>,
+    val progress: Map<String, VocabularyWordProgress>,
+    val wordOrder: List<String>,
+    val nextWordIndex: Int,
+    val nextCursor: Int,
+    val carryover: StudyResult?,
+    val wrongIds: List<String>
+)

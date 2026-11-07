@@ -81,7 +81,8 @@ class PracticeAssignmentRepositoryImpl @Inject constructor(
             maxScore = submission.max_score,
             feedbackText = submission.feedback_text,
             originalPath = submission.original_path,
-            annotatedPath = submission.annotated_path
+            annotatedPath = submission.annotated_path,
+            submittedAtEpochMs = submission.submitted_at?.let(::parseInstantMs)
         )
     }
 

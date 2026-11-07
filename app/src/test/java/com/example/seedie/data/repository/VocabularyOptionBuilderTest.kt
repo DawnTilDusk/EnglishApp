@@ -48,7 +48,7 @@ class VocabularyOptionBuilderTest {
 
         assertEquals(4, options.size)
         assertEquals(1, options.count { it.isCorrect })
-        assertTrue(options.any { it.label == "苹果" && it.isCorrect })
+        assertEquals("n. 苹果", options.single { it.isCorrect }.label)
     }
 
     @Test

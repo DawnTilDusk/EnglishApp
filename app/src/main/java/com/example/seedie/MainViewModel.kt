@@ -21,7 +21,8 @@ sealed interface AuthUiState {
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val settlementManager: com.example.seedie.data.repository.StudySettlementManager
 ) : ViewModel() {
 
     val authUiState: StateFlow<AuthUiState> = combine(

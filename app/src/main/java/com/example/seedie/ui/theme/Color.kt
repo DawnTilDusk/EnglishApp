@@ -3,13 +3,13 @@ package com.example.seedie.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Core Palette - Seedie IP 的主色调，负责整体品牌情绪，其他补充色不能顶替它们的位置
-val PrimaryGreen = Color(0xFF66BB6A) // 生机绿：小芽最鲜活的绿，用作按钮、选中、图标主色
-val SecondaryBrown = Color(0xFF8D6E63) // 橡木棕：泥土/枝干的沉稳中性色，用作次级文字/装饰
-val AccentOrange = Color(0xFFFFB74D) // 暖阳橙：阳光高亮色，用作奖励、代币、警示等强调点
+val PrimaryGreen = Color(0xFF306B50) // 深叶绿：白色按钮文字与浅底上的重点文字都清晰可读
+val SecondaryBrown = Color(0xFF64756B) // 灰绿中性色，减少辅助文字的色彩噪声
+val AccentOrange = Color(0xFF9C6528) // 收获金：用于奖励与少量强调
 
 // Surfaces
-val BackgroundMint = Color(0xFFF1F8E9) // 淡薄荷绿：全局大面积背景，保留 IP 底色
-val SurfaceCream = Color(0xFFFFFFFF) // 奶油白：卡片主体表面，保持清爽
+val BackgroundMint = Color(0xFFF4F7F2)
+val SurfaceCream = Color(0xFFFFFEFB)
 
 // State Colors
 val HeatmapLight = Color(0xFFE8F5E9) // 浅苔：热力图最浅一格，与主色调保持同调

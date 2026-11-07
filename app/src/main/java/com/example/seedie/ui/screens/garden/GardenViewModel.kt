@@ -485,12 +485,6 @@ internal fun buildVocabularyTrendPoints(
         }
         .sortedBy { it.date }
 
-    Log.i(
-        "VocabularyTrend",
-        "Trend transform: source=${records.size}, parsed=${datedRecords.size}, " +
-            "eligible=${eligibleRecords.size}, anchors=${anchors.size}"
-    )
-
     if (anchors.isEmpty()) return emptyList()
 
     if (metric == VocabularyTrendMetric.MeasurementChange) {
@@ -623,12 +617,6 @@ private fun parseEstimateDate(createdAt: String, zoneId: ZoneId): LocalDate? {
     val normalized = normalizeInstantString(createdAt)
     return runCatching {
         Instant.parse(normalized).atZone(zoneId).toLocalDate()
-    }.onFailure { error ->
-        Log.w(
-            "VocabularyTrend",
-            "Unable to parse vocabulary estimate timestamp: raw=$createdAt, normalized=$normalized",
-            error
-        )
     }.getOrNull()
 }
 

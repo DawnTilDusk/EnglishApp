@@ -2,96 +2,77 @@ package com.example.seedie.ui.screens.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.seedie.data.local.dao.DailyTaskDao
-import com.example.seedie.data.local.entity.DailyTaskEntity
+import com.example.seedie.data.local.SeedieDatabase
 import com.example.seedie.data.remote.AuthService
+import com.example.seedie.data.repository.DailyTaskManager
+import com.example.seedie.domain.model.StudyDay
+import com.example.seedie.domain.repository.PracticeAssignmentRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val taskDao: DailyTaskDao,
-    private val authService: AuthService
+    private val database: SeedieDatabase,
+    private val auth: AuthService,
+    private val tasks: DailyTaskManager,
+    private val assignments: PracticeAssignmentRepository,
+    private val diagnostics: com.example.seedie.data.repository.LearningDiagnostics,
+    private val activities: com.example.seedie.domain.repository.ActivityTrackingRepository
 ) : ViewModel() {
-
-    private val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val dailyTasks: StateFlow<List<DailyTaskEntity>> = authService.currentSession
-        .flatMapLatest { session ->
-            val userId = session?.userId
-            if (userId.isNullOrBlank()) {
-                flowOf(emptyList())
-            } else {
-                taskDao.getTasksByUserAndDate(userId, todayDate)
-            }
+    private val dates = flow {
+        while (true) { emit(StudyDay.date()); delay(1_000) }
+    }.distinctUntilChanged()
+    private val identity = combine(auth.currentSession, dates) { session, date -> session?.userId to date }
+        .distinctUntilChanged().shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+    val activityDays = identity.flatMapLatest { (userId, _) ->
+        if (userId == null) flowOf(emptyList()) else activities.observeRecentDailyTotals(35)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _writingMessage = MutableStateFlow("正在检查写作作业…")
+    val writingMessage = _writingMessage.asStateFlow()
+    private val _writingAvailable = MutableStateFlow(false)
+    val dailyTasks = identity.flatMapLatest { (userId, date) ->
+        if (userId == null) flowOf(emptyList())
+        else combine(database.dailyTaskDao().getTasksByUserAndDate(userId, date), _writingAvailable) { rows, available ->
+            rows.filter { it.taskKey != "daily_writing" || it.isCompleted || available }
         }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     init {
         viewModelScope.launch {
-            authService.currentSession.collect { session ->
-                val userId = session?.userId ?: return@collect
-                runCatching { ensureDefaultTasks(userId) }
-                    .onFailure { android.util.Log.e("DashboardViewModel", "ensureDefaultTasks failed", it) }
+            identity.collectLatest { (userId, date) ->
+                _writingAvailable.value = false
+                if (userId == null) return@collectLatest
+                tasks.ensureTasks(userId, date)
+                launch { checkWriting(userId, date) }
+                database.learningStateDao().observeWordCount(userId, date).collect {
+                    tasks.reconcileVocabulary(userId, date)
+                }
             }
         }
     }
-
-    private suspend fun ensureDefaultTasks(userId: String) {
-        val tasks = taskDao.getTasksByUserAndDate(userId, todayDate).first()
-        if (tasks.isNotEmpty()) return
-        val dewDefaults = listOf(
-            Triple("daily_vocabulary", "学习单词 20 个", 8),
-            Triple("daily_listening", "完成一次听力训练", 8),
-            Triple("daily_reading", "完成一次阅读训练", 8)
-        )
-        dewDefaults.forEach { (key, title, amount) ->
-            taskDao.insertTask(
-                DailyTaskEntity(
-                    userId = userId,
-                    date = todayDate,
-                    title = title,
-                    rewardType = "dew",
-                    rewardAmount = amount,
-                    tokenReward = 0,
-                    autoClaim = true,
-                    taskKey = key
-                )
-            )
-        }
-        val tokenChallenges = listOf(
-            Triple("daily_writing", "提交一次作文", 10)
-        )
-        tokenChallenges.forEach { (key, title, tokens) ->
-            taskDao.insertTask(
-                DailyTaskEntity(
-                    userId = userId,
-                    date = todayDate,
-                    title = title,
-                    rewardType = "token",
-                    rewardAmount = 0,
-                    tokenReward = tokens,
-                    autoClaim = true,
-                    taskKey = key
-                )
-            )
+    fun refreshWriting() {
+        val userId = auth.currentSession.value?.userId ?: return
+        viewModelScope.launch { checkWriting(userId, StudyDay.date()) }
+    }
+    fun recordTaskOpen(key: String) = diagnostics.record("task_opened", "daily_tasks", key)
+    private suspend fun checkWriting(userId: String, date: String) {
+        _writingMessage.value = "正在检查写作作业…"
+        try {
+            val available = assignments.listForModule("writing").any {
+                it.status in setOf("pending", "in_progress") && !it.isOverdue
+            }
+            if (auth.currentSession.value?.userId != userId || StudyDay.date() != date) return
+            _writingAvailable.value = available
+            if (available) tasks.ensureWritingTask(userId, date)
+            _writingMessage.value = if (available) "" else "暂无可提交的写作作业"
+        } catch (e: CancellationException) { throw e }
+        catch (e: Exception) {
+            if (auth.currentSession.value?.userId == userId) _writingMessage.value = "写作作业检查失败，点击重试"
         }
     }
-
 }

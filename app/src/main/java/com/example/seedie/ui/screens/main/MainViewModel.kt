@@ -2,26 +2,15 @@ package com.example.seedie.ui.screens.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.seedie.data.local.dao.DailyTaskDao
-import com.example.seedie.data.remote.AuthService
-import com.example.seedie.domain.model.RewardEvent
 import com.example.seedie.domain.model.StudyResult
-import com.example.seedie.domain.repository.DewManager
-import com.example.seedie.domain.repository.EconomyManager
 import com.example.seedie.domain.repository.ProfileRepository
 import com.example.seedie.domain.repository.VocabularyPracticeRepository
 import com.example.seedie.domain.repository.UserSessionRepository
-import com.example.seedie.domain.usecase.GardenEngine
-import com.example.seedie.domain.usecase.RewardEventBus
 import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class VocabularyEntryUiState(
@@ -34,17 +23,11 @@ data class VocabularyEntryUiState(
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val userSessionRepository: UserSessionRepository,
-    private val economyManager: EconomyManager,
-    private val dewManager: DewManager,
-    private val taskDao: DailyTaskDao,
-    private val authService: AuthService,
-    private val rewardEventBus: RewardEventBus,
     private val vocabularyPracticeRepository: VocabularyPracticeRepository,
     private val profileRepository: ProfileRepository,
-    private val gardenEngine: GardenEngine
+    private val settlements: com.example.seedie.data.repository.StudySettlementManager
 ) : ViewModel() {
 
-    private val handledSessions = mutableSetOf<String>()
     private val _vocabularyEntryState = MutableStateFlow(VocabularyEntryUiState())
     val vocabularyEntryState = _vocabularyEntryState.asStateFlow()
 
@@ -53,114 +36,10 @@ class MainViewModel @Inject constructor(
         hydrateVocabularyEstimate()
     }
 
-    fun handleStudyResult(result: StudyResult) {
-        if (!handledSessions.add(result.sessionId)) return
+    suspend fun handleStudyResult(result: StudyResult): String {
         refreshVocabularyEntryState()
-
-        viewModelScope.launch {
-            if (result.studyTimeMinutes > 0) {
-                userSessionRepository.addStudyTime(result.studyTimeMinutes)
-            }
-            result.estimatedVocabulary?.let { estimate ->
-                userSessionRepository.setVocabularyEstimate(estimate)
-                profileRepository.setMyVocabularyEstimate(estimate)
-            }
-            if (result.earnedTokens > 0) {
-                val reason = when (result.moduleId) {
-                    "listening" -> "Listening Practice"
-                    "reading" -> "Reading Practice"
-                    "writing" -> "Writing Practice"
-                    "vocabulary_review" -> "Vocabulary Review"
-                    "quiz" -> "Vocabulary Quiz"
-                    else -> "Vocabulary Practice"
-                }
-                economyManager.addTokens(
-                    amount = result.earnedTokens,
-                    reason = reason,
-                    refId = when (result.moduleId) {
-                        "reading", "listening", "writing" ->
-                            if (result.sessionId.startsWith("free_")) {
-                                result.sessionId
-                            } else {
-                                "assignment:${result.sessionId}"
-                            }
-                        else -> "study:${result.sessionId}"
-                    }
-                )
-                rewardEventBus.emit(RewardEvent.TokenDropped(result.earnedTokens))
-            }
-            if (result.earnedDews > 0) {
-                val reason = when (result.moduleId) {
-                    "listening" -> "Listening Dew"
-                    "reading" -> "Reading Dew"
-                    "writing" -> "Writing Dew"
-                    "quiz" -> "Quiz Dew"
-                    else -> "Vocabulary Dew"
-                }
-                val grantedDews = dewManager.addDews(
-                    amount = result.earnedDews,
-                    reason = reason,
-                    refId = "dew:study:${result.sessionId}"
-                )
-                if (grantedDews > 0) {
-                    rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
-                }
-            }
-            // 背单词模块（学习 + 复习 + 词汇测验）对标"不背单词"的纯奖励模式，
-            // 不再触发种树；只在听力/阅读/写作等综合学习会话中种一棵树。
-            if (result.moduleId != "vocabulary" &&
-                result.moduleId != "vocabulary_review" &&
-                result.moduleId != "quiz"
-            ) {
-                gardenEngine.recordFromStudyResult(result)
-            }
-            if (result.isCompleted) {
-                handleCompletedTasks(result)
-            }
-        }
-    }
-
-    private suspend fun handleCompletedTasks(result: StudyResult) {
-        val userId = authService.currentSession.value?.userId ?: return
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val tasks = taskDao.getTasksByUserAndDate(userId, today).first()
-        val taskKeys = when (result.moduleId) {
-            "listening" -> listOf("daily_listening")
-            "reading" -> listOf("daily_reading")
-            "writing" -> listOf("daily_writing")
-            else -> listOf("daily_vocabulary")
-        }
-        taskKeys.forEach { taskKey ->
-            val match = tasks.firstOrNull { !it.isCompleted && it.taskKey == taskKey } ?: return@forEach
-            autoClaimTask(userId, today, match)
-        }
-    }
-
-    private suspend fun autoClaimTask(
-        userId: String,
-        today: String,
-        task: com.example.seedie.data.local.entity.DailyTaskEntity
-    ) {
-        if (!task.autoClaim) return
-        val updated = task.copy(isCompleted = true, completedAt = System.currentTimeMillis())
-        taskDao.updateTask(updated)
-        if (task.rewardType == "dew" && task.rewardAmount > 0) {
-            val grantedDews = dewManager.addDews(
-                amount = task.rewardAmount,
-                reason = "Task: ${task.title}",
-                refId = "dew:task:$userId:$today:${task.taskKey}"
-            )
-            if (grantedDews > 0) {
-                rewardEventBus.emit(RewardEvent.DewDropped(grantedDews))
-            }
-        } else if (task.tokenReward > 0) {
-            economyManager.addTokens(
-                amount = task.tokenReward,
-                reason = "Completed: ${task.title}",
-                refId = "task:$userId:$today:${task.taskKey}"
-            )
-            rewardEventBus.emit(RewardEvent.TokenDropped(task.tokenReward))
-        }
+        result.estimatedVocabulary?.let { userSessionRepository.setVocabularyEstimate(it) }
+        return settlements.rewardSummary(result)
     }
 
     private fun hydrateVocabularyEstimate() {

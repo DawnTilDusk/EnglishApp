@@ -1,65 +1,46 @@
 package com.example.seedie.ui.components
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
-import kotlinx.coroutines.launch
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.filled.Park
+import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
-fun BottomNavigationBar(
-    pagerState: PagerState,
-    modifier: Modifier = Modifier
-) {
-    val coroutineScope = rememberCoroutineScope()
-    
-    val tabs = listOf(
-        Pair("首页", Icons.Default.Home),
-        Pair("学习", Icons.AutoMirrored.Filled.List),
-        Pair("数据", Icons.Default.Star),
-        Pair("我的", Icons.Default.Person)
-    )
-
-    NavigationBar(
-        modifier = modifier.fillMaxWidth(),
-        // 容器底：奶油白（surface），让底栏与卡片保持同一层材质
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentColor = MaterialTheme.colorScheme.primary
-    ) {
-        tabs.forEachIndexed { index, tab ->
-            val selected = pagerState.currentPage == index
-            NavigationBarItem(
-                selected = selected,
-                onClick = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(index)
+fun BottomNavigationBar(pagerState: PagerState, modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+    val tabs = listOf("首页" to Icons.Default.Home, "学习" to Icons.Default.School,
+        "花园" to Icons.Default.Park, "我的" to Icons.Default.PersonOutline)
+    Surface(modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = .65f))) {
+        Box(Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 24.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+            Row(Modifier.widthIn(max = 720.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                tabs.forEachIndexed { index, (label, icon) ->
+                    val selected = pagerState.currentPage == index
+                    Surface(Modifier.weight(1f), shape = MaterialTheme.shapes.medium,
+                        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface) {
+                        Row(Modifier.selectable(selected = selected, role = Role.Tab, onClick = {
+                            scope.launch { pagerState.animateScrollToPage(index) }
+                        }).heightIn(min = 48.dp).padding(horizontal = 14.dp, vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp, Alignment.CenterHorizontally)) {
+                            val tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+                            Text(label, style = MaterialTheme.typography.labelLarge, color = tint)
+                        }
                     }
-                },
-                icon = { Icon(imageVector = tab.second, contentDescription = tab.first) },
-                label = { Text(tab.first) },
-                // 选中态：primaryContainer（Green100 新芽白绿）做胶囊底，
-                // 前景使用 onPrimaryContainer（Green800 深林绿），比原深绿反白更轻盈；
-                // 未选中：onSurfaceVariant（Green700 苍林绿）保持可读性并统一到绿色系
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            )
+                }
+            }
         }
     }
 }

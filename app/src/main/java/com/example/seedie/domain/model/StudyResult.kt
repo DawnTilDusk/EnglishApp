@@ -1,5 +1,6 @@
 package com.example.seedie.domain.model
 
+@kotlinx.serialization.Serializable
 data class StudyResult(
     val sessionId: String,
     val moduleId: String,
@@ -17,7 +18,9 @@ data class StudyResult(
     val selectedSpeciesId: String = GardenSpeciesCatalog.DEFAULT_SPECIES_ID,
     val earnedDews: Int = 0,
     /** Wall-clock when the practice session opened (after plant pick). 0 = no grace. */
-    val sessionOpenedAtMillis: Long = 0L
+    val sessionOpenedAtMillis: Long = 0L,
+    val completedAtMillis: Long = System.currentTimeMillis(),
+    val countsTowardTasks: Boolean = true
 ) {
     val studyTimeMinutes: Int
         get() = if (studyDurationSec <= 0) 0 else (studyDurationSec + 59) / 60

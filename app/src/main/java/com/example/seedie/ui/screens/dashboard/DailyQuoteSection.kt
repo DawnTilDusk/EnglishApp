@@ -1,6 +1,8 @@
 package com.example.seedie.ui.screens.dashboard
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,6 +61,7 @@ fun DailyQuoteSection(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .verticalScroll(rememberScrollState())
                     .clip(RoundedCornerShape(20.dp))
                     .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 24.dp, vertical = 24.dp),

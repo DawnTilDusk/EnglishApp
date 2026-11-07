@@ -9,50 +9,46 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
-// Light 主题：主色调完全保留 Seedie IP 的生机绿套装，补充色只负责容器/描边/层次
 private val LightColorScheme = lightColorScheme(
-    // 主色：生机绿 PrimaryGreen，Seedie 小芽的品牌主情绪色，不做替换
     primary = PrimaryGreen,
     onPrimary = SurfaceCream,
-    // 主容器：Green100 新芽白绿，用作选中/高亮的浅底，属于补充层次
-    primaryContainer = Green100,
-    onPrimaryContainer = Green800,
+    primaryContainer = Color(0xFFE3EFE4),
+    onPrimaryContainer = Color(0xFF254D3A),
 
-    // 次色：橡木棕 SecondaryBrown，保留原有中性木质感
     secondary = SecondaryBrown,
     onSecondary = SurfaceCream,
-    // 次容器：Green50 晨露绿，用作弱层级信息底，仍维持整体绿意
-    secondaryContainer = Green50,
+    secondaryContainer = Color(0xFFEDF1E9),
     onSecondaryContainer = SecondaryBrown,
 
-    // 三级色：暖阳橙 AccentOrange，奖励/代币/强调点，保留品牌 IP
     tertiary = AccentOrange,
     onTertiary = SurfaceCream,
-    // 三级容器：KhakiGold 卡其金淡化版，用于成就点缀的底色
-    tertiaryContainer = KhakiGold.copy(alpha = 0.24f),
-    onTertiaryContainer = SecondaryBrown,
+    tertiaryContainer = Color(0xFFF6EBD7),
+    onTertiaryContainer = Color(0xFF78501F),
 
-    // 背景：淡薄荷绿保留（IP 底色）
     background = BackgroundMint,
-    onBackground = Green900,
+    onBackground = Color(0xFF22372B),
 
-    // 表面：奶油白保留卡片清爽感
     surface = SurfaceCream,
-    onSurface = Green900,
-    // 表面变体：Green50 晨露绿作为分隔/次级容器底，比灰色更贴合花园气质
-    surfaceVariant = Green50,
-    onSurfaceVariant = Green700,
+    onSurface = Color(0xFF22372B),
+    surfaceVariant = Color(0xFFEDF2EA),
+    onSurfaceVariant = Color(0xFF647267),
 
-    // 描边：Green300 春叶绿常规描边、Green100 用于极淡分隔线
-    outline = Green300,
-    outlineVariant = Green100
+    outline = Color(0xFF95A695),
+    outlineVariant = Color(0xFFDDE5D9),
+    surfaceContainerLowest = Color(0xFFFFFEFB),
+    surfaceContainerLow = Color(0xFFF8FAF5),
+    surfaceContainer = Color(0xFFF0F4EB),
+    surfaceContainerHigh = Color(0xFFE8EEE2),
+    surfaceContainerHighest = Color(0xFFE1E8DC),
+    error = Color(0xFFAF433E),
+    errorContainer = Color(0xFFFCEBE7),
+    onErrorContainer = Color(0xFF782C28)
 )
 
-// Dark 主题：保持生机绿的品牌情绪，反转色阶用于深色环境
 private val DarkColorScheme = darkColorScheme(
-    // 深色态下依然以生机绿为主色，让品牌情绪跨主题延续
-    primary = PrimaryGreen,
+    primary = Color(0xFFA1D3AD),
     onPrimary = Green900,
     primaryContainer = Green700,
     onPrimaryContainer = Green100,
@@ -67,7 +63,6 @@ private val DarkColorScheme = darkColorScheme(
     tertiaryContainer = ForestDeep,
     onTertiaryContainer = KhakiGold,
 
-    // 深色背景：Green900 墨林绿，避免纯黑显得冰冷
     background = Green900,
     onBackground = Green50,
 
@@ -83,7 +78,6 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun SeedieTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

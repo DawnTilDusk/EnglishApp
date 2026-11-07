@@ -1,0 +1,20 @@
+{
+  "batch": "20261106",
+  "counts": {
+    "reading_sets": 20,
+    "reading_questions": 100,
+    "reading_options": 400,
+    "listening_materials": 20,
+    "listening_questions": 60,
+    "listening_options": 240
+  },
+  "all_fields_verified": true,
+  "public_reads_verified": true,
+  "translations_uploaded": false,
+  "listening_audio": "device_tts",
+  "human_editorial_review": false,
+  "inserted_parent_counts": {
+    "reading_sets": 20,
+    "listening_materials": 20
+  }
+}

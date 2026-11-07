@@ -80,6 +80,7 @@ fun VocabularyPracticeRoute(
     viewModel: VocabularyPracticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    com.example.seedie.ui.components.PracticeLifecycle(viewModel::onScreenActive)
     val context = LocalContext.current
     var speaker by remember { mutableStateOf<TextToSpeech?>(null) }
     var speakerReady by remember { mutableStateOf(false) }
@@ -291,6 +292,7 @@ private fun PracticeContent(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                    com.example.seedie.ui.components.ContentFeedbackButton("vocabulary", uiState.currentPrompt?.word?.wordId.orEmpty())
                     TokenBadge(tokens = uiState.earnedTokens)
                 }
 
@@ -878,7 +880,7 @@ private fun CompletedState(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "正确 $accuracy% · 获得 ${uiState.earnedTokens} 枚代币",
+                    text = "正确 $accuracy% · 待结算 ${uiState.earnedTokens} 枚代币",
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.secondary
                 )

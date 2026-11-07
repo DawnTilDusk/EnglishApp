@@ -1,5 +1,6 @@
 package com.example.seedie.ui.screens.learning.catalog
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -142,8 +143,8 @@ private fun PracticeCatalogScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(uiState.items, key = { it.itemRef }) { item ->
                         CatalogItemRow(item = item, onClick = { onOpenItem(item) })
@@ -164,10 +165,11 @@ private fun CatalogItemRow(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
-        tonalElevation = 1.dp
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {

@@ -201,7 +201,7 @@ fun ForestPanel(
             title = { Text("用代币铲除这棵枯苗？") },
             text = {
                 Text(
-                    "花费 ${GardenForestRules.REMOVE_WITHERED_COST} 代币后，这棵枯苗会从森林里移除，格子会空出来。确定铲除吗？"
+                    "试用期间可免费移除这棵旧枯苗，移除后格子会空出来。确定铲除吗？"
                 )
             },
             confirmButton = {

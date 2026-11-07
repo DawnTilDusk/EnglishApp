@@ -147,6 +147,7 @@ class GardenEngine @Inject constructor(
      * @return status written, or null if skipped / duplicate.
      */
     suspend fun recordFromStudyResult(result: StudyResult): String? {
+        if (!result.isCompleted || !result.countsTowardTasks) return null
         val now = System.currentTimeMillis()
         val status = GardenForestRules.statusFor(
             isCompleted = result.isCompleted,
@@ -216,12 +217,6 @@ class GardenEngine @Inject constructor(
         if (plant.status != GardenPlantEntity.STATUS_WITHERED) {
             return RemoveWitheredResult.NotWithered
         }
-        val spent = economyManager.spendTokens(
-            amount = GardenForestRules.REMOVE_WITHERED_COST,
-            item = "Remove withered plant ${plant.id}",
-            refId = "garden_remove:$userId:${plant.id}"
-        )
-        if (!spent) return RemoveWitheredResult.InsufficientTokens
         gardenPlantDao.deleteWitheredPlant(userId, plantId)
         return RemoveWitheredResult.Success
     }

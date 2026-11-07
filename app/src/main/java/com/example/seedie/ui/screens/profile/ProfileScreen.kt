@@ -7,6 +7,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -59,12 +62,10 @@ fun ProfileScreen(
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
+        Column(Modifier.fillMaxSize().padding(24.dp)) {
+            com.example.seedie.ui.components.GardenPageHeader("照顾好你的学习日常", "管理学习目标，收藏一路获得的小成就。", eyebrow = "MY SPACE / 个人中心")
+            Spacer(Modifier.height(18.dp))
+            Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             IdentitySection(
                 modifier = Modifier.weight(0.38f),
                 profile = profileEditorUiState.profile,
@@ -86,6 +87,8 @@ fun ProfileScreen(
                 badges = badges,
                 onOpenShop = onOpenShop
             )
+        }
+
         }
 
         if (profileEditorUiState.isEditOverlayVisible) {

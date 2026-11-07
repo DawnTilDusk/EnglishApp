@@ -31,7 +31,8 @@ class WordBookRepositoryImpl @Inject constructor(
     private val wordBookModuleDao: WordBookModuleDao,
     private val vocabularyWordDao: VocabularyWordDao,
     private val remoteDataSource: WordBookRemoteDataSource,
-    private val wordBookSeeder: WordBookSeeder
+    private val wordBookSeeder: WordBookSeeder,
+    private val auth: com.example.seedie.data.remote.AuthService
 ) : WordBookRepository {
 
     override fun observeWordBooks(): Flow<List<ManagedWordBook>> {
@@ -101,6 +102,8 @@ class WordBookRepositoryImpl @Inject constructor(
         database.withTransaction {
             wordBookDao.deactivateAllBooks()
             wordBookDao.setActiveBook(bookId)
+            // A saved UI from another book must never override the user's new selection.
+            auth.currentSession.value?.userId?.let { database.learningStateDao().clearVocabularyDrafts(it) }
         }
     }
 

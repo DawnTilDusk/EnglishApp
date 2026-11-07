@@ -1,5 +1,11 @@
 package com.example.seedie.ui.screens.learning.listening
 
+import com.example.seedie.data.repository.PracticeDraftStore
+import com.example.seedie.data.repository.StudySettlementManager
+import com.example.seedie.data.repository.ListeningCheckpoint
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.coroutines.CancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.seedie.domain.model.GardenSpeciesCatalog
@@ -33,8 +39,11 @@ import java.util.UUID
 class ListeningPracticeViewModel @Inject constructor(
     private val repository: ListeningPracticeRepository,
     private val assignmentRepository: PracticeAssignmentRepository,
-    private val catalogRepository: PracticeCatalogRepository
+    private val catalogRepository: PracticeCatalogRepository,
+    private val drafts: PracticeDraftStore,
+    private val settlements: StudySettlementManager
 ) : ViewModel() {
+    private val ownerUserId = settlements.currentUserId()
     private val _uiState = MutableStateFlow(ListeningPracticeUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -62,6 +71,63 @@ class ListeningPracticeViewModel @Inject constructor(
     private var isFreePractice = false
     private var isReviewMode = false
     private var submittedSuccessfully = false
+
+    private val checkpointJson = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private var submissionPending = false
+    private var completedAt = 0L
+    var playbackSnapshot: com.example.seedie.domain.model.ListeningPlaybackSnapshot? = null
+        private set
+    fun savePlayback(snapshot: com.example.seedie.domain.model.ListeningPlaybackSnapshot?) {
+        if (snapshot == null) return
+        playbackSnapshot = snapshot
+        saveCheckpoint()
+    }
+    private val draftKey: String get() = "listening:" + (assignmentArgs?.submissionId ?: freeArgs?.itemRef.orEmpty())
+
+    init {
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                if (state.stage !in setOf(ListeningPracticeStage.Loading, ListeningPracticeStage.Error)) saveCheckpoint()
+            }
+        }
+    }
+
+    private fun saveCheckpoint() {
+        if (isReviewMode || sessionFinished || drafts.userId() != ownerUserId) return
+        val current = session ?: return
+        val state = _uiState.value
+        if (state.stage in setOf(ListeningPracticeStage.Loading, ListeningPracticeStage.Error)) return
+        drafts.save(draftKey, checkpointJson.encodeToString(ListeningCheckpoint(
+            current, state.copy(showExitConfirmDialog = false), allAnswers.toMap(),
+            draftAnswers.toMap(), wrongQuestionIds.toSet(),
+            selectedSpeciesId, submissionPending, submittedSuccessfully, completedAt, playbackSnapshot
+        )))
+    }
+
+    private suspend fun restoreCheckpoint(): Boolean {
+        if (isReviewMode || drafts.userId() != ownerUserId) return false
+        val text = drafts.load(draftKey) ?: return false
+        val saved = runCatching { checkpointJson.decodeFromString<ListeningCheckpoint>(text) }.getOrNull() ?: return false
+        session = saved.session
+        allAnswers.clear(); allAnswers.putAll(saved.answers)
+        draftAnswers.clear(); draftAnswers.putAll(saved.drafts)
+        wrongQuestionIds.clear(); wrongQuestionIds.addAll(saved.wrongIds)
+        selectedSpeciesId = saved.speciesId
+        submissionPending = saved.submissionPending
+        submittedSuccessfully = saved.submitted
+        completedAt = saved.completedAt
+        playbackSnapshot = saved.playback
+        sessionOpenedAtMillis = saved.state.sessionOpenedAtMillis
+        _uiState.value = saved.state.copy(showExitConfirmDialog = false, errorMessage = null)
+        if (saved.state.stage != ListeningPracticeStage.Completed && !submissionPending) startTimer()
+        return true
+    }
+
+    private suspend fun recordCompletion() {
+        if (isReviewMode) return
+        if (completedAt == 0L) completedAt = System.currentTimeMillis()
+        settlements.enqueue(buildResult(isCompleted = true, awardTokens = true), ownerUserId)
+    }
 
     fun initializeAssignment(args: PracticeAssignmentArgs) {
         if (!isFreePractice &&
@@ -94,7 +160,7 @@ class ListeningPracticeViewModel @Inject constructor(
 
     fun onBackClick() {
         if (_uiState.value.stage == ListeningPracticeStage.Completed) {
-            finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
+            finishSession(isCompleted = true, awardTokens = submittedSuccessfully)
             return
         }
         if (isReviewMode) {
@@ -323,6 +389,10 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onRetryLoad() {
+        if (submissionPending) {
+            if (isFreePractice) completeFreePractice() else submitAssignmentAndComplete()
+            return
+        }
         when {
             isFreePractice -> freeArgs?.let(::loadFree)
             else -> assignmentArgs?.let(::loadAssignment)
@@ -330,7 +400,7 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     fun onFinishSession() {
-        finishSession(isCompleted = true, awardTokens = !isReviewMode && submittedSuccessfully)
+        finishSession(isCompleted = true, awardTokens = submittedSuccessfully)
     }
 
     private fun loadFree(args: FreePracticeArgs) {
@@ -341,6 +411,10 @@ class ListeningPracticeViewModel @Inject constructor(
             sessionOpenedAtMillis = sessionOpenedAtMillis
         )
         viewModelScope.launch {
+            if (restoreCheckpoint()) {
+                if (submissionPending) completeFreePractice()
+                return@launch
+            }
             runCatching {
                 val attemptSessionId = "${args.sessionId}:${UUID.randomUUID()}"
                 repository.createSession(
@@ -397,7 +471,15 @@ class ListeningPracticeViewModel @Inject constructor(
                 }
                 if (args.mode == PracticeAssignmentMode.Answer) {
                     if (detail.status == "submitted") {
-                        error("作业已提交，请从已完成列表查看")
+                        if (restoreCheckpoint()) {
+                            submittedSuccessfully = true
+                            submissionPending = false
+                            completedAt = detail.submittedAtEpochMs ?: completedAt
+                            recordCompletion()
+                            _uiState.update { it.copy(stage = ListeningPracticeStage.Completed) }
+                            return@launch
+                        }
+                        isReviewMode = true
                     }
                     val now = System.currentTimeMillis()
                     if (now > detail.dueAtEpochMs && !detail.allowLate) {
@@ -408,6 +490,11 @@ class ListeningPracticeViewModel @Inject constructor(
                     error("作业尚未提交，无法回顾")
                 }
 
+                if (!isReviewMode && restoreCheckpoint()) {
+                    if (submissionPending) submitAssignmentAndComplete()
+                    return@launch
+                }
+
                 val payloadAnswers = detail.answerPayload
                     ?.get("answers")
                     ?.jsonObject
@@ -415,7 +502,7 @@ class ListeningPracticeViewModel @Inject constructor(
                     ?.filterValues { it.isNotEmpty() }
                     .orEmpty()
 
-                if (args.mode == PracticeAssignmentMode.Review) {
+                if (isReviewMode) {
                     allAnswers.clear()
                     allAnswers.putAll(payloadAnswers)
                 }
@@ -487,6 +574,8 @@ class ListeningPracticeViewModel @Inject constructor(
                     }
                 }
             }.onFailure { throwable ->
+                if (throwable is CancellationException) throw throwable
+                if ((throwable is java.io.IOException || throwable is java.nio.channels.UnresolvedAddressException) && restoreCheckpoint()) return@launch
                 _uiState.value = ListeningPracticeUiState(
                     stage = ListeningPracticeStage.Error,
                     sessionOpenedAtMillis = sessionOpenedAtMillis,
@@ -498,13 +587,19 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     private fun completeFreePractice() {
+        if (submissionPending && _uiState.value.stage == ListeningPracticeStage.Loading) return
+        submissionPending = true
+        saveCheckpoint()
         val args = freeArgs ?: return
         _uiState.update { it.copy(stage = ListeningPracticeStage.Loading) }
         viewModelScope.launch {
             runCatching {
+                drafts.flush()
                 catalogRepository.markCompleted(args.moduleId, listOf(args.itemRef))
             }.onSuccess {
                 submittedSuccessfully = true
+                submissionPending = false
+                recordCompletion()
                 _uiState.update {
                     it.copy(
                         stage = ListeningPracticeStage.Completed,
@@ -515,6 +610,7 @@ class ListeningPracticeViewModel @Inject constructor(
                     )
                 }
             }.onFailure { error ->
+                if (error is CancellationException) throw error
                 _uiState.update {
                     it.copy(
                         stage = ListeningPracticeStage.Error,
@@ -526,11 +622,20 @@ class ListeningPracticeViewModel @Inject constructor(
     }
 
     private fun submitAssignmentAndComplete() {
+        if (submissionPending && _uiState.value.stage == ListeningPracticeStage.Loading) return
+        submissionPending = true
+        saveCheckpoint()
         val args = assignmentArgs ?: return
         val state = _uiState.value
         _uiState.update { it.copy(stage = ListeningPracticeStage.Loading) }
         viewModelScope.launch {
             runCatching {
+                drafts.flush()
+                val existing = assignmentRepository.getDetail(args.submissionId)
+                if (existing.status == "submitted") {
+                    completedAt = existing.submittedAtEpochMs ?: completedAt
+                    return@runCatching
+                }
                 val payload = buildJsonObject {
                     put(
                         "answers",
@@ -549,6 +654,8 @@ class ListeningPracticeViewModel @Inject constructor(
                 )
             }.onSuccess {
                 submittedSuccessfully = true
+                submissionPending = false
+                recordCompletion()
                 _uiState.update {
                     it.copy(
                         stage = ListeningPracticeStage.Completed,
@@ -559,6 +666,7 @@ class ListeningPracticeViewModel @Inject constructor(
                     )
                 }
             }.onFailure { error ->
+                if (error is CancellationException) throw error
                 _uiState.update {
                     it.copy(
                         stage = ListeningPracticeStage.Error,
@@ -698,36 +806,54 @@ class ListeningPracticeViewModel @Inject constructor(
         }
     }
 
-    private fun finishSession(isCompleted: Boolean, awardTokens: Boolean) {
+    private fun buildResult(isCompleted: Boolean, awardTokens: Boolean): StudyResult {
         val state = _uiState.value
-        val sessionId = state.sessionId ?: session?.sessionId ?: return
-        if (sessionFinished) return
-        sessionFinished = true
-        stopTimer()
+        val sessionId = state.sessionId ?: requireNotNull(session).sessionId
         val answeredCount = state.correctCount + state.wrongCount
-        val result = StudyResult(
+        return StudyResult(
             sessionId = sessionId,
             moduleId = "listening",
-            isCompleted = isCompleted,
+            isCompleted = isCompleted && awardTokens,
             completedQuestionCount = answeredCount,
             correctCount = state.correctCount,
             wrongCount = state.wrongCount,
             skippedCount = 0,
             accuracy = if (answeredCount == 0) 0f else state.correctCount.toFloat() / answeredCount,
             earnedTokens = 0,
-            earnedDews = state.earnedDews,
+            earnedDews = if (awardTokens) state.earnedDews else 0,
             studyDurationSec = state.elapsedSeconds,
             vocabularyDelta = 0,
             wrongWordIds = wrongQuestionIds.toList(),
             selectedSpeciesId = selectedSpeciesId,
-            sessionOpenedAtMillis = sessionOpenedAtMillis
+            sessionOpenedAtMillis = sessionOpenedAtMillis,
+            countsTowardTasks = awardTokens,
+            completedAtMillis = completedAt.takeIf { it > 0 } ?: System.currentTimeMillis()
         )
+    }
+
+    private fun finishSession(isCompleted: Boolean, awardTokens: Boolean) {
+        if (sessionFinished || session == null) return
+        saveCheckpoint()
+        sessionFinished = true
+        stopTimer()
+        val result = buildResult(isCompleted, awardTokens)
         viewModelScope.launch {
+            drafts.flush()
+            settlements.enqueue(result, ownerUserId)
+            if (isCompleted && submittedSuccessfully) drafts.clear(draftKey)
             _studyResults.emit(result)
         }
     }
 
+    private var screenActive = true
+    fun onScreenActive(active: Boolean) {
+        screenActive = active
+        if (active && _uiState.value.stage !in setOf(ListeningPracticeStage.Completed, ListeningPracticeStage.Loading, ListeningPracticeStage.Error)) startTimer()
+        else stopTimer()
+    }
+
     private fun startTimer() {
+        if (!screenActive) return
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             while (isActive) {
@@ -747,6 +873,8 @@ class ListeningPracticeViewModel @Inject constructor(
         session = null
         sessionFinished = false
         submittedSuccessfully = false
+        submissionPending = false
+        completedAt = 0L
         sessionOpenedAtMillis = 0L
         wrongQuestionIds.clear()
         allAnswers.clear()

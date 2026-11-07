@@ -2,6 +2,10 @@ package com.example.seedie.ui.screens.garden
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -25,12 +29,10 @@ fun DataGardenScreen(
         viewModel.refreshVocabularyTrend()
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalArrangement = Arrangement.spacedBy(24.dp)
-    ) {
+    Column(Modifier.fillMaxSize().padding(24.dp)) {
+        com.example.seedie.ui.components.GardenPageHeader("看见自己的成长", "每一次认真学习，都会在这里留下痕迹。", eyebrow = "YOUR GARDEN / 成长花园")
+        Spacer(Modifier.height(18.dp))
+        Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         StatsPanelSection(
             modifier = Modifier.weight(0.4f),
             learningDistribution = statsUiState.learningDistribution,
@@ -57,5 +59,6 @@ fun DataGardenScreen(
             removeMessage = removeMessage,
             onClearRemoveMessage = viewModel::clearRemoveMessage
         )
+    }
     }
 }

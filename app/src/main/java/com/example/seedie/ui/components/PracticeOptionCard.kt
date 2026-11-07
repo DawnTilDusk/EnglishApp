@@ -34,7 +34,7 @@ fun PracticeOptionCard(
     val isSelected = selectedOptionId == option.optionId
     val containerColor = when {
         feedbackVisible && option.isCorrect ->
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
         feedbackVisible && isSelected && !option.isCorrect ->
             MaterialTheme.colorScheme.error.copy(alpha = 0.14f)
         isSelected ->
@@ -45,7 +45,7 @@ fun PracticeOptionCard(
         feedbackVisible && option.isCorrect -> MaterialTheme.colorScheme.primary
         feedbackVisible && isSelected && !option.isCorrect -> MaterialTheme.colorScheme.error
         isSelected -> MaterialTheme.colorScheme.primary
-        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+        else -> MaterialTheme.colorScheme.outlineVariant
     }
 
     Surface(
@@ -63,7 +63,7 @@ fun PracticeOptionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 16.dp),
+                .padding(horizontal = 18.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -76,7 +76,7 @@ fun PracticeOptionCard(
                         append(option.englishHint)
                     }
                 },
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                 color = MaterialTheme.colorScheme.onSurface
             )

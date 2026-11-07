@@ -11,6 +11,7 @@ enum class ReadingPracticeStage {
     Error
 }
 
+@kotlinx.serialization.Serializable
 data class ReadingQuestionItem(
     val questionId: String,
     val questionType: String?,
@@ -22,6 +23,7 @@ data class ReadingQuestionItem(
     val rewardToken: Int
 )
 
+@kotlinx.serialization.Serializable
 data class ReadingSetItem(
     val setId: String,
     val title: String,
@@ -30,11 +32,13 @@ data class ReadingSetItem(
     val questions: List<ReadingQuestionItem>
 )
 
+@kotlinx.serialization.Serializable
 data class ReadingPracticeSession(
     val sessionId: String,
     val sets: List<ReadingSetItem>
 )
 
+@kotlinx.serialization.Serializable
 data class ReadingPracticeUiState(
     val stage: ReadingPracticeStage = ReadingPracticeStage.Loading,
     val sessionId: String? = null,

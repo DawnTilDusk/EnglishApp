@@ -161,6 +161,16 @@ class WordAudioPlayer(context: Context) {
         }
     }
 
+    fun currentPositionMs(): Long = (rawPlayer?.currentPosition?.toLong() ?: streamPlayer.currentPosition).coerceAtLeast(0)
+
+    fun prepareUrlPaused(url: String, positionMs: Long) {
+        stop()
+        streamPlayer.setMediaItem(MediaItem.fromUri(url))
+        streamPlayer.seekTo(positionMs.coerceAtLeast(0))
+        streamPlayer.playWhenReady = false
+        streamPlayer.prepare()
+    }
+
     fun pause() {
         resumeWhenFocusReturns = false
         rawPlayer?.pause()

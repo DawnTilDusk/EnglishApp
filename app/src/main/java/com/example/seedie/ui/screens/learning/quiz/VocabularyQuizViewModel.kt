@@ -27,8 +27,10 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class VocabularyQuizViewModel @Inject constructor(
     private val repository: VocabularyQuizRepository,
-    private val optionBuilder: VocabularyOptionBuilder
+    private val optionBuilder: VocabularyOptionBuilder,
+    private val settlements: com.example.seedie.data.repository.StudySettlementManager
 ) : ViewModel() {
+    private val ownerUserId = settlements.currentUserId()
     private val _uiState = MutableStateFlow(VocabularyQuizUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -299,6 +301,7 @@ class VocabularyQuizViewModel @Inject constructor(
             sessionOpenedAtMillis = sessionOpenedAtMillis
         )
         viewModelScope.launch {
+            settlements.enqueue(result, ownerUserId)
             _studyResults.emit(result)
         }
     }

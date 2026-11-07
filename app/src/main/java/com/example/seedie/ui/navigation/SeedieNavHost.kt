@@ -1,5 +1,9 @@
 package com.example.seedie.ui.navigation
 
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.Saver
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -48,14 +52,14 @@ fun SeedieNavHost(
     startDestination: String = Screen.Splash.route,
     activityTracker: GlobalActivityTracker
 ) {
-    var pendingStudyResult by remember { mutableStateOf<StudyResult?>(null) }
-    var currentVocabularyArgs by remember { mutableStateOf(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
-    var currentReadingAssignmentArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
-    var currentListeningAssignmentArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
-    var currentReadingFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
-    var currentListeningFreeArgs by remember { mutableStateOf<FreePracticeArgs?>(null) }
-    var currentWritingArgs by remember { mutableStateOf<PracticeAssignmentArgs?>(null) }
-    var currentVideoLesson by remember { mutableStateOf<VideoLesson?>(null) }
+    var pendingStudyResult by rememberSaveable(stateSaver = jsonStateSaver<StudyResult?>()) { mutableStateOf<StudyResult?>(null) }
+    var currentVocabularyArgs by rememberSaveable(stateSaver = jsonStateSaver<VocabularyPracticeArgs>()) { mutableStateOf<VocabularyPracticeArgs>(VocabularyPracticeArgs(sourceModuleId = "vocabulary")) }
+    var currentReadingAssignmentArgs by rememberSaveable(stateSaver = jsonStateSaver<PracticeAssignmentArgs?>()) { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentListeningAssignmentArgs by rememberSaveable(stateSaver = jsonStateSaver<PracticeAssignmentArgs?>()) { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentReadingFreeArgs by rememberSaveable(stateSaver = jsonStateSaver<FreePracticeArgs?>()) { mutableStateOf<FreePracticeArgs?>(null) }
+    var currentListeningFreeArgs by rememberSaveable(stateSaver = jsonStateSaver<FreePracticeArgs?>()) { mutableStateOf<FreePracticeArgs?>(null) }
+    var currentWritingArgs by rememberSaveable(stateSaver = jsonStateSaver<PracticeAssignmentArgs?>()) { mutableStateOf<PracticeAssignmentArgs?>(null) }
+    var currentVideoLesson by rememberSaveable(stateSaver = jsonStateSaver<VideoLesson?>()) { mutableStateOf<VideoLesson?>(null) }
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -110,29 +114,32 @@ fun SeedieNavHost(
             MainScreen(
                 onOpenVocabularyStudy = { args ->
                     currentVocabularyArgs = args
-                    navController.navigate(Screen.VocabularyPractice.route)
+                    navController.navigate(Screen.VocabularyPractice.route) { launchSingleTop = true }
                 },
                 onOpenVocabularyReview = { args ->
                     currentVocabularyArgs = args
-                    navController.navigate(Screen.VocabularyPractice.route)
+                    navController.navigate(Screen.VocabularyPractice.route) { launchSingleTop = true }
                 },
                 onOpenListeningMode = {
-                    navController.navigate(Screen.ListeningMode.route)
+                    navController.navigate(Screen.ListeningMode.route) { launchSingleTop = true }
                 },
                 onOpenReadingMode = {
-                    navController.navigate(Screen.ReadingMode.route)
+                    navController.navigate(Screen.ReadingMode.route) { launchSingleTop = true }
                 },
                 onOpenWritingHub = {
-                    navController.navigate(Screen.WritingHub.route)
+                    navController.navigate(Screen.WritingHub.route) { launchSingleTop = true }
+                },
+                onOpenWritingAssignments = {
+                    navController.navigate(Screen.WritingAssignments.route) { launchSingleTop = true }
                 },
                 onOpenVideoLessons = {
-                    navController.navigate(Screen.VideoLessons.route)
+                    navController.navigate(Screen.VideoLessons.route) { launchSingleTop = true }
                 },
                 onOpenVocabularyQuiz = {
-                    navController.navigate(Screen.VocabularyQuiz.route)
+                    navController.navigate(Screen.VocabularyQuiz.route) { launchSingleTop = true }
                 },
                 onOpenShop = {
-                    navController.navigate(Screen.StudentShop.route)
+                    navController.navigate(Screen.StudentShop.route) { launchSingleTop = true }
                 },
                 onVisibleModuleChanged = activityTracker::trackModule,
                 pendingStudyResult = pendingStudyResult,
@@ -204,7 +211,7 @@ fun SeedieNavHost(
                 onOpenItem = { args ->
                     currentReadingFreeArgs = args
                     currentReadingAssignmentArgs = null
-                    navController.navigate(Screen.ReadingPractice.route)
+                    navController.navigate(Screen.ReadingPractice.route) { launchSingleTop = true }
                 }
             )
         }
@@ -215,7 +222,7 @@ fun SeedieNavHost(
                 onOpenItem = { args ->
                     currentListeningFreeArgs = args
                     currentListeningAssignmentArgs = null
-                    navController.navigate(Screen.ListeningPractice.route)
+                    navController.navigate(Screen.ListeningPractice.route) { launchSingleTop = true }
                 }
             )
         }
@@ -226,7 +233,7 @@ fun SeedieNavHost(
                 onOpenAssignment = { args ->
                     currentReadingAssignmentArgs = args
                     currentReadingFreeArgs = null
-                    navController.navigate(Screen.ReadingPractice.route)
+                    navController.navigate(Screen.ReadingPractice.route) { launchSingleTop = true }
                 }
             )
         }
@@ -237,7 +244,7 @@ fun SeedieNavHost(
                 onOpenAssignment = { args ->
                     currentListeningAssignmentArgs = args
                     currentListeningFreeArgs = null
-                    navController.navigate(Screen.ListeningPractice.route)
+                    navController.navigate(Screen.ListeningPractice.route) { launchSingleTop = true }
                 }
             )
         }
@@ -247,7 +254,7 @@ fun SeedieNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onOpenAssignment = { args ->
                     currentWritingArgs = args
-                    navController.navigate(Screen.WritingPractice.route)
+                    navController.navigate(Screen.WritingPractice.route) { launchSingleTop = true }
                 }
             )
         }
@@ -257,13 +264,13 @@ fun SeedieNavHost(
                 onOpenFeature = { destination ->
                     when (destination) {
                         WritingFeatureDestination.PracticalWriting ->
-                            navController.navigate(Screen.WritingAssignments.route)
+                            navController.navigate(Screen.WritingAssignments.route) { launchSingleTop = true }
                         WritingFeatureDestination.SentenceTranslation ->
-                            navController.navigate(Screen.WritingSentenceTranslation.route)
+                            navController.navigate(Screen.WritingSentenceTranslation.route) { launchSingleTop = true }
                         WritingFeatureDestination.ConnectorDrill ->
-                            navController.navigate(Screen.WritingConnectorDrill.route)
+                            navController.navigate(Screen.WritingConnectorDrill.route) { launchSingleTop = true }
                         WritingFeatureDestination.Paraphrase ->
-                            navController.navigate(Screen.WritingParaphrase.route)
+                            navController.navigate(Screen.WritingParaphrase.route) { launchSingleTop = true }
                     }
                 }
             )
@@ -381,7 +388,7 @@ fun SeedieNavHost(
                 onNavigateBack = { navController.popBackStack() },
                 onOpenLesson = { lesson ->
                     currentVideoLesson = lesson
-                    navController.navigate(Screen.VideoLessonPlayer.route)
+                    navController.navigate(Screen.VideoLessonPlayer.route) { launchSingleTop = true }
                 }
             )
         }
@@ -407,3 +414,8 @@ fun SeedieNavHost(
         }
     }
 }
+
+private inline fun <reified T> jsonStateSaver(): Saver<T, String> = Saver(
+    save = { Json.encodeToString(it) },
+    restore = { Json.decodeFromString<T>(it) }
+)

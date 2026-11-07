@@ -74,6 +74,7 @@ fun WritingPracticeRoute(
         uiState = uiState,
         onNavigateBack = onNavigateBack,
         onFilePicked = viewModel::onFilePicked,
+        onRetryLoad = { viewModel.initialize(assignmentArgs) },
         onClearSelection = viewModel::clearSelection,
         onSubmit = viewModel::submit
     )
@@ -84,6 +85,7 @@ private fun WritingPracticeScreen(
     uiState: WritingPracticeUiState,
     onNavigateBack: () -> Unit,
     onFilePicked: (Uri, String?) -> Unit,
+    onRetryLoad: () -> Unit,
     onClearSelection: () -> Unit,
     onSubmit: () -> Unit
 ) {
@@ -157,6 +159,7 @@ private fun WritingPracticeScreen(
                 ) {
                     Text(uiState.errorMessage ?: "加载失败")
                     Spacer(Modifier.height(12.dp))
+                    Button(onClick = onRetryLoad) { Text("重试加载") }
                     Button(onClick = onNavigateBack) { Text("返回") }
                 }
             }
@@ -174,6 +177,7 @@ private fun WritingPracticeScreen(
                         onNavigateBack = onNavigateBack
                     )
 
+                    com.example.seedie.ui.components.ContentFeedbackButton("writing", uiState.prompt?.promptId.orEmpty())
                     val prompt = uiState.prompt
                     if (prompt != null) {
                         WritingPromptCard(prompt = prompt)

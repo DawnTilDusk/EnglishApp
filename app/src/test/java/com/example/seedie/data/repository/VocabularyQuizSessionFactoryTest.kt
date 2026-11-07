@@ -36,7 +36,11 @@ class VocabularyQuizSessionFactoryTest {
             assertEquals(4, question.options.size)
             assertEquals(1, question.options.count { it.isCorrect })
             assertTrue(question.options.all { option -> option.label.isNotBlank() })
-            assertTrue(question.options.any { it.label == question.translation && it.isCorrect })
+            val correct = question.options.single { it.isCorrect }
+            if (correct.label == com.example.seedie.domain.quiz.VocabularyQuizConstants.NONE_OF_ABOVE_LABEL) {
+                assertEquals(question.options.last().optionId, correct.optionId)
+                assertTrue(question.options.none { it.label == question.translation })
+            } else assertEquals(question.translation, correct.label)
         }
     }
 

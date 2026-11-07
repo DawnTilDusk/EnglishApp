@@ -1,6 +1,7 @@
 package com.example.seedie.ui.screens.learning.practice
 import com.example.seedie.domain.model.StudyResult
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeArgs(
     val sessionId: String? = null,
     val sourceModuleId: String = "vocabulary",
@@ -42,6 +43,7 @@ enum class AnswerStatus {
     TimedOut
 }
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeOption(
     val optionId: String,
     val label: String,
@@ -50,6 +52,7 @@ data class VocabularyPracticeOption(
     val showFeedbackHint: Boolean = true
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeWord(
     val wordId: String,
     val bookId: String,
@@ -72,6 +75,7 @@ data class VocabularyPracticeWord(
     val contextSentence: String
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyWordProgress(
     val wordId: String,
     val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
@@ -83,6 +87,7 @@ data class VocabularyWordProgress(
     val isReviewCompleted: Boolean = false
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticePrompt(
     val promptId: String,
     val word: VocabularyPracticeWord,
@@ -97,6 +102,7 @@ data class VocabularyPracticePrompt(
     val firstLetterHint: String? = null
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularySessionMeta(
     val sessionId: String,
     val moduleId: String,
@@ -107,6 +113,7 @@ data class VocabularySessionMeta(
     val resumeSupported: Boolean
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyResumeWordProgress(
     val wordId: String,
     val passedStudyQuestionTypes: Set<VocabularyQuestionType> = emptySet(),
@@ -115,6 +122,7 @@ data class VocabularyResumeWordProgress(
     val revealCount: Int = 0
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeResumeSnapshot(
     val roundId: String,
     val bookId: String,
@@ -123,9 +131,11 @@ data class VocabularyPracticeResumeSnapshot(
     val studyTargetCount: Int,
     val nextWordSortOrderCursor: Int,
     val masteredStudyCount: Int,
-    val wordProgressList: List<VocabularyResumeWordProgress>
+    val wordProgressList: List<VocabularyResumeWordProgress>,
+    val recordedAtMillis: Long = System.currentTimeMillis()
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeSession(
     val sessionMeta: VocabularySessionMeta,
     val studyWords: List<VocabularyPracticeWord>,
@@ -134,17 +144,20 @@ data class VocabularyPracticeSession(
     val reviewRoundId: String? = null
 )
 
+@kotlinx.serialization.Serializable
 data class PendingReviewEntry(
     val roundId: String,
     val bookId: String,
     val pendingWordCount: Int
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyImmediateReviewRequest(
     val result: StudyResult,
     val args: VocabularyPracticeArgs
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyQuestionRecord(
     val sessionId: String,
     val promptId: String,
@@ -160,6 +173,7 @@ data class VocabularyQuestionRecord(
     val elapsedSeconds: Int
 )
 
+@kotlinx.serialization.Serializable
 data class VocabularyPracticeUiState(
     val stage: VocabularyPracticeStage = VocabularyPracticeStage.Loading,
     val sessionMeta: VocabularySessionMeta? = null,

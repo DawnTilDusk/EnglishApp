@@ -24,5 +24,9 @@ data class DailyTaskEntity(
     val tokenReward: Int = 0,
     val autoClaim: Boolean = true,
     val completedAt: Long? = null,
-    val taskKey: String = ""
+    val taskKey: String = "",
+    val targetCount: Int = 1,
+    val currentCount: Int = 0,
+    val ruleVersion: Int = 2,
+    val rewardGranted: Boolean = false
 )

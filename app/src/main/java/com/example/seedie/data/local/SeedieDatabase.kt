@@ -38,6 +38,9 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
 @Database(
     entities = [
         DailyTaskEntity::class,
+        com.example.seedie.data.local.entity.DailyWordCompletionEntity::class,
+        com.example.seedie.data.local.entity.StudySettlementEntity::class,
+        com.example.seedie.data.local.entity.PracticeDraftEntity::class,
         CheckInEntity::class,
         GardenPlotEntity::class,
         GardenPlantEntity::class,
@@ -54,10 +57,11 @@ import com.example.seedie.data.local.entity.WordBookModuleEntity
         VocabularyStudyRoundWordEntity::class,
         SyncOperationEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 abstract class SeedieDatabase : RoomDatabase() {
+    abstract fun learningStateDao(): com.example.seedie.data.local.dao.LearningStateDao
     abstract fun activityDurationDao(): ActivityDurationDao
     abstract fun dailyTaskDao(): DailyTaskDao
     abstract fun checkInDao(): CheckInDao

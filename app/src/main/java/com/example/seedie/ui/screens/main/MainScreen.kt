@@ -56,6 +56,7 @@ fun MainScreen(
     onOpenListeningMode: () -> Unit,
     onOpenReadingMode: () -> Unit,
     onOpenWritingHub: () -> Unit,
+    onOpenWritingAssignments: () -> Unit,
     onOpenVideoLessons: () -> Unit,
     onOpenVocabularyQuiz: () -> Unit,
     onOpenShop: () -> Unit,
@@ -73,20 +74,10 @@ fun MainScreen(
 
     LaunchedEffect(pendingStudyResult) {
         pendingStudyResult?.let { result ->
-            viewModel.handleStudyResult(result)
-            val rewardHint = buildString {
-                if (result.earnedTokens > 0) {
-                    append(" +${result.earnedTokens} 代币")
-                }
-                if (result.earnedDews > 0) {
-                    if (isNotEmpty()) append("，")
-                    append("+${result.earnedDews} 露水")
-                }
+            val rewardHint = viewModel.handleStudyResult(result).let {
+                if (it.isBlank()) "" else "，$it"
             }
-            val treeHint = when (result.moduleId) {
-                "vocabulary", "vocabulary_review", "quiz" -> ""
-                else -> if (result.isCompleted) "，已种入花园" else "，树苗可能已枯萎"
-            }
+            val treeHint = ""
             val estimateHint = result.estimatedVocabulary
                 ?.takeIf { result.moduleId == "quiz" }
                 ?.let { "估算词汇量约 $it。" }
@@ -225,17 +216,7 @@ fun MainScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        bottomBar = {
-            Column {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CustomIndicatorPanel(pagerState = pagerState)
-                }
-                BottomNavigationBar(pagerState = pagerState)
-            }
-        }
+        bottomBar = { BottomNavigationBar(pagerState = pagerState) }
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
@@ -245,9 +226,16 @@ fun MainScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) { page ->
             when (page) {
-                0 -> DashboardScreen() // Tab 1: Dashboard
+                0 -> DashboardScreen(onOpenTask = { key ->
+                    when (key) {
+                        "daily_vocabulary" -> onOpenVocabularyStudy(VocabularyPracticeArgs())
+                        "daily_reading" -> onOpenReadingMode()
+                        "daily_listening" -> onOpenListeningMode()
+                        "daily_writing" -> onOpenWritingAssignments()
+                    }
+                })
                 1 -> LearningHubScreen(
-                    modules = learningModules,
+                    modules = learningModules.filter { it.isAvailable },
                     onModuleClick = { module ->
                         when (module.id) {
                             "vocabulary" -> {

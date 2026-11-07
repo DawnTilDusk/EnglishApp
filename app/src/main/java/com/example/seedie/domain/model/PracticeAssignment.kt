@@ -42,7 +42,8 @@ data class PracticeAssignmentDetail(
     val maxScore: Int? = null,
     val feedbackText: String? = null,
     val originalPath: String? = null,
-    val annotatedPath: String? = null
+    val annotatedPath: String? = null,
+    val submittedAtEpochMs: Long? = null
 )
 
 data class WritingPrompt(

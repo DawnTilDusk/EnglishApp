@@ -3,6 +3,7 @@ package com.example.seedie.ui.screens.learning.assignments
 import com.example.seedie.domain.model.PracticeAssignmentListItem
 import com.example.seedie.domain.model.PracticeAssignmentMode
 
+@kotlinx.serialization.Serializable
 data class PracticeAssignmentArgs(
     val moduleId: String,
     val submissionId: String,

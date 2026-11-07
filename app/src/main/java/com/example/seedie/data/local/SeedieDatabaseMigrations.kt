@@ -496,6 +496,28 @@ object SeedieDatabaseMigrations {
         }
     }
 
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN targetCount INTEGER NOT NULL DEFAULT 1")
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN currentCount INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN ruleVersion INTEGER NOT NULL DEFAULT 2")
+            db.execSQL("ALTER TABLE daily_tasks ADD COLUMN rewardGranted INTEGER NOT NULL DEFAULT 0")
+            // Preserve historical tasks; do not retrospectively award old completions.
+            db.execSQL("UPDATE daily_tasks SET ruleVersion = 1, rewardGranted = isCompleted")
+            db.execSQL("UPDATE daily_tasks SET title = '完成一次单词学习（旧版任务）' WHERE taskKey = 'daily_vocabulary' AND isCompleted = 0")
+            db.execSQL("""CREATE TABLE IF NOT EXISTS daily_word_completions (
+                userId TEXT NOT NULL, date TEXT NOT NULL, bookId TEXT NOT NULL, wordId TEXT NOT NULL,
+                completedAt INTEGER NOT NULL, PRIMARY KEY(userId, date, bookId, wordId))""")
+            db.execSQL("""CREATE TABLE IF NOT EXISTS study_settlements (
+                userId TEXT NOT NULL, settlementId TEXT NOT NULL, payload TEXT NOT NULL,
+                createdAt INTEGER NOT NULL, settled INTEGER NOT NULL,
+                PRIMARY KEY(userId, settlementId))""")
+            db.execSQL("""CREATE TABLE IF NOT EXISTS practice_drafts (
+                userId TEXT NOT NULL, draftKey TEXT NOT NULL, payload TEXT NOT NULL,
+                updatedAt INTEGER NOT NULL, PRIMARY KEY(userId, draftKey))""")
+        }
+    }
+
     private fun tableHasColumn(
         db: SupportSQLiteDatabase,
         tableName: String,

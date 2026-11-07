@@ -1,100 +1,32 @@
 package com.example.seedie.ui.screens.dashboard
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.lerp
-import androidx.compose.ui.zIndex
-import kotlin.math.absoluteValue
-
-private const val DashboardFeatureCardCount = 2
-private const val DashboardFeatureVirtualPageCount = 10_000
-private const val DashboardFeatureInitialPage =
-    DashboardFeatureVirtualPageCount / 2 - (DashboardFeatureVirtualPageCount / 2) % DashboardFeatureCardCount
+import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardFeatureCarousel(modifier: Modifier = Modifier) {
-    val pagerState = rememberPagerState(
-        initialPage = DashboardFeatureInitialPage,
-        pageCount = { DashboardFeatureVirtualPageCount }
-    )
-    val dragTranslationDistance = with(LocalDensity.current) { 72.dp.toPx() }
-    val stackLiftDistance = with(LocalDensity.current) { 14.dp.toPx() }
-
-    HorizontalPager(
-        state = pagerState,
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 4.dp, end = 44.dp),
-        pageSpacing = 4.dp,
-        beyondViewportPageCount = 1
-    ) { page ->
-        val actualPage = page.mod(DashboardFeatureCardCount)
-        val rawOffset = (page - pagerState.currentPage) + pagerState.currentPageOffsetFraction
-        val pageOffset = rawOffset.absoluteValue.coerceIn(0f, 1f)
-        val targetScale = lerp(start = 0.86f, stop = 1f, fraction = 1f - pageOffset)
-        val targetAlpha = lerp(start = 0.52f, stop = 1f, fraction = 1f - pageOffset)
-        val targetTranslationX = -rawOffset * dragTranslationDistance
-        val targetTranslationY = pageOffset * stackLiftDistance
-        val scale by animateFloatAsState(
-            targetValue = targetScale,
-            animationSpec = spring(
-                dampingRatio = 0.82f,
-                stiffness = Spring.StiffnessMediumLow
-            ),
-            label = "dashboardFeatureScale"
-        )
-        val alpha by animateFloatAsState(
-            targetValue = targetAlpha,
-            animationSpec = spring(
-                dampingRatio = 0.90f,
-                stiffness = Spring.StiffnessMedium
-            ),
-            label = "dashboardFeatureAlpha"
-        )
-        val animatedTranslationX by animateFloatAsState(
-            targetValue = targetTranslationX,
-            animationSpec = spring(
-                dampingRatio = 0.78f,
-                stiffness = Spring.StiffnessMediumLow
-            ),
-            label = "dashboardFeatureTranslationX"
-        )
-        val animatedTranslationY by animateFloatAsState(
-            targetValue = targetTranslationY,
-            animationSpec = spring(
-                dampingRatio = 0.86f,
-                stiffness = Spring.StiffnessMedium
-            ),
-            label = "dashboardFeatureTranslationY"
-        )
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .zIndex(2f - pageOffset)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    this.alpha = alpha
-                    translationX = animatedTranslationX
-                    translationY = animatedTranslationY
-                }
-        ) {
-            when (actualPage) {
-                0 -> HeatmapSection(modifier = Modifier.fillMaxSize())
-                else -> DailyQuoteSection(modifier = Modifier.fillMaxSize())
+fun DashboardFeatureCarousel(modifier: Modifier = Modifier, activityDays: List<com.example.seedie.domain.model.DailyActivityTotal> = emptyList()) {
+    val pager = rememberPagerState(pageCount = { 2 })
+    val scope = rememberCoroutineScope()
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf("学习足迹", "今日一句").forEachIndexed { index, label ->
+                FilterChip(selected = pager.currentPage == index,
+                    onClick = { scope.launch { pager.animateScrollToPage(index) } }, label = { Text(label) })
             }
+            Spacer(Modifier.weight(1f))
+            Text("${pager.currentPage + 1} / 2", style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        HorizontalPager(state = pager, modifier = Modifier.weight(1f).fillMaxWidth(), pageSpacing = 16.dp) { page ->
+            if (page == 0) HeatmapSection(Modifier.fillMaxSize(), activityDays) else DailyQuoteSection(Modifier.fillMaxSize())
         }
     }
 }

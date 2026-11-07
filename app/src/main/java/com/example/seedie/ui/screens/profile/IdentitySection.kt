@@ -112,7 +112,7 @@ fun IdentitySection(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             Text(
-                text = "Profile",
+                text = "个人档案",
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.primary
             )

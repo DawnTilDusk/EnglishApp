@@ -1,5 +1,6 @@
 package com.example.seedie.domain.model
 
+@kotlinx.serialization.Serializable
 data class VideoLesson(
     val id: String,
     val agencyId: String,

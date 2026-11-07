@@ -166,7 +166,7 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveStudyRoundSnapshot(snapshot: VocabularyPracticeResumeSnapshot) {
-        val now = System.currentTimeMillis()
+        val now = snapshot.recordedAtMillis
         database.withTransaction {
             val round = vocabularyStudyRoundDao.getRoundById(snapshot.roundId) ?: return@withTransaction
             if (round.status != ROUND_STATUS_ACTIVE) return@withTransaction
@@ -234,6 +234,17 @@ class VocabularyPracticeRepositoryImpl @Inject constructor(
                 )
             }
             vocabularyWordLearningProgressDao.insertOrReplace(activeProgressRows + removedProgressRows)
+            removedWordIds.forEach { wordId ->
+                database.learningStateDao().recordWord(
+                    com.example.seedie.data.local.entity.DailyWordCompletionEntity(
+                        userId = round.userId,
+                        date = com.example.seedie.domain.model.StudyDay.date(now),
+                        bookId = snapshot.bookId,
+                        wordId = wordId,
+                        completedAt = now
+                    )
+                )
+            }
 
             val currentBookProgress = vocabularyBookProgressDao.getProgressByBookId(currentUserId(), snapshot.bookId)
                 ?: VocabularyBookProgressEntity(

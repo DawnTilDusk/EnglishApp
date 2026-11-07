@@ -1,5 +1,15 @@
 package com.example.seedie.ui.screens.learning.writing
 
+import com.example.seedie.data.repository.PracticeDraftStore
+import com.example.seedie.data.repository.StudySettlementManager
+import java.io.File
+import java.util.UUID
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -21,8 +31,11 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class WritingPracticeViewModel @Inject constructor(
     private val repository: PracticeAssignmentRepository,
-    @ApplicationContext private val appContext: Context
+    private val drafts: PracticeDraftStore,
+    private val settlements: StudySettlementManager,
+    @param:ApplicationContext private val appContext: Context
 ) : ViewModel() {
+    private val ownerUserId = settlements.currentUserId()
     private val _uiState = MutableStateFlow(WritingPracticeUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -31,9 +44,46 @@ class WritingPracticeViewModel @Inject constructor(
 
     private var submissionId: String? = null
     private var assignmentId: String? = null
-    private var selectedBytes: ByteArray? = null
+    private var draft: WritingFileDraft? = null
+    private val draftJson = Json { ignoreUnknownKeys = true }
+    private val draftKey: String get() = "writing:${submissionId.orEmpty()}"
+
+    private suspend fun restoreFileDraft() {
+        val saved = drafts.load(draftKey, ownerUserId)?.let {
+            runCatching { draftJson.decodeFromString<WritingFileDraft>(it) }.getOrNull()
+        } ?: return
+        val file = File(appContext.filesDir, saved.localName)
+        if (!file.isFile) return
+        draft = saved
+        selectedExt = saved.extension
+        _uiState.update { it.copy(previewUri = Uri.fromFile(file).toString(), selectedFileName = saved.displayName,
+            isPdfOriginal = saved.extension == "pdf") }
+    }
+
+    private fun discardDraft() {
+        if (drafts.userId() != ownerUserId) return
+        val previous = draft
+        draft = null
+        drafts.clear(draftKey)
+        // Clear metadata first; a crash must not leave a live draft pointing at a removed file.
+        viewModelScope.launch(Dispatchers.IO) {
+            drafts.flush()
+            previous?.let { File(appContext.filesDir, it.localName).delete() }
+        }
+    }
+
+    private suspend fun recordSubmission(atMillis: Long = System.currentTimeMillis()) {
+        val sid = submissionId ?: return
+        settlements.enqueue(StudyResult(
+            sessionId = "$sid:submitted", moduleId = "writing", isCompleted = true,
+            completedQuestionCount = 1, correctCount = 0, wrongCount = 0, skippedCount = 0,
+            accuracy = 0f, earnedTokens = 0, earnedDews = 5, studyDurationSec = 0,
+            vocabularyDelta = 0, wrongWordIds = emptyList(), completedAtMillis = atMillis
+        ), ownerUserId)
+    }
     private var selectedExt: String = "jpg"
     private var tokensEmitted = false
+    private var serverSubmittedAt: Long? = null
 
     fun initialize(args: PracticeAssignmentArgs) {
         if (args.moduleId != "writing") {
@@ -43,8 +93,10 @@ class WritingPracticeViewModel @Inject constructor(
         submissionId = args.submissionId
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            restoreFileDraft()
             runCatching {
                 val detail = repository.getDetail(args.submissionId)
+                serverSubmittedAt = detail.submittedAtEpochMs
                 assignmentId = detail.assignmentId
                 if (detail.status == "pending" || detail.status == "in_progress") {
                     runCatching { repository.start(args.submissionId) }
@@ -78,8 +130,13 @@ class WritingPracticeViewModel @Inject constructor(
                 )
             }.onSuccess { state ->
                 _uiState.value = state
+                if (state.status in setOf("submitted", "returned")) {
+                    if (draft?.submissionPending == true) recordSubmission(serverSubmittedAt ?: System.currentTimeMillis())
+                    discardDraft()
+                } else restoreFileDraft()
                 maybeEmitTokens(state)
             }.onFailure { error ->
+                if (error is CancellationException) throw error
                 _uiState.update {
                     it.copy(isLoading = false, errorMessage = error.message ?: "加载失败")
                 }
@@ -88,79 +145,87 @@ class WritingPracticeViewModel @Inject constructor(
     }
 
     fun onFilePicked(uri: Uri, displayName: String?) {
+        if (_uiState.value.isSubmitting || drafts.userId() != ownerUserId) return
         viewModelScope.launch {
             runCatching {
-                val bytes = appContext.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                    ?: throw IOException("无法读取文件")
-                if (bytes.size > 10 * 1024 * 1024) {
-                    error("文件不能超过 10MB")
-                }
                 val name = displayName ?: uri.lastPathSegment ?: "upload.jpg"
-                val ext = extensionFromName(name) ?: extensionFromMime(
-                    appContext.contentResolver.getType(uri)
-                ) ?: "jpg"
-                selectedBytes = bytes
+                val ext = extensionFromName(name) ?: extensionFromMime(appContext.contentResolver.getType(uri))
+                    ?: error("请选择 JPG、PNG、WebP 或 PDF 文件")
+                val saved = withContext(Dispatchers.IO) {
+                    val file = File(appContext.filesDir, "writing_draft_${UUID.randomUUID()}.$ext")
+                    try {
+                        appContext.contentResolver.openInputStream(uri)?.use { input ->
+                            file.outputStream().use { output ->
+                                val buffer = ByteArray(8192)
+                                var total = 0
+                                while (true) {
+                                    val read = input.read(buffer)
+                                    if (read < 0) break
+                                    total += read
+                                    require(total <= 10 * 1024 * 1024) { "文件不能超过 10MB" }
+                                    output.write(buffer, 0, read)
+                                }
+                                require(total > 0) { "文件为空" }
+                            }
+                        } ?: throw IOException("无法读取文件")
+                        WritingFileDraft(file.name, name, ext)
+                    } catch (error: Exception) { file.delete(); throw error }
+                }
+                check(drafts.userId() == ownerUserId) { "账号已变化，请重新进入作业" }
+                val previous = draft
+                draft = saved
                 selectedExt = ext
-                _uiState.update {
-                    it.copy(
-                        previewUri = uri.toString(),
-                        selectedFileName = name,
-                        errorMessage = null,
-                        isPdfOriginal = ext == "pdf"
-                    )
-                }
+                drafts.save(draftKey, draftJson.encodeToString(saved))
+                drafts.flush()
+                withContext(Dispatchers.IO) { previous?.let { File(appContext.filesDir, it.localName).delete() } }
+                _uiState.update { it.copy(previewUri = Uri.fromFile(File(appContext.filesDir, saved.localName)).toString(),
+                    selectedFileName = name, errorMessage = null, isPdfOriginal = ext == "pdf") }
             }.onFailure { error ->
-                selectedBytes = null
-                _uiState.update {
-                    it.copy(errorMessage = error.message ?: "读取文件失败")
-                }
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(errorMessage = error.message ?: "读取文件失败") }
             }
         }
     }
 
     fun clearSelection() {
-        selectedBytes = null
-        _uiState.update {
-            it.copy(previewUri = null, selectedFileName = null, errorMessage = null)
-        }
+        if (_uiState.value.isSubmitting) return
+        discardDraft()
+        _uiState.update { it.copy(previewUri = null, selectedFileName = null, errorMessage = null) }
     }
 
     fun submit() {
+        if (_uiState.value.isSubmitting || drafts.userId() != ownerUserId) return
         val sid = submissionId ?: return
         val aid = assignmentId ?: return
-        val bytes = selectedBytes
-        if (bytes == null) {
+        val saved = draft ?: run {
             _uiState.update { it.copy(errorMessage = "请先拍照或选择文件") }
             return
         }
+        _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isSubmitting = true, errorMessage = null) }
             runCatching {
-                val path = "$aid/$sid/original.$selectedExt"
-                repository.uploadWritingOriginal(path, bytes)
-                repository.submitWriting(sid, path)
-                path
+                draft = saved.copy(submissionPending = true)
+                drafts.save(draftKey, draftJson.encodeToString(requireNotNull(draft)))
+                drafts.flush()
+                // A timed-out request may already have succeeded; query before uploading again.
+                val detail = repository.getDetail(sid)
+                serverSubmittedAt = detail.submittedAtEpochMs
+                if (detail.status !in setOf("submitted", "returned")) {
+                    val path = "$aid/$sid/original.${saved.extension}"
+                    val bytes = withContext(Dispatchers.IO) { File(appContext.filesDir, saved.localName).readBytes() }
+                    repository.uploadWritingOriginal(path, bytes)
+                    repository.submitWriting(sid, path)
+                    path
+                } else detail.originalPath ?: error("作业已提交，请重新加载查看")
             }.onSuccess { path ->
+                recordSubmission(serverSubmittedAt ?: System.currentTimeMillis())
                 val url = runCatching { repository.createWritingSignedUrl(path) }.getOrNull()
-                _uiState.update {
-                    it.copy(
-                        isSubmitting = false,
-                        status = "submitted",
-                        originalSignedUrl = url,
-                        previewUri = null,
-                        selectedFileName = null,
-                        earnedDews = it.earnedDews + 5,
-                        isPdfOriginal = selectedExt == "pdf"
-                    )
-                }
-                selectedBytes = null
+                _uiState.update { it.copy(isSubmitting = false, status = "submitted", originalSignedUrl = url,
+                    previewUri = null, selectedFileName = null, earnedDews = 5, isPdfOriginal = saved.extension == "pdf") }
+                discardDraft()
             }.onFailure { error ->
-                _uiState.update {
-                    it.copy(
-                        isSubmitting = false,
-                        errorMessage = error.message ?: "提交失败"
-                    )
-                }
+                if (error is CancellationException) throw error
+                _uiState.update { it.copy(isSubmitting = false, errorMessage = "提交未确认，文件已保存，请重试或重新加载作业") }
             }
         }
     }
@@ -172,9 +237,8 @@ class WritingPracticeViewModel @Inject constructor(
         tokensEmitted = true
         val baseDews = 5
         val bonusDews = if (state.score != null && state.score >= 12) 5 else 0
-        _studyResults.tryEmit(
-            StudyResult(
-                sessionId = sid,
+        val result = StudyResult(
+                sessionId = "$sid:returned",
                 moduleId = "writing",
                 isCompleted = true,
                 completedQuestionCount = 1,
@@ -186,9 +250,13 @@ class WritingPracticeViewModel @Inject constructor(
                 earnedDews = baseDews + bonusDews,
                 studyDurationSec = 0,
                 vocabularyDelta = 0,
-                wrongWordIds = emptyList()
+                wrongWordIds = emptyList(),
+                countsTowardTasks = false
             )
-        )
+        viewModelScope.launch {
+            settlements.enqueue(result, ownerUserId)
+            _studyResults.emit(result)
+        }
     }
 
     private fun extensionFromName(name: String): String? {
@@ -213,3 +281,11 @@ class WritingPracticeViewModel @Inject constructor(
         }
     }
 }
+
+@Serializable
+private data class WritingFileDraft(
+    val localName: String,
+    val displayName: String,
+    val extension: String,
+    val submissionPending: Boolean = false
+)

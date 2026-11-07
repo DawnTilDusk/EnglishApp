@@ -85,7 +85,7 @@ fun AssetGallerySection(
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             ) {
-                Text(text = "教师商城")
+                Text(text = "逛逛机构商店")
             }
 
             // Bottom: Achievement Gallery

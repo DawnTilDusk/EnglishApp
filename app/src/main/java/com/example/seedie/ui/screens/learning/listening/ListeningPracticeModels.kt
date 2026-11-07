@@ -11,6 +11,7 @@ enum class ListeningPracticeStage {
     Error
 }
 
+@kotlinx.serialization.Serializable
 data class ListeningQuestionItem(
     val questionId: String,
     val questionType: String?,
@@ -21,6 +22,7 @@ data class ListeningQuestionItem(
     val explanation: String?
 )
 
+@kotlinx.serialization.Serializable
 data class ListeningMaterialItem(
     val materialId: String,
     val title: String,
@@ -33,11 +35,13 @@ data class ListeningMaterialItem(
     val questions: List<ListeningQuestionItem>
 )
 
+@kotlinx.serialization.Serializable
 data class ListeningPracticeSession(
     val sessionId: String,
     val materials: List<ListeningMaterialItem>
 )
 
+@kotlinx.serialization.Serializable
 data class ListeningPracticeUiState(
     val stage: ListeningPracticeStage = ListeningPracticeStage.Loading,
     val sessionId: String? = null,

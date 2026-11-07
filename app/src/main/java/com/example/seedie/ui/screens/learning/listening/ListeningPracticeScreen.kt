@@ -96,7 +96,24 @@ private fun ListeningPracticeRouteBody(
     val playbackScope = rememberCoroutineScope()
     val playback = remember { ListeningPlaybackController(context.applicationContext, playbackScope) }
     val audioState by playback.state.collectAsState()
-    DisposableEffect(playback) { onDispose { playback.release() } }
+    com.example.seedie.ui.components.PracticeLifecycle { active ->
+        viewModel.onScreenActive(active)
+        if (!active) {
+            playback.pause()
+            viewModel.savePlayback(playback.snapshot())
+        }
+    }
+    LaunchedEffect(uiState.sessionId) {
+        if (uiState.sessionId != null) viewModel.playbackSnapshot?.let(playback::restore)
+    }
+    LaunchedEffect(playback) {
+        while (true) {
+            kotlinx.coroutines.delay(1000)
+            viewModel.savePlayback(playback.snapshot())
+        }
+    }
+
+    DisposableEffect(playback) { onDispose { viewModel.savePlayback(playback.snapshot()); playback.release() } }
     LaunchedEffect(uiState.stage) {
         if (uiState.stage == ListeningPracticeStage.Completed || uiState.stage == ListeningPracticeStage.Error) playback.stop()
     }
@@ -148,7 +165,13 @@ private fun ListeningPracticeRouteBody(
         onQuestionPageSelected = viewModel::onQuestionPageSelected,
         onSubmitFreePractice = viewModel::onSubmitFreePractice,
         onReviewAnswers = viewModel::onReviewAnswers,
-        onReplayAudio = viewModel::onReplayAudio,
+        onReplayAudio = {
+            when {
+                audioState.playing -> playback.pause()
+                audioState.paused -> playback.resume()
+                else -> viewModel.onReplayAudio()
+            }
+        },
         onRetryLoad = viewModel::onRetryLoad,
         onFinishSession = viewModel::onFinishSession
     )
@@ -340,6 +363,7 @@ private fun ListeningQuestionContent(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            com.example.seedie.ui.components.ContentFeedbackButton("listening", uiState.currentQuestion?.questionId.orEmpty())
             IconButton(onClick = onBackClick) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
             }

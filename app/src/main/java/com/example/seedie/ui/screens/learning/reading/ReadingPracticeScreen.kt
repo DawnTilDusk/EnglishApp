@@ -55,6 +55,7 @@ fun ReadingPracticeRoute(
 ) {
     PlantSessionGate { speciesId ->
         val uiState by viewModel.uiState.collectAsState()
+    com.example.seedie.ui.components.PracticeLifecycle(viewModel::onScreenActive)
 
         LaunchedEffect(assignmentArgs?.submissionId, assignmentArgs?.mode, freeArgs?.itemRef, speciesId) {
             viewModel.setSelectedSpeciesId(speciesId)
@@ -200,6 +201,7 @@ private fun ReadingPracticeScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    com.example.seedie.ui.components.ContentFeedbackButton("reading", set.setId)
                     Text(
                         text = "${uiState.elapsedSeconds}s",
                         style = MaterialTheme.typography.labelLarge

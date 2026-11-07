@@ -10,15 +10,14 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-// 花园主题软阴影：取品牌主色 PrimaryGreen 生机绿 8% 透明度，
-// 让卡片投影仍然带着小芽的绿意，视觉上和主题主色保持同一情绪
-private val GardenShadowTint = Color(0x1466BB6A) // 8% 透明度的 PrimaryGreen 生机绿
+// 低透明度的绿色软阴影，保持卡片层次轻盈。
+private val GardenShadowTint = Color(0x102C4932)
 
 /**
- * 自定义软阴影扩展，符合 Garden 主题的 8% 透明度绿色阴影
+ * 自定义软阴影扩展，使用 Garden 主题的淡绿色阴影
  */
 fun Modifier.gardenShadow(
-    elevation: Dp = 8.dp,
+    elevation: Dp = 3.dp,
     shape: Shape = RoundedCornerShape(24.dp),
     clip: Boolean = false
 ): Modifier = this.shadow(
