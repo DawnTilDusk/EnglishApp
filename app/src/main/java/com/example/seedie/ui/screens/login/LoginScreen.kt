@@ -40,7 +40,7 @@ internal fun LoginContent(email: String, password: String, phone: String, loadin
     emailValid: Boolean, phoneValid: Boolean, onEmail: (String) -> Unit, onPassword: (String) -> Unit,
     onPhone: (String) -> Unit, onLogin: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).imePadding().safeDrawingPadding()) {
-        val wide = maxWidth >= 820.dp
+        val wide = this.maxWidth >= 820.dp
         Row(Modifier.fillMaxSize().padding(if (wide) 36.dp else 20.dp),
             verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(48.dp)) {
             if (wide) Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(18.dp),

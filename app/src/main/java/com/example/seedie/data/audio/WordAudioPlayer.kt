@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFocusRequest
 import android.media.AudioManager
+import android.os.Build
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.annotation.RawRes
@@ -28,6 +29,7 @@ class WordAudioPlayer(context: Context) {
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private var audioFocusRequest: AudioFocusRequest? = null
+    private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
     private var hasAudioFocus = false
     private var resumeWhenFocusReturns = false
     private var onStreamPlaybackFailed: (() -> Unit)? = null
@@ -225,49 +227,59 @@ class WordAudioPlayer(context: Context) {
             return true
         }
 
-        val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-            .setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                    .build()
-            )
-            .setOnAudioFocusChangeListener { focusChange ->
-                when (focusChange) {
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                        resumeWhenFocusReturns =
-                            streamPlayer.isPlaying || rawPlayer?.isPlaying == true
-                        logDebug("audio focus lost temporarily; pause=$resumeWhenFocusReturns")
-                        rawPlayer?.pause()
-                        streamPlayer.pause()
-                        _isPlaying.value = false
+        val focusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+            when (focusChange) {
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                    resumeWhenFocusReturns =
+                        streamPlayer.isPlaying || rawPlayer?.isPlaying == true
+                    logDebug("audio focus lost temporarily; pause=$resumeWhenFocusReturns")
+                    rawPlayer?.pause()
+                    streamPlayer.pause()
+                    _isPlaying.value = false
+                }
+                AudioManager.AUDIOFOCUS_LOSS -> {
+                    logDebug("audio focus lost permanently")
+                    rawPlayer?.pause()
+                    streamPlayer.pause()
+                    _isPlaying.value = false
+                    resumeWhenFocusReturns = false
+                    hasAudioFocus = false
+                    audioFocusRequest = null
+                    audioFocusListener = null
+                }
+                AudioManager.AUDIOFOCUS_GAIN -> {
+                    if (resumeWhenFocusReturns) {
+                        logDebug("audio focus regained; resume playback")
+                        runCatching { rawPlayer?.start() }
+                        streamPlayer.play()
                     }
-                    AudioManager.AUDIOFOCUS_LOSS -> {
-                        logDebug("audio focus lost permanently")
-                        rawPlayer?.pause()
-                        streamPlayer.pause()
-                        _isPlaying.value = false
-                        resumeWhenFocusReturns = false
-                        hasAudioFocus = false
-                        audioFocusRequest = null
-                    }
-                    AudioManager.AUDIOFOCUS_GAIN -> {
-                        if (resumeWhenFocusReturns) {
-                            logDebug("audio focus regained; resume playback")
-                            runCatching { rawPlayer?.start() }
-                            streamPlayer.play()
-                        }
-                        resumeWhenFocusReturns = false
-                    }
+                    resumeWhenFocusReturns = false
                 }
             }
-            .build()
-
-        audioFocusRequest = focusRequest
-        val result = audioManager.requestAudioFocus(focusRequest)
+        }
+        audioFocusListener = focusListener
+        val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val focusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                .setOnAudioFocusChangeListener(focusListener)
+                .build()
+            audioFocusRequest = focusRequest
+            audioManager.requestAudioFocus(focusRequest)
+        } else {
+            @Suppress("DEPRECATION")
+            audioManager.requestAudioFocus(
+                focusListener, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
+            )
+        }
         hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
         if (!hasAudioFocus) {
             audioFocusRequest = null
+            audioFocusListener = null
         }
         logDebug("request audio focus result=$result granted=$hasAudioFocus")
         return hasAudioFocus
@@ -275,9 +287,15 @@ class WordAudioPlayer(context: Context) {
 
     private fun abandonAudioFocus() {
         if (!hasAudioFocus) return
-        audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
+        } else {
+            @Suppress("DEPRECATION")
+            audioFocusListener?.let { audioManager.abandonAudioFocus(it) }
+        }
         hasAudioFocus = false
         audioFocusRequest = null
+        audioFocusListener = null
         resumeWhenFocusReturns = false
     }
 

@@ -52,7 +52,7 @@ fun VideoLessonPlayerRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, UnstableApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoLessonPlayerScreen(
     title: String,
@@ -107,7 +107,7 @@ fun VideoLessonPlayerScreen(
     }
 }
 
-@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(markerClass = [UnstableApi::class])
 @Composable
 private fun LessonVideoPlayer(
     url: String,
